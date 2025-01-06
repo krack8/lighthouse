@@ -2,50 +2,45 @@ package k8s_test
 
 import (
 	"context"
+	"github.com/krack8/lighthouse/pkg/k8s"
 	v1 "k8s.io/api/core/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 )
 
 func TestListNamespaces(t *testing.T) {
-	// Create a fake Kubernetes client
-	clientset := fake.NewSimpleClientset()
+	// Mock the Kubernetes client using a fake client
+	clientset := fake.NewClientset()
 
-	// Add mock namespaces to the fake client
-	mockNamespaces := []string{"default", "kube-system", "test-namespace"}
-	for _, ns := range mockNamespaces {
+	// Create mock namespaces
+	namespaceNames := []string{"default", "kube-system", "test-namespace"}
+	for _, ns := range namespaceNames {
 		_, err := clientset.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{Name: ns},
 		}, metav1.CreateOptions{})
 		if err != nil {
-			t.Fatalf("Failed to create mock namespace: %v", err)
+			t.Fatalf("Failed to create namespace: %v", err)
 		}
 	}
 
-	// List namespaces using the fake client
-	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	// Fetch namespaces using FetchNamespaces function
+	fetchedNamespaces, err := k8s.ListNamespaces(clientset)
 	if err != nil {
-		t.Fatalf("Failed to list namespaces: %v", err)
+		t.Fatalf("FetchNamespaces failed: %v", err)
 	}
 
-	// Verify that the namespaces match the expected mock namespaces
-	var namespaceNames []string
-	for _, ns := range namespaces.Items {
-		namespaceNames = append(namespaceNames, ns.Name)
-	}
-
-	for _, expected := range mockNamespaces {
+	// Validate the fetched namespaces
+	for _, expected := range namespaceNames {
 		found := false
-		for _, actual := range namespaceNames {
+		for _, actual := range fetchedNamespaces {
 			if expected == actual {
 				found = true
 				break
 			}
 		}
 		if !found {
-			t.Errorf("Expected namespace %s not found in the list", expected)
+			t.Errorf("Expected namespace %q not found", expected)
 		}
 	}
 }

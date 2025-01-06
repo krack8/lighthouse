@@ -25,17 +25,19 @@ func InitClient() {
 	}
 }
 
-func ListNamespaces() []string {
-	var namespaceList []string
+func GetClientset() *kubernetes.Clientset {
+	return clientset
+}
 
+func ListNamespaces(clientset kubernetes.Interface) ([]string, error) {
 	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		panic(fmt.Sprintf("Failed to list namespaces: %v", err))
+		return nil, fmt.Errorf("failed to list namespaces: %w", err)
 	}
 
+	var namespaceNames []string
 	for _, ns := range namespaces.Items {
-		namespaceList = append(namespaceList, ns.Name)
+		namespaceNames = append(namespaceNames, ns.Name)
 	}
-
-	return namespaceList
+	return namespaceNames, nil
 }
