@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "pkg/common/pb";
+
+// The Controller service supports a bidirectional stream called TaskStream.
+// - The Worker sends TaskStreamRequests (which can be "I am a new worker" or "Here is my task result").
+// - The Controller sends TaskStreamResponses (which can be "Here is a new task" or just an ack).
+
+service Controller {
+  rpc TaskStream(stream TaskStreamRequest) returns (stream TaskStreamResponse);
+}
+
+// A worker can send two kinds of messages in the stream:
+//  1) WorkerIdentification: "I belong to group X, here is my auth token"
+//  2) TaskResult: "I finished task <task_id>, here is the result"
+message TaskStreamRequest {
+  oneof payload {
+    WorkerIdentification worker_info = 1;
+    TaskResult task_result = 2;
+  }
+}
+
+message WorkerIdentification {
+  string group_name = 1;
+  string auth_token = 2; // could be a token or JWT, etc.
+}
+
+message TaskResult {
+  string task_id = 1;
+  bool success = 2;
+  string output = 3;
+}
+
+// The controller can send two kinds of messages back to the worker:
+//  1) Task: "Please execute this task with ID <task_id> and some payload"
+//  2) Ack:  "Acknowledgement for something, or simple keepalive"
+message TaskStreamResponse {
+  oneof payload {
+    Task new_task = 1;
+    Ack ack = 2;
+  }
+}
+
+message Task {
+  string id = 1;
+  string name = 2;
+  string payload = 3;
+}
+
+message Ack {
+  string message = 1;
+}
