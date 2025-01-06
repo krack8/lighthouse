@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,7 +10,25 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+type ResponseDTO struct {
+	Status string      `json:"status"`
+	Msg    string      `json:"msg,omitempty"`
+	Data   interface{} `json:"data,omitempty"`
+}
+
 var clientset *kubernetes.Clientset
+var (
+	ErrorUnstructuredNil   = errors.New("unstructured CustomResource is nil")
+	ErrorFieldEmptyStr     = " field empty"
+	ErrorFieldMismatch     = " field mismatched"
+	ErrorNamespaceMismatch = "namespace mismatched"
+)
+
+const (
+	RUNNING = "Running"
+	FAILED  = "Failed"
+	PENDING = "Pending"
+)
 
 func InitClient() {
 	// Load kubeconfig
