@@ -10,9 +10,9 @@ cd pkg/controller
 go run main.go
 ```
 
-Run Worker
+Run Agent
 ```azure
-cd pkg/worker
+cd pkg/agent
 go run main.go
 ```
 
