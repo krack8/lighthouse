@@ -17,6 +17,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Install Helm
+      - name: Install Helm
+        run: |
+          curl -LO "https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz"
+          tar -zxvf helm-v3.14.0-linux-amd64.tar.gz
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+          helm version
+
+      # Install Kind
+      - name: Install Kind
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          kind version
+
+      # Create a Kind Cluster
+      - name: Create Kind Cluster
+        run: |
+          kind create cluster --name lighthouse
+
       # Set up Go environment
       - name: Setup Go
         uses: actions/setup-go@v4
