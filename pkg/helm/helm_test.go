@@ -4,7 +4,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/helm"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func TestHelm(t *testing.T) {
@@ -57,13 +56,23 @@ func TestHelm(t *testing.T) {
 		assert.NotNil(t, release)
 	})
 
-	t.Run("list releases", func(t *testing.T) {
+	t.Run("list releases - 1", func(t *testing.T) {
 		releases, err := helmClient.ListReleases(false)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, releases)
 	})
 
-	time.Sleep(5 * time.Second)
+	t.Run("get release details", func(t *testing.T) {
+		release, err := helmClient.GetReleaseDetails("kni")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, release)
+	})
+
+	t.Run("list revisions", func(t *testing.T) {
+		revisions, err := helmClient.ListRevisions("kni")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, revisions)
+	})
 
 	t.Run("uninstall chart", func(t *testing.T) {
 		resp, err := helmClient.UninstallChart("kni")
@@ -71,7 +80,7 @@ func TestHelm(t *testing.T) {
 		assert.NotNil(t, resp)
 	})
 
-	t.Run("list releases", func(t *testing.T) {
+	t.Run("list releases - 2", func(t *testing.T) {
 		releases, err := helmClient.ListReleases(false)
 		assert.NoError(t, err)
 		assert.Empty(t, releases)
