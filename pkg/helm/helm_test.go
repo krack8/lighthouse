@@ -38,8 +38,14 @@ func TestHelm(t *testing.T) {
 		assert.NotEmpty(t, charts)
 	})
 
+	t.Run("list charts", func(t *testing.T) {
+		charts, err := helmClient.SearchChart("nginx-stable", "nginx-ingress")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, charts)
+	})
+
 	t.Run("install chart", func(t *testing.T) {
-		release, err := helmClient.InstallChart(
+		release, err := helmClient.InstallOrUpgradeChart(
 			"nginx-stable",  // Repository name
 			"nginx-ingress", // Chart name
 			"2.0.0",         // Chart version

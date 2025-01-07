@@ -76,28 +76,8 @@ func (h *HelmClient) ListReleases(allNamespaces bool) ([]*release.Release, error
 	return list.Run()
 }
 
-// InstallOrUpgradeChart installs or upgrades a Helm chart
-func (h *HelmClient) InstallOrUpgradeChart(chartPath, releaseName string, values map[string]interface{}) (*release.Release, error) {
-	client := action.NewInstall(h.config)
-	client.ReleaseName = releaseName
-	client.Namespace = h.settings.Namespace()
-
-	chart, err := loader.Load(chartPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load chart: %w", err)
-	}
-
-	return client.Run(chart, values)
-}
-
-// UninstallChart uninstalls a Helm release
-func (h *HelmClient) UninstallChart(releaseName string) (*release.UninstallReleaseResponse, error) {
-	client := action.NewUninstall(h.config)
-	return client.Run(releaseName)
-}
-
-// InstallChart installs a Helm chart with the specified repo, chart, and version
-func (h *HelmClient) InstallChart(repoName, chartName, chartVersion, releaseName, namespace string, values map[string]interface{}) (*release.Release, error) {
+// InstallOrUpgradeChart installs a Helm chart with the specified repo, chart, and version
+func (h *HelmClient) InstallOrUpgradeChart(repoName, chartName, chartVersion, releaseName, namespace string, values map[string]interface{}) (*release.Release, error) {
 	// Load the repository configuration
 	repoFile := h.settings.RepositoryConfig
 	repositories, err := repo.LoadFile(repoFile)
@@ -192,6 +172,12 @@ func (h *HelmClient) ListRepos() ([]*repo.Entry, error) {
 	}
 
 	return repositories.Repositories, nil
+}
+
+// UninstallChart uninstalls a Helm release
+func (h *HelmClient) UninstallChart(releaseName string) (*release.UninstallReleaseResponse, error) {
+	client := action.NewUninstall(h.config)
+	return client.Run(releaseName)
 }
 
 // AddRepo adds a new Helm repository
