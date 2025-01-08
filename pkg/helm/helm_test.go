@@ -96,6 +96,18 @@ func TestHelm(t *testing.T) {
 		assert.NotEmpty(t, revisions)
 	})
 
+	t.Run("get current revision details", func(t *testing.T) {
+		revision, err := helmClient.GetCurrentRevisionDetails("kni")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, revision)
+	})
+
+	t.Run("get a specific revision details", func(t *testing.T) {
+		revision, err := helmClient.GetRevisionDetails("kni", 1)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, revision)
+	})
+
 	t.Run("uninstall chart", func(t *testing.T) {
 		resp, err := helmClient.UninstallChart("kni")
 		assert.NoError(t, err)

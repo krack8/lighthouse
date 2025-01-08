@@ -454,6 +454,51 @@ func (h *HelmClient) ListRevisions(releaseName string) ([]*release.Release, erro
 	return revisions, nil
 }
 
+// GetCurrentRevisionDetails returns the details of current revision
+func (h *HelmClient) GetCurrentRevisionDetails(releaseName string) (*release.Release, error) {
+	// Create a new Get action for fetching release details
+	getAction := action.NewGet(h.config)
+
+	// Fetch the current (latest) release details
+	releaseDetails, err := getAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current release details for %s: %w", releaseName, err)
+	}
+
+	// Return the details of the current (latest) revision
+	return releaseDetails, nil
+}
+
+// GetRevisionDetails returns the details of a revision
+func (h *HelmClient) GetRevisionDetails(releaseName string, revision int) (*release.Release, error) {
+	// Create a new History action for fetching release history
+	historyAction := action.NewHistory(h.config)
+	historyAction.Max = 0 // Retrieve all revisions (unlimited)
+
+	// Fetch all the revisions for the given release
+	revisions, err := historyAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get history for release %s: %w", releaseName, err)
+	}
+
+	// Iterate through the revisions to find the requested revision
+	var revisionDetails *release.Release
+	for _, r := range revisions {
+		if r.Version == revision {
+			revisionDetails = r
+			break
+		}
+	}
+
+	// If the specified revision is not found, return an error
+	if revisionDetails == nil {
+		return nil, fmt.Errorf("revision %d not found for release %s", revision, releaseName)
+	}
+
+	// Return the details of the specified revision
+	return revisionDetails, nil
+}
+
 // GetCurrentAppliedValues fetches the applied values of current revision
 func (h *HelmClient) GetCurrentAppliedValues(releaseName string) (map[string]interface{}, error) {
 	// Create a new Get action for fetching the release details
