@@ -43,6 +43,12 @@ func TestHelm(t *testing.T) {
 		assert.NotEmpty(t, charts)
 	})
 
+	t.Run("get chart values", func(t *testing.T) {
+		chartValues, err := helmClient.GetChartValues("nginx-stable", "nginx-ingress", "2.0.0")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, chartValues)
+	})
+
 	t.Run("install chart", func(t *testing.T) {
 		release, err := helmClient.InstallOrUpgradeChart(
 			"nginx-stable",  // Repository name
@@ -50,10 +56,26 @@ func TestHelm(t *testing.T) {
 			"2.0.0",         // Chart version
 			"kni",           // Release name
 			"default",       // Namespace
-			nil,             // Values map
+			map[string]interface{}{
+				"controller": map[string]interface{}{
+					"replicaCount": 2,
+				},
+			}, // Values map
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, release)
+	})
+
+	t.Run("get applied values of current revision", func(t *testing.T) {
+		chartValues, err := helmClient.GetCurrentAppliedValues("kni")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, chartValues)
+	})
+
+	t.Run("get applied values of a specific revision", func(t *testing.T) {
+		chartValues, err := helmClient.GetAppliedValues("kni", 1)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, chartValues)
 	})
 
 	t.Run("list releases - 1", func(t *testing.T) {
