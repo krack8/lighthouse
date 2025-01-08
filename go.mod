@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.0
 	github.com/kubernetes-csi/external-snapshotter/client/v6 v6.3.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -68,7 +69,6 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

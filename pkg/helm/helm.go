@@ -9,6 +9,7 @@ import (
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -218,6 +219,7 @@ func (h *HelmClient) RemoveRepo(name string) error {
 	return repositories.WriteFile(repoFile, 0644)
 }
 
+// ListChartsInRepo list all charts and versions of a repo
 func (h *HelmClient) ListChartsInRepo(repoName string) (map[string]repo.ChartVersions, error) {
 	repoFile := h.settings.RepositoryConfig
 
@@ -260,6 +262,125 @@ func (h *HelmClient) ListChartsInRepo(repoName string) (map[string]repo.ChartVer
 
 	// Return the charts (keyed by chart name, each containing its versions)
 	return indexFile.Entries, nil
+}
+
+// GetChartValues fetches the values of a chart
+func (h *HelmClient) GetChartValues(repoName, chartName, chartVersion string) (map[string]interface{}, error) {
+	// Load the repository configuration
+	repoFile := h.settings.RepositoryConfig
+	repositories, err := repo.LoadFile(repoFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load repositories file: %w", err)
+	}
+
+	// Find the specified repository
+	var foundEntry *repo.Entry
+	for _, entry := range repositories.Repositories {
+		if entry.Name == repoName {
+			foundEntry = entry
+			break
+		}
+	}
+
+	if foundEntry == nil {
+		return nil, fmt.Errorf("repository %q not found", repoName)
+	}
+
+	// Initialize the repository
+	chartRepo, err := repo.NewChartRepository(foundEntry, getter.All(h.settings))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create chart repository: %w", err)
+	}
+
+	// Download the index file to locate the chart
+	tempDir, err := os.MkdirTemp("", "helm-repo")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	var indexFilePath string
+	if indexFilePath, err = chartRepo.DownloadIndexFile(); err != nil {
+		return nil, fmt.Errorf("failed to download index file: %w", err)
+	}
+
+	indexFile, err := repo.LoadIndexFile(indexFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load index file: %w", err)
+	}
+
+	// Find the chart version in the index
+	chartVersions, exists := indexFile.Entries[chartName]
+	if !exists {
+		return nil, fmt.Errorf("chart %q not found in repository %q", chartName, repoName)
+	}
+
+	var chartURL string
+	for _, version := range chartVersions {
+		if version.Version == chartVersion {
+			chartURL = version.URLs[0]
+			break
+		}
+	}
+
+	if chartURL == "" {
+		return nil, fmt.Errorf("chart %q with version %q not found in repository %q", chartName, chartVersion, repoName)
+	}
+
+	// Download the chart archive
+	chartPath := filepath.Join(tempDir, "chart.tgz")
+	chartURL, err = repo.ResolveReferenceURL(foundEntry.URL, chartURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve chart url: %w", err)
+	}
+
+	// Use Helm's getter to download the chart
+	err = h.DownloadChart(chartURL, chartPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download chart: %w", err)
+	}
+
+	// Defer cleanup to delete the file after use
+	defer func() {
+		if err := os.Remove(chartPath); err != nil {
+			fmt.Printf("Failed to delete downloaded chart: %v\n", err)
+		}
+	}()
+
+	// Load the chart
+	chart, err := loader.Load(chartPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load chart: %w", err)
+	}
+
+	// Return the chart's default values
+	return chart.Values, nil
+}
+
+// DownloadChart downloads a Helm chart from a given URL and saves it to a specified path
+func (h *HelmClient) DownloadChart(chartURL, chartPath string) error {
+	// Get the getter providers
+	getters := getter.All(h.settings)
+
+	// Resolve the appropriate getter for the URL (e.g., http/https/file)
+	provider, err := getters.ByScheme("http")
+	if err != nil {
+		return fmt.Errorf("failed to get provider: %w", err)
+	}
+
+	// Download the chart
+	data, err := provider.Get(chartURL)
+	if err != nil {
+		return fmt.Errorf("failed to download chart: %w", err)
+	}
+
+	// Save the downloaded chart to the local path
+	err = os.WriteFile(chartPath, data.Bytes(), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write chart file: %w", err)
+	}
+
+	return nil
 }
 
 // SearchChart searches for a chart in a Helm repository by name
@@ -331,6 +452,90 @@ func (h *HelmClient) ListRevisions(releaseName string) ([]*release.Release, erro
 		return nil, fmt.Errorf("failed to get revisions for release %s: %w", releaseName, err)
 	}
 	return revisions, nil
+}
+
+// GetCurrentRevisionDetails returns the details of current revision
+func (h *HelmClient) GetCurrentRevisionDetails(releaseName string) (*release.Release, error) {
+	// Create a new Get action for fetching release details
+	getAction := action.NewGet(h.config)
+
+	// Fetch the current (latest) release details
+	releaseDetails, err := getAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current release details for %s: %w", releaseName, err)
+	}
+
+	// Return the details of the current (latest) revision
+	return releaseDetails, nil
+}
+
+// GetRevisionDetails returns the details of a revision
+func (h *HelmClient) GetRevisionDetails(releaseName string, revision int) (*release.Release, error) {
+	// Create a new History action for fetching release history
+	historyAction := action.NewHistory(h.config)
+	historyAction.Max = 0 // Retrieve all revisions (unlimited)
+
+	// Fetch all the revisions for the given release
+	revisions, err := historyAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get history for release %s: %w", releaseName, err)
+	}
+
+	// Iterate through the revisions to find the requested revision
+	var revisionDetails *release.Release
+	for _, r := range revisions {
+		if r.Version == revision {
+			revisionDetails = r
+			break
+		}
+	}
+
+	// If the specified revision is not found, return an error
+	if revisionDetails == nil {
+		return nil, fmt.Errorf("revision %d not found for release %s", revision, releaseName)
+	}
+
+	// Return the details of the specified revision
+	return revisionDetails, nil
+}
+
+// GetCurrentAppliedValues fetches the applied values of current revision
+func (h *HelmClient) GetCurrentAppliedValues(releaseName string) (map[string]interface{}, error) {
+	// Create a new Get action for fetching the release details
+	getAction := action.NewGet(h.config)
+
+	// Fetch the current release details
+	releaseDetails, err := getAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release details for %s: %w", releaseName, err)
+	}
+
+	// Extract the applied values from the release details
+	appliedValues := releaseDetails.Config
+
+	return appliedValues, nil
+}
+
+// GetAppliedValues fetches the applied values of a specific revision
+func (h *HelmClient) GetAppliedValues(releaseName string, revision int) (map[string]interface{}, error) {
+	// Create a new Get action for fetching release details
+	getAction := action.NewGet(h.config)
+
+	// Fetch the release details for the specific revision
+	releaseDetails, err := getAction.Run(releaseName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release details for %s: %w", releaseName, err)
+	}
+
+	// Check if the requested revision matches
+	if revision > 0 && releaseDetails.Version != revision {
+		return nil, fmt.Errorf("release %s is not at revision %d", releaseName, revision)
+	}
+
+	// Extract the applied values
+	appliedValues := releaseDetails.Config
+
+	return appliedValues, nil
 }
 
 // RollbackRelease rolls back a release to a specified revision
