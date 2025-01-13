@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/routes"
+	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
+	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
-	"google.golang.org/grpc"
 )
 
 // workerConnection represents one worker's active streaming connection.
@@ -216,6 +218,20 @@ func main() {
 			log.Fatalf("Failed to serve gRPC: %v", err)
 		}
 	}()
+
+	// Load environment variables
+	config.LoadEnv()
+
+	// Connect to MongoDB
+	client, ctx, cancel := config.ConnectDB()
+	defer cancel()
+	defer client.Disconnect(ctx)
+
+	// Initialize router
+	router := mux.NewRouter()
+
+	// Register user routes
+	routes.RegisterUserRoutes(router)
 
 	// Start HTTP server
 	http.HandleFunc("/execute", srv.httpExecuteHandler)
