@@ -3,6 +3,7 @@ package helm_test
 import (
 	"github.com/krack8/lighthouse/pkg/helm"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -125,4 +126,37 @@ func TestHelm(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("git clone", func(t *testing.T) {
+		repoClonePath, err := helm.CloneGitRepo("lighthouse", "https://github.com/krack8/lighthouse.git", "main", "", "")
+		assert.NoError(t, err)
+		assert.NotNil(t, repoClonePath)
+
+		_, err = os.Stat(*repoClonePath)
+		assert.NoError(t, err)
+
+		if repoClonePath != nil {
+			err = os.RemoveAll(*repoClonePath)
+			assert.NoError(t, err)
+		}
+	})
+
+	t.Run("add git repo as helm repo", func(t *testing.T) {
+		err := helmClient.AddGitRepoAsHelmRepo("lighthouse-nginx", "https://github.com/krack8/lighthouse.git", "helm-functions", "helm/Charts/nginx", "", "")
+		assert.NoError(t, err)
+	})
+
+	t.Run("create application from git helm repo", func(t *testing.T) {
+		err := helmClient.AddGitRepoAsHelmRepo("lighthouse-nginx", "https://github.com/krack8/lighthouse.git", "helm-functions", "helm", "", "")
+		assert.NoError(t, err)
+
+		release, err := helmClient.CreateApplication("lighthouse-nginx", "nginx", "lighthouse-nginx", "default", map[string]interface{}{"replicaCount": 3})
+		assert.NoError(t, err)
+		assert.NotNil(t, release)
+	})
+
+	/*t.Run("uninstall application", func(t *testing.T) {
+		resp, err := helmClient.UninstallChart("lighthouse-nginx")
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+	})*/
 }
