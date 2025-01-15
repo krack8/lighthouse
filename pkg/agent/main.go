@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/k8s"
+	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"time"
@@ -16,6 +18,7 @@ func main() {
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
 	authToken := "my-secret"
+	tasks.InitTaskRegistry()
 
 	// Dial the controller's gRPC server.
 	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -64,8 +67,13 @@ func main() {
 
 				// Here is where you do the actual business logic.
 				// We'll just pretend to do some work and return a result.
-				go func(taskID, taskPayload string) {
+				go func(taskID, taskPayload string, task *pb.Task) {
 					// Simulate some processing time.
+					newTask := tasks.TaskRegistry[task.Name]
+					execute, _ := newTask.TaskFunc.(func(context.Context, k8s.GetNamespaceListInputParams) (interface{}, error))
+					res, err := execute(context.Background(), k8s.GetNamespaceListInputParams{})
+					if err != nil {
+					}
 					time.Sleep(2 * time.Second)
 
 					// Build the result.
@@ -74,7 +82,7 @@ func main() {
 							TaskResult: &pb.TaskResult{
 								TaskId:  taskID,
 								Success: true,
-								Output:  fmt.Sprintf("Processed payload: %s", taskPayload),
+								Output:  fmt.Sprintf("Processed payload: %s", res),
 							},
 						},
 					}
@@ -83,7 +91,7 @@ func main() {
 					if err := stream.Send(resultMsg); err != nil {
 						log.Printf("Failed to send task result: %v", err)
 					}
-				}(task.Id, task.Payload)
+				}(task.Id, task.Payload, task)
 
 			case *pb.TaskStreamResponse_Ack:
 				log.Printf("Worker received an ACK from server: %s", payload.Ack.Message)

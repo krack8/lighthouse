@@ -121,7 +121,7 @@ func (s *serverImpl) removeWorker(w *workerConnection) {
 
 // sendTaskToWorker sends a task down a particular worker’s stream.
 // Returns a channel on which the result will be delivered.
-func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string) (<-chan *pb.TaskResult, error) {
+func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string, taskName string) (<-chan *pb.TaskResult, error) {
 	// Generate a task ID.
 	taskID := uuid.NewString()
 
@@ -137,7 +137,7 @@ func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string) (<-ch
 		Payload: &pb.TaskStreamResponse_NewTask{
 			NewTask: &pb.Task{
 				Id:      taskID,
-				Name:    "TASK_NAME",
+				Name:    taskName,
 				Payload: payload,
 			},
 		},
@@ -179,8 +179,8 @@ func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "No worker in group "+group, http.StatusServiceUnavailable)
 		return
 	}
-
-	resultCh, err := s.sendTaskToWorker(worker, payload)
+	taskName := "GetNamespaceList"
+	resultCh, err := s.sendTaskToWorker(worker, payload, taskName)
 	if err != nil {
 		http.Error(w, "Failed to send task to worker: "+err.Error(), http.StatusInternalServerError)
 		return
