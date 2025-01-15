@@ -615,19 +615,19 @@ func CloneGitRepo(name, gitURL, revision, username, password string) (*string, e
 	return &tempDir, nil
 }
 
-func (h *HelmClient) AddGitRepoAsHelmRepo(name, gitURL, revision, subPath, username, password string) error {
-	tempDir, err := CloneGitRepo(name, gitURL, revision, username, password)
+func (h *HelmClient) AddGitRepoAsHelmRepo(name, gitURL, revision, subPath, username, password string) (*string, error) {
+	gitCloneDir, err := CloneGitRepo(name, gitURL, revision, username, password)
 	if err != nil {
-		return fmt.Errorf("failed to create temporary directory: %w", err)
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 
 	// clean up
-	defer os.RemoveAll(*tempDir)
+	//defer os.RemoveAll(*tempDir)
 
 	// Verify the subpath exists
-	chartRootPath := filepath.Join(*tempDir, subPath)
+	chartRootPath := filepath.Join(*gitCloneDir, subPath)
 	if _, err := os.Stat(chartRootPath); os.IsNotExist(err) {
-		return fmt.Errorf("subpath %q does not exist in the Git repository", subPath)
+		return nil, fmt.Errorf("subpath %q does not exist in the Git repository", subPath)
 	}
 
 	// Find the Chart.yaml to verify it's a valid chart repo
@@ -640,7 +640,7 @@ func (h *HelmClient) AddGitRepoAsHelmRepo(name, gitURL, revision, subPath, usern
 	repoFile := h.settings.RepositoryConfig
 	repositories, err := repo.LoadFile(repoFile)
 	if err != nil {
-		return fmt.Errorf("failed to load repositories file: %w", err)
+		return nil, fmt.Errorf("failed to load repositories file: %w", err)
 	}
 
 	entry := &repo.Entry{
@@ -650,10 +650,10 @@ func (h *HelmClient) AddGitRepoAsHelmRepo(name, gitURL, revision, subPath, usern
 
 	repositories.Update(entry)
 	if err := repositories.WriteFile(repoFile, 0644); err != nil {
-		return fmt.Errorf("failed to write repositories file: %w", err)
+		return nil, fmt.Errorf("failed to write repositories file: %w", err)
 	}
 
-	return nil
+	return gitCloneDir, nil
 }
 
 func (h *HelmClient) CreateApplication(repoName, chartPath, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
@@ -661,8 +661,28 @@ func (h *HelmClient) CreateApplication(repoName, chartPath, releaseName string, 
 	client.ReleaseName = releaseName
 	client.Namespace = namespace
 
+	// Load the repository configuration
+	repoFile := h.settings.RepositoryConfig
+	repositories, err := repo.LoadFile(repoFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load repositories file: %w", err)
+	}
+
+	// Find the repository entry
+	var foundEntry *repo.Entry
+	for _, entry := range repositories.Repositories {
+		if entry.Name == repoName {
+			foundEntry = entry
+			break
+		}
+	}
+
+	if foundEntry == nil {
+		return nil, fmt.Errorf("repository %q not found", repoName)
+	}
+
 	// Load the chart from the specific path
-	fullChartPath := filepath.Join(h.settings.RepositoryConfig, repoName, chartPath)
+	fullChartPath := filepath.Join(foundEntry.URL, chartPath)
 	chart, err := loader.Load(fullChartPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load chart from path %q: %w", fullChartPath, err)
@@ -670,6 +690,26 @@ func (h *HelmClient) CreateApplication(repoName, chartPath, releaseName string, 
 
 	// Install or upgrade the chart
 	return client.Run(chart, values)
+}
+
+func (h *HelmClient) InstallLocalChart(chartDir, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
+	client := action.NewInstall(h.config)
+	client.ReleaseName = releaseName
+	client.Namespace = namespace
+
+	chart, err := loader.Load(chartDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load chart from path %q: %w", chartDir, err)
+	}
+
+	// Install or upgrade the chart
+	// Run the install action
+	rls, err := client.Run(chart, values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to install chart: %w", err)
+	}
+
+	return rls, nil
 }
 
 func (h *HelmClient) SyncApplication(repoName, chartPath, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
