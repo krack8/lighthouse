@@ -1,13 +1,19 @@
 package routes
 
 import (
-	"github.com/krack8/lighthouse/pkg/auth/controllers"
-	"net/http"
-
 	"github.com/gorilla/mux"
+	"github.com/krack8/lighthouse/pkg/auth/controllers"
 )
 
-// RegisterUserRoutes defines the routes for user operations.
-func RegisterUserRoutes(router *mux.Router) {
-	router.HandleFunc("/users", controllers.CreateUser).Methods(http.MethodPost)
+// RegisterRoutes registers all application routes.
+func RegisterRoutes() *mux.Router {
+	router := mux.NewRouter()
+
+	// User routes
+	router.HandleFunc("/users", controllers.CreateUserHandler).Methods("POST")
+	router.HandleFunc("/users/{id}", controllers.GetUserHandler).Methods("GET")
+	router.HandleFunc("/users/{id}", controllers.UpdateUserHandler).Methods("PUT")
+	router.HandleFunc("/users/{id}", controllers.DeleteUserHandler).Methods("DELETE")
+
+	return router
 }

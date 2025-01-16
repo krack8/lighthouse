@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/joho/godotenv"
+	"github.com/krack8/lighthouse/pkg/auth/db"
 	"github.com/krack8/lighthouse/pkg/auth/routes"
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 	"google.golang.org/grpc"
@@ -219,22 +219,27 @@ func main() {
 		}
 	}()
 
-	// Load environment variables
-	config.LoadEnv()
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	// Connect to MongoDB
-	client, ctx, cancel := config.ConnectDB()
-	defer cancel()
+	// Connect to the database
+	client, ctx, err := db.ConnectDB()
+	if err != nil {
+		log.Fatalf("Error connecting to DB: %v", err)
+		return
+	}
 	defer client.Disconnect(ctx)
 
-	// Initialize router
-	router := mux.NewRouter()
+	// Initialize the default user if needed
+	db.InitializeDefaultUser()
 
-	// Register user routes
-	routes.RegisterUserRoutes(router)
+	// Set up routes
+	router := routes.RegisterRoutes()
 
 	// Start HTTP server
 	http.HandleFunc("/execute", srv.httpExecuteHandler)
 	log.Println("HTTP server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
