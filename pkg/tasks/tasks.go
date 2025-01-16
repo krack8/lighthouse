@@ -28,16 +28,17 @@ type Task struct {
 	TaskName     string
 	TaskGroup    interface{}
 	TaskFunc     interface{}
+	TaskInput    interface{}
 	Options      Options
 	RetryOptions RetryOptions
 }
 
 var TaskRegistry = make(map[string]*Task)
 
-func RegisterTask(funcGroup interface{}, funcTask interface{}) {
+func RegisterTask(funcTask interface{}, input interface{}) {
 	task := &Task{TaskFunc: funcTask}
 	task.TaskName = GetFuncName(funcTask)
-	task.TaskGroup = funcGroup
+	task.TaskInput = input
 	fmt.Println("Printing tasks info :" + task.TaskName)
 	TaskRegistry[task.TaskName] = task
 	fmt.Println("Printing tasks ...")
@@ -56,7 +57,7 @@ func GetTask(taskName string) *Task {
 }
 
 func InitTaskRegistry() {
-	RegisterTask(k8s.NamespaceService(), k8s.NamespaceService().GetNamespaceList)
+	RegisterTask(k8s.NamespaceService().GetNamespaceList, k8s.GetNamespaceListInputParams{})
 }
 
 func GetFuncName(funcTask interface{}) string {

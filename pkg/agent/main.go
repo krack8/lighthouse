@@ -69,10 +69,18 @@ func main() {
 				// We'll just pretend to do some work and return a result.
 				go func(taskID, taskPayload string, task *pb.Task) {
 					// Simulate some processing time.
+					var res interface{}
 					newTask := tasks.TaskRegistry[task.Name]
-					execute, _ := newTask.TaskFunc.(func(context.Context, k8s.GetNamespaceListInputParams) (interface{}, error))
-					res, err := execute(context.Background(), k8s.GetNamespaceListInputParams{})
-					if err != nil {
+					switch v := newTask.TaskInput.(type) {
+					case k8s.GetNamespaceInputParams:
+						fmt.Println("Bhua:", v)
+					case k8s.GetNamespaceListInputParams:
+						fmt.Println("Get Namespace List Input Params:", v)
+						execute, _ := newTask.TaskFunc.(func(context.Context, k8s.GetNamespaceListInputParams) (interface{}, error))
+						res, err = execute(context.Background(), k8s.GetNamespaceListInputParams{})
+						if err != nil {
+							log.Printf(err.Error())
+						}
 					}
 					time.Sleep(2 * time.Second)
 
