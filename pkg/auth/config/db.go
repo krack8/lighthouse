@@ -1,9 +1,10 @@
-package db
+package config
 
 import (
 	"context"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/auth/models"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"os"
@@ -15,7 +16,6 @@ import (
 
 // MongoDB collections
 var UserCollection *mongo.Collection
-var CounterCollection *mongo.Collection
 
 // ConnectDB initializes the MongoDB client and collections.
 func ConnectDB() (*mongo.Client, context.Context, error) {
@@ -77,7 +77,7 @@ func InitializeDefaultUser() {
 			Username:     "admin@default.com",
 			FirstName:    "Admin",
 			LastName:     "User",
-			Password:     "admin123", // Use a hashed password here
+			Password:     utils.HashPassword("admin123"), // Use a hashed password here
 			UserType:     "ADMIN",
 			UserIsActive: true,
 			IsVerified:   true,

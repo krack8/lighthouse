@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/krack8/lighthouse/pkg/auth/db"
+	"github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/routes"
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -223,23 +225,36 @@ func main() {
 	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
 	// Connect to the database
-	client, ctx, err := db.ConnectDB()
+	client, ctx, err := config.ConnectDB()
 	if err != nil {
 		log.Fatalf("Error connecting to DB: %v", err)
 		return
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Fatalf("Error disconnecting from DB: %v", err)
+		}
+	}()
 
 	// Initialize the default user if needed
-	db.InitializeDefaultUser()
+	config.InitializeDefaultUser()
 
-	// Set up routes
-	router := routes.RegisterRoutes()
+	// Initialize router
+	router := mux.NewRouter()
+
+	// Initialize routes from various route files
+	routes.InitAuthRoutes(router) // Auth-related routes
+	routes.InitUserRoutes(router) // user-related routes                               // User-related routes
+
+	// Get the application port from the environment
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port if not specified
+	}
 
 	// Start HTTP server
 	http.HandleFunc("/execute", srv.httpExecuteHandler)
-	log.Println("HTTP server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Println("HTTP server listening on :" + port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

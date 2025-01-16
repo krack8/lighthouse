@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"github.com/go-errors/errors"
-	db "github.com/krack8/lighthouse/pkg/auth/db"
+	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -42,6 +42,40 @@ func GetUser(id string) (*models.User, error) {
 	return &user, nil
 }
 
+// GetAllUsers retrieves all users from the database.
+func GetAllUsers() ([]models.User, error) {
+	var users []models.User
+
+	// Define an empty filter to fetch all documents
+	filter := bson.M{}
+
+	// Use Find to retrieve multiple documents
+	cursor, err := db.UserCollection.Find(context.Background(), filter)
+	if err != nil {
+		log.Printf("Error fetching users: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	// Iterate over the cursor and decode each document into the `users` slice
+	for cursor.Next(context.Background()) {
+		var user models.User
+		if err := cursor.Decode(&user); err != nil {
+			log.Printf("Error decoding user: %v", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	// Check if the cursor encountered any errors during iteration
+	if err := cursor.Err(); err != nil {
+		log.Printf("Cursor error: %v", err)
+		return nil, err
+	}
+
+	return users, nil
+}
+
 // UpdateUser updates an existing user's information.
 func UpdateUser(id string, updatedData *models.User) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -75,4 +109,14 @@ func DeleteUser(id string) error {
 		return err
 	}
 	return nil
+}
+
+// GetUserByUsername fetches a user by username from the database
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := db.UserCollection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

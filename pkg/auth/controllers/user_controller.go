@@ -37,7 +37,18 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusCreated, user)
+	utils.RespondWithJSON(w, http.StatusOK, user)
+}
+
+// GetUserHandler handles fetching a user by ID.
+func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	userList, err := services.GetAllUsers()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, userList)
 }
 
 // UpdateUserHandler handles updating a user's information.
