@@ -24,6 +24,14 @@ func Login(db *mongo.Database, username, password string) (string, string, error
 		return "", "", errors.New("invalid credentials")
 	}
 
+	// Collect all permissions of the user's roles
+	var permissions []string
+	for _, role := range user.Roles {
+		for _, perm := range role.Permissions {
+			permissions = append(permissions, perm.Route+":"+perm.Method)
+		}
+	}
+
 	// Load expiry durations from environment variables
 	accessTokenExpiry, err := parseDurationFromEnv("ACCESS_TOKEN_EXPIRY")
 	if err != nil {
@@ -35,12 +43,13 @@ func Login(db *mongo.Database, username, password string) (string, string, error
 		return "", "", err
 	}
 
-	accessToken, err := utils.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	// Generate JWT tokens with the username and permissions
+	accessToken, err := utils.GenerateToken(username, permissions, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
+	refreshToken, err := utils.GenerateToken(username, permissions, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}

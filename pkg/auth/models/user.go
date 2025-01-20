@@ -15,17 +15,18 @@ const (
 
 // User represents user information and implements user validation and account states.
 type User struct {
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
-	Username            string    `json:"username" validate:"required,email"`
-	FirstName           string    `json:"first_name"`
-	LastName            string    `json:"last_name"`
-	Password            string    `json:"password" validate:"required,min=6,max=15"`
-	UserType            UserType  `json:"user_type" validate:"required,oneof=ADMIN USER"`
-	UserIsActive        bool      `json:"user_is_active" validate:"required"`
-	IsVerified          bool      `json:"is_verified" validate:"required"`
-	ForgotPasswordToken string    `json:"forgot_password_token,omitempty"`
-	Phone               string    `json:"phone,omitempty"`
+	CreatedAt           time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at" bson:"updated_at"`
+	Username            string    `json:"username" bson:"username" validate:"required,email"`
+	FirstName           string    `json:"first_name" bson:"first_name"`
+	LastName            string    `json:"last_name" bson:"last_name"`
+	Password            string    `json:"password" bson:"password" validate:"required,min=6,max=15"`
+	UserType            UserType  `json:"user_type" bson:"user_type" validate:"required,oneof=ADMIN USER"`
+	Roles               []Role    `json:"roles" bson:"roles"`
+	UserIsActive        bool      `json:"user_is_active" bson:"user_is_active" validate:"required"`
+	IsVerified          bool      `json:"is_verified" bson:"is_verified" validate:"required"`
+	ForgotPasswordToken string    `json:"forgot_password_token,omitempty" bson:"forgot_password_token"`
+	Phone               string    `json:"phone,omitempty" bson:"phone"`
 }
 
 // Validate validates the UserInfo fields using the validator package.

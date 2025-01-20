@@ -240,10 +240,16 @@ func main() {
 	// Initialize the default user if needed
 	config.InitializeDefaultUser()
 
+	// Initialize the default RBAC if needed
+	config.InitRBAC()
+
 	// Initialize router
 	router := mux.NewRouter()
 
 	// Initialize routes from various route files
+	routes.InitPermissionRoutes(router) // permission-related routes
+	routes.InitRoleRoutes(router)       // role-related routes
+
 	routes.InitAuthRoutes(router) // Auth-related routes
 	routes.InitUserRoutes(router) // user-related routes                               // User-related routes
 

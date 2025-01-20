@@ -6,6 +6,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"os"
 	"time"
@@ -15,7 +16,11 @@ import (
 )
 
 // MongoDB collections
-var UserCollection *mongo.Collection
+var (
+	PermissionCollection *mongo.Collection
+	RoleCollection       *mongo.Collection
+	UserCollection       *mongo.Collection
+)
 
 // ConnectDB initializes the MongoDB client and collections.
 func ConnectDB() (*mongo.Client, context.Context, error) {
@@ -49,20 +54,11 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 
 	// Initialize the collections
 	UserCollection = client.Database(dbName).Collection("users")
+	PermissionCollection = client.Database(dbName).Collection("permissions")
+	RoleCollection = client.Database(dbName).Collection("roles")
 
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil
-}
-
-// CreateUser inserts a new user into the database.
-func CreateUser(user *models.User) error {
-	// Insert the user into the collection
-	_, err := UserCollection.InsertOne(context.Background(), user)
-	if err != nil {
-		log.Printf("Error inserting user: %v", err)
-		return err
-	}
-	return nil
 }
 
 // InitializeDefaultUser creates a default user if no users exist.
@@ -86,7 +82,7 @@ func InitializeDefaultUser() {
 			UpdatedAt:    time.Now(),
 		}
 
-		err := CreateUser(&defaultUser)
+		_, err := UserCollection.InsertOne(context.Background(), defaultUser)
 		if err != nil {
 			log.Fatalf("Error creating default user: %v", err)
 		}
@@ -94,5 +90,67 @@ func InitializeDefaultUser() {
 		log.Println("Default user created successfully.")
 	} else {
 		log.Println("Users already exist. No default user created.")
+	}
+}
+
+func InitRBAC() {
+	permissionCount, err := PermissionCollection.CountDocuments(context.Background(), bson.M{})
+	if err != nil {
+		log.Fatalf("Error counting documents in users collection: %v", err)
+	}
+
+	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{})
+	if err != nil {
+		log.Fatalf("Error counting documents in users collection: %v", err)
+	}
+
+	var defaultPermissions []models.Permission
+
+	if permissionCount == 0 {
+		// Example permissions
+		defaultPermissions = []models.Permission{
+			{
+				ID:          primitive.NewObjectID(),
+				Name:        "view_dashboard",
+				Description: "Permission to view the dashboard",
+				Route:       "/dashboard",
+				Method:      "GET",
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          primitive.NewObjectID(),
+				Name:        "edit_profile",
+				Description: "Permission to edit user profile",
+				Route:       "/profile/edit",
+				Method:      "POST",
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+		}
+
+		// Insert the Default Permission into the collection
+		_, err := PermissionCollection.InsertOne(context.Background(), defaultPermissions)
+		if err != nil {
+			log.Printf("Error inserting user: %v", err)
+		}
+	}
+
+	if roleCount == 0 {
+		// Example role with permissions
+		defaultRole := models.Role{
+			ID:          primitive.NewObjectID(),
+			Name:        "Admin",
+			Description: "Administrator role with all permissions",
+			Permissions: defaultPermissions,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+
+		// Insert the Default Role into the collection
+		_, err = RoleCollection.InsertOne(context.Background(), defaultRole)
+		if err != nil {
+			log.Printf("Error inserting user: %v", err)
+		}
 	}
 }

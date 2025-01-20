@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"net/http"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,17 +16,35 @@ var db *mongo.Database
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var requestBody map[string]string
-	json.NewDecoder(r.Body).Decode(&requestBody)
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 
 	username := requestBody["username"]
 	password := requestBody["password"]
 
-	accessToken, refreshToken, err := services.Login(db, username, password)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+	// Ensure both username and password are provided
+	if username == "" || password == "" {
+		http.Error(w, "Username and password are required", http.StatusBadRequest)
 		return
 	}
 
+	accessToken, refreshToken, err := services.Login(db, username, password)
+	if err != nil {
+		// Return structured error in JSON format
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Return the access and refresh tokens as JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
@@ -47,14 +67,21 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the refresh token
-	claims, err := utils.ValidateToken(refreshToken, "your-refresh-secret-key")
+	claims, err := utils.ValidateToken(refreshToken, os.Getenv("JWT_REFRESH_SECRET"))
 	if err != nil {
 		http.Error(w, "Invalid or expired refresh token", http.StatusUnauthorized)
 		return
 	}
 
+	// Load expiry durations from environment variables
+	accessTokenExpiry, err := parseDurationFromEnv("ACCESS_TOKEN_EXPIRY")
+	if err != nil {
+		http.Error(w, "Failed to load access token expiry", http.StatusInternalServerError)
+		return
+	}
+
 	// Generate a new access token
-	accessToken, err := utils.GenerateToken(claims.Username, "your-secret-key", time.Hour*1) // 1-hour expiry
+	accessToken, err := utils.GenerateToken(claims.Username, claims.Permissions, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
 		return
@@ -66,4 +93,19 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// Helper function to parse durations from environment variables
+func parseDurationFromEnv(envKey string) (time.Duration, error) {
+	value := os.Getenv(envKey)
+	if value == "" {
+		return 0, errors.New(envKey + " is not set in environment variables")
+	}
+
+	parsed, err := time.ParseDuration(value)
+	if err != nil {
+		return 0, errors.New("invalid duration format for " + envKey + ": " + value)
+	}
+
+	return parsed, nil
 }

@@ -11,13 +11,17 @@ import (
 	"time"
 )
 
-// CreateUser inserts a new user in the database.
+// CreateUser inserts a new user into the database.
 func CreateUser(user *models.User) (*models.User, error) {
 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	err := db.CreateUser(user)
+	_, err := db.UserCollection.InsertOne(context.Background(), user)
+	if err != nil {
+		log.Printf("Error inserting user: %v", err)
+		return nil, err
+	}
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		return nil, err
