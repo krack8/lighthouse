@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/k8s"
 	"log"
 	"net"
 	"net/http"
@@ -121,7 +123,7 @@ func (s *serverImpl) removeWorker(w *workerConnection) {
 
 // sendTaskToWorker sends a task down a particular worker’s stream.
 // Returns a channel on which the result will be delivered.
-func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string, taskName string) (<-chan *pb.TaskResult, error) {
+func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string, taskName string, input []byte) (<-chan *pb.TaskResult, error) {
 	// Generate a task ID.
 	taskID := uuid.NewString()
 
@@ -139,6 +141,7 @@ func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string, taskN
 				Id:      taskID,
 				Name:    taskName,
 				Payload: payload,
+				Input:   string(input),
 			},
 		},
 	})
@@ -180,7 +183,9 @@ func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	taskName := "GetNamespaceList"
-	resultCh, err := s.sendTaskToWorker(worker, payload, taskName)
+	input, _ := json.Marshal(k8s.GetNamespaceListInputParams{Search: "hola", Limit: "10"})
+
+	resultCh, err := s.sendTaskToWorker(worker, payload, taskName, input)
 	if err != nil {
 		http.Error(w, "Failed to send task to worker: "+err.Error(), http.StatusInternalServerError)
 		return

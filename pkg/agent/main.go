@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -29,7 +30,6 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewControllerClient(conn)
-
 	// Open the bi-directional stream.
 	stream, err := client.TaskStream(context.Background())
 	if err != nil {
@@ -75,7 +75,10 @@ func main() {
 					case k8s.GetNamespaceInputParams:
 						fmt.Println("Bhua:", v)
 					case k8s.GetNamespaceListInputParams:
+						input := k8s.GetNamespaceListInputParams{}
+						_ = json.Unmarshal([]byte(task.Input), &input)
 						fmt.Println("Get Namespace List Input Params:", v)
+						fmt.Println(input.Limit, input.Search)
 						execute, _ := newTask.TaskFunc.(func(context.Context, k8s.GetNamespaceListInputParams) (interface{}, error))
 						res, err = execute(context.Background(), k8s.GetNamespaceListInputParams{})
 						if err != nil {
