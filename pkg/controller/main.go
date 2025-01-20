@@ -237,11 +237,11 @@ func main() {
 		}
 	}()
 
-	// Initialize the default user if needed
-	config.InitializeDefaultUser()
-
 	// Initialize the default RBAC if needed
 	config.InitRBAC()
+
+	// Initialize the default user if needed
+	config.InitializeDefaultUser()
 
 	// Initialize router
 	router := mux.NewRouter()

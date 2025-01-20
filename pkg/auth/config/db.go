@@ -75,6 +75,7 @@ func InitializeDefaultUser() {
 			LastName:     "User",
 			Password:     utils.HashPassword("admin123"), // Use a hashed password here
 			UserType:     "ADMIN",
+			Roles:        []models.Role{},
 			UserIsActive: true,
 			IsVerified:   true,
 			Phone:        "1234567890",
@@ -129,10 +130,16 @@ func InitRBAC() {
 			},
 		}
 
-		// Insert the Default Permission into the collection
-		_, err := PermissionCollection.InsertOne(context.Background(), defaultPermissions)
+		// Convert the []models.Permission to []interface{}
+		var permissionsInterface []interface{}
+		for _, perm := range defaultPermissions {
+			permissionsInterface = append(permissionsInterface, perm)
+		}
+
+		// Insert the Default Permissions into the collection
+		_, err := PermissionCollection.InsertMany(context.Background(), permissionsInterface)
 		if err != nil {
-			log.Printf("Error inserting user: %v", err)
+			log.Printf("Error inserting permissions: %v", err)
 		}
 	}
 
@@ -150,7 +157,7 @@ func InitRBAC() {
 		// Insert the Default Role into the collection
 		_, err = RoleCollection.InsertOne(context.Background(), defaultRole)
 		if err != nil {
-			log.Printf("Error inserting user: %v", err)
+			log.Printf("Error inserting role: %v", err)
 		}
 	}
 }
