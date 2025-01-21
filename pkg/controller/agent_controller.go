@@ -1,19 +1,33 @@
-package main
+package controller
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/k8s"
+	"github.com/krack8/lighthouse/pkg/tasks"
+	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
-	"google.golang.org/grpc"
 )
+
+type TaskToAgentInterface interface {
+	SendToWorker(c context.Context, groupName string, payload string, taskName string, input []byte) (*pb.TaskResult, error)
+}
+
+type taskToAgent struct{}
+
+var tta taskToAgent
+
+func TaskToAgent() *taskToAgent {
+	return &tta
+}
 
 // workerConnection represents one worker's active streaming connection.
 type workerConnection struct {
@@ -25,7 +39,6 @@ type workerConnection struct {
 // serverImpl implements the pb.ControllerServer interface.
 type serverImpl struct {
 	pb.UnimplementedControllerServer
-
 	mu     sync.Mutex
 	groups map[string][]*workerConnection // groupName -> slice of workers
 }
@@ -168,6 +181,56 @@ func (s *serverImpl) pickWorker(groupName string) *workerConnection {
 	return workers[0]
 }
 
+func (s *serverImpl) Process(groupName string, payload string, taskName string, input []byte) (<-chan *pb.TaskResult, error) {
+	w := s.pickWorker(groupName)
+	if w == nil {
+		return nil, errors.New("worker unreachable")
+	}
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the worker’s response.
+	resultCh := make(chan *pb.TaskResult, 1)
+
+	s.mu.Lock()
+	w.resultChMap[taskID] = resultCh
+	s.mu.Unlock()
+
+	// Actually send the task to the worker.
+	err := w.stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_NewTask{
+			NewTask: &pb.Task{
+				Id:      taskID,
+				Name:    taskName,
+				Payload: payload,
+				Input:   string(input),
+			},
+		},
+	})
+	if err != nil {
+		s.mu.Lock()
+		delete(w.resultChMap, taskID)
+		s.mu.Unlock()
+		return nil, err
+	}
+
+	return resultCh, nil
+}
+
+func (tta *taskToAgent) SendToWorker(c context.Context, groupName string, payload string, taskName string, input []byte) (*pb.TaskResult, error) {
+	resultCh, err := srv.Process(groupName, payload, taskName, input)
+	if err != nil {
+		return nil, err
+	}
+	select {
+	case res := <-resultCh:
+		// Send response to the user
+		return res, nil
+	case <-time.After(10 * time.Second):
+		return nil, errors.New("timed out waiting for worker result")
+	}
+}
+
 // HTTP handler: /execute?group=GroupA&payload=SomeData
 func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	group := r.URL.Query().Get("group")
@@ -183,6 +246,7 @@ func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	taskName := "GetNamespaceList"
+	tasks.GetCurrentTaskName()
 	input, _ := json.Marshal(k8s.GetNamespaceListInputParams{Search: "hola", Limit: "10"})
 
 	resultCh, err := s.sendTaskToWorker(worker, payload, taskName, input)
@@ -202,11 +266,11 @@ func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func main() {
-	srv := &serverImpl{
-		groups: make(map[string][]*workerConnection),
-	}
+var srv = &serverImpl{
+	groups: make(map[string][]*workerConnection),
+}
 
+func StartGrpcServer() {
 	// Start gRPC server
 	go func() {
 		grpcServer := grpc.NewServer()
@@ -221,9 +285,5 @@ func main() {
 			log.Fatalf("Failed to serve gRPC: %v", err)
 		}
 	}()
-
-	// Start HTTP server
 	http.HandleFunc("/execute", srv.httpExecuteHandler)
-	log.Println("HTTP server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }

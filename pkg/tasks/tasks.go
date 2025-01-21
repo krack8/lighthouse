@@ -74,6 +74,21 @@ func GetFuncName(funcTask interface{}) string {
 	return functionName
 }
 
+func GetCurrentTaskName() string {
+	pc, _, _, _ := runtime.Caller(1)
+	functionName := runtime.FuncForPC(pc).Name()
+	lastDotIndex := strings.LastIndex(functionName, ".")
+	if lastDotIndex != -1 {
+		functionName = functionName[lastDotIndex+1:]
+	}
+	lastSubsIndex := strings.Index(functionName, "-")
+	if lastSubsIndex != -1 {
+		functionName = functionName[:lastSubsIndex]
+	}
+	fmt.Println("Current function name:", functionName)
+	return functionName
+}
+
 func GeneratePayloadTask() {
 
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/controller"
 )
 
 // @title           Swagger API
@@ -16,5 +17,5 @@ import (
 
 func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// Namespace
-	//httpRg.GET("api/v1/namespace", k8s.NamespaceController().GetNamespaceList)
+	httpRg.GET("api/v1/namespace", controller.NamespaceController().GetNamespaceList)
 }

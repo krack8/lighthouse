@@ -4,7 +4,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	cfg "github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/log"
+	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/server/router"
 	"net/http"
 )
@@ -28,6 +28,6 @@ func Start() {
 	//r.GET("/", api.Home().Index)
 	err := r.Run(":" + cfg.ServerPort) // listen and serve on 0.0.0.0:8080
 	if err != nil {
-		log.Logger.Errorw("Failed to start server", "err", err.Error())
+		_log.Logger.Errorw("Failed to start server", "err", err.Error())
 	}
 }
