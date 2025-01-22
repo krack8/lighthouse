@@ -10,8 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type RbacController struct {
+	RbacService *services.RbacService
+}
+
 // CreatePermissionHandler handles the creation of a new permission
-func CreatePermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) CreatePermissionHandler(w http.ResponseWriter, r *http.Request) {
 	var permission models.Permission
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&permission); err != nil {
@@ -20,7 +24,7 @@ func CreatePermissionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Permission
-	permissionID, err := services.CreatePermission(permission)
+	permissionID, err := rbac.RbacService.CreatePermission(permission)
 	if err != nil {
 		http.Error(w, "Error creating permission", http.StatusInternalServerError)
 		return
@@ -32,7 +36,7 @@ func CreatePermissionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateRoleHandler handles the creation of a new role
-func CreateRoleHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) CreateRoleHandler(w http.ResponseWriter, r *http.Request) {
 	var role models.Role
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&role); err != nil {
@@ -41,7 +45,7 @@ func CreateRoleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Role
-	roleID, err := services.CreateRole(role)
+	roleID, err := rbac.RbacService.CreateRole(role)
 	if err != nil {
 		http.Error(w, "Error creating role", http.StatusInternalServerError)
 		return
@@ -53,7 +57,7 @@ func CreateRoleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // AssignRolesHandler assigns multiple roles to a user.
-func AssignRolesHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) AssignRolesHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Username string   `json:"username"`
 		Roles    []string `json:"roles"`
@@ -66,7 +70,7 @@ func AssignRolesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the service to assign the roles
-	err := services.AssignRole(request.Username, request.Roles)
+	err := rbac.RbacService.AssignRole(request.Username, request.Roles)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

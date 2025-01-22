@@ -9,15 +9,19 @@ import (
 	"net/http"
 )
 
+type UserController struct {
+	UserService *services.UserService
+}
+
 // CreateUserHandler handles the creation of a new user.
-func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	createdUser, err := services.CreateUser(&user)
+	createdUser, err := uc.UserService.CreateUser(&user)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -27,11 +31,11 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserHandler handles fetching a user by ID.
-func GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	user, err := services.GetUser(id)
+	user, err := uc.UserService.GetUser(id)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -41,8 +45,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserHandler handles fetching a user by ID.
-func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	userList, err := services.GetAllUsers()
+func (uc *UserController) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	userList, err := uc.UserService.GetAllUsers()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -52,7 +56,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateUserHandler handles updating a user's information.
-func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -62,7 +66,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := services.UpdateUser(id, &updatedData)
+	err := uc.UserService.UpdateUser(id, &updatedData)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -73,11 +77,11 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteUserHandler handles deleting a user by ID.
-func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	err := services.DeleteUser(id)
+	err := uc.UserService.DeleteUser(id)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return

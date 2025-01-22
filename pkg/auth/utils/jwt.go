@@ -13,10 +13,9 @@ type Claims struct {
 }
 
 // GenerateToken generates a JWT token.
-func GenerateToken(username string, permissions []string, secret string, expiry time.Duration) (string, error) {
+func GenerateToken(username string, secret string, expiry time.Duration) (string, error) {
 	claims := &Claims{
-		Username:    username,
-		Permissions: permissions,
+		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiry)),
 		},

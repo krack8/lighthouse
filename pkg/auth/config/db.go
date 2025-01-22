@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -53,9 +54,9 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 	}
 
 	// Initialize the collections
-	UserCollection = client.Database(dbName).Collection("users")
-	PermissionCollection = client.Database(dbName).Collection("permissions")
-	RoleCollection = client.Database(dbName).Collection("roles")
+	UserCollection = client.Database(dbName).Collection(string(enum.UsersTable))
+	PermissionCollection = client.Database(dbName).Collection(string(enum.PermissionsTable))
+	RoleCollection = client.Database(dbName).Collection(string(enum.RolesTable))
 
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil

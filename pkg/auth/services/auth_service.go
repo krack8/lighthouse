@@ -1,35 +1,22 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"os"
 	"time"
 )
 
-func Login(db *mongo.Database, username, password string) (string, string, error) {
-	collection := db.Collection("users")
-
-	var user models.User
-	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+func Login(username string, password string) (string, string, error) {
+	var user *models.User
+	user, err := GetUserByUsername(username)
 	if err != nil {
 		return "", "", errors.New("user not found")
 	}
 
 	if !utils.CheckPassword(password, user.Password) {
 		return "", "", errors.New("invalid credentials")
-	}
-
-	// Collect all permissions of the user's roles
-	var permissions []string
-	for _, role := range user.Roles {
-		for _, perm := range role.Permissions {
-			permissions = append(permissions, perm.Route+":"+perm.Method)
-		}
 	}
 
 	// Load expiry durations from environment variables
@@ -44,12 +31,12 @@ func Login(db *mongo.Database, username, password string) (string, string, error
 	}
 
 	// Generate JWT tokens with the username and permissions
-	accessToken, err := utils.GenerateToken(username, permissions, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	accessToken, err := utils.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(username, permissions, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
+	refreshToken, err := utils.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}

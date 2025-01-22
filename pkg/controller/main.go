@@ -6,7 +6,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/controllers"
 	"github.com/krack8/lighthouse/pkg/auth/routes"
+	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 	"google.golang.org/grpc"
 	"log"
@@ -246,13 +248,19 @@ func main() {
 	// Initialize router
 	router := mux.NewRouter()
 
+	// Initialize services and controllers
+	userService := &services.UserService{} // Ensure it is properly initialized
+	userController := &controllers.UserController{UserService: userService}
+
+	rbacService := &services.RbacService{} // Ensure it is properly initialized
+	rbacController := &controllers.RbacController{RbacService: rbacService}
+
 	// Initialize routes from various route files
-	routes.InitPermissionRoutes(router) // permission-related routes
-	routes.InitRoleRoutes(router)       // role-related routes
+	routes.InitPermissionRoutes(rbacController, router) // permission-related routes
+	routes.InitRoleRoutes(rbacController, router)       // role-related routes
 
-	routes.InitAuthRoutes(router) // Auth-related routes
-	routes.InitUserRoutes(router) // user-related routes                               // User-related routes
-
+	routes.InitAuthRoutes(router)                 // Auth-related routes
+	routes.InitUserRoutes(userController, router) // user-related routes
 	// Get the application port from the environment
 	port := os.Getenv("PORT")
 	if port == "" {

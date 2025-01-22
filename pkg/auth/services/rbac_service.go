@@ -12,8 +12,14 @@ import (
 	"time"
 )
 
+// RBAC Service struct for user operations
+type RbacService struct {
+	RbacCollection Collection
+	Context        context.Context
+}
+
 // CreatePermission creates a new permission
-func CreatePermission(permission models.Permission) (primitive.ObjectID, error) {
+func (r *RbacService) CreatePermission(permission models.Permission) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -25,7 +31,7 @@ func CreatePermission(permission models.Permission) (primitive.ObjectID, error) 
 }
 
 // CreateRole creates a new role
-func CreateRole(role models.Role) (primitive.ObjectID, error) {
+func (r *RbacService) CreateRole(role models.Role) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -37,7 +43,7 @@ func CreateRole(role models.Role) (primitive.ObjectID, error) {
 }
 
 // AssignRole assigns roles to a user.
-func AssignRole(username string, roleNames []string) error {
+func (r *RbacService) AssignRole(username string, roleNames []string) error {
 	// Find user by username
 	var user models.User
 	err := db.UserCollection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
@@ -78,14 +84,4 @@ func CheckPermission(permissions []string, route, method string) bool {
 		}
 	}
 	return false
-}
-
-// Helper function to get the role by ID
-func getRoleByID(roleID string) (*models.Role, error) {
-	var role models.Role
-	err := db.RoleCollection.FindOne(context.Background(), bson.M{"_id": roleID}).Decode(&role)
-	if err != nil {
-		return nil, errors.New("role not found")
-	}
-	return &role, nil
 }

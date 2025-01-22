@@ -8,11 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var db *mongo.Database
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var requestBody map[string]string
@@ -24,14 +20,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := requestBody["username"]
 	password := requestBody["password"]
-
 	// Ensure both username and password are provided
 	if username == "" || password == "" {
 		http.Error(w, "Username and password are required", http.StatusBadRequest)
 		return
 	}
 
-	accessToken, refreshToken, err := services.Login(db, username, password)
+	accessToken, refreshToken, err := services.Login(username, password)
 	if err != nil {
 		// Return structured error in JSON format
 		w.Header().Set("Content-Type", "application/json")
@@ -81,7 +76,7 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate a new access token
-	accessToken, err := utils.GenerateToken(claims.Username, claims.Permissions, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	accessToken, err := utils.GenerateToken(claims.Username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
 		return
