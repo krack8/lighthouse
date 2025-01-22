@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/krack8/lighthouse/pkg/auth/config"
+	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"time"
 
 	"github.com/krack8/lighthouse/pkg/auth/models"
@@ -22,10 +22,16 @@ type Collection interface {
 	DeleteOne(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
 }
 
-// UserService struct for user operations
+// UserService handles user-related business logic
 type UserService struct {
-	UserCollection Collection
-	Context        context.Context
+	collection Collection
+}
+
+// NewUserService creates a new UserService instance
+func NewUserService(collection Collection) *UserService {
+	return &UserService{
+		collection: collection,
+	}
 }
 
 // CreateUser creates a new user
@@ -34,43 +40,40 @@ func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 		return nil, errors.New("user cannot be nil")
 	}
 
+	if user.Username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	data, _ := GetUserByUsername(user.Username)
+
+	if data != nil {
+		return nil, errors.New("user already exists")
+	}
+
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	_, err := config.UserCollection.InsertOne(context.Background(), user)
+	_, err := db.UserCollection.InsertOne(context.Background(), user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to insert user: %w", err)
 	}
 
 	return user, nil
 }
 
+// GetUser retrieves a user by ID
 func (s *UserService) GetUser(userID string) (*models.User, error) {
-	// Validate dependencies
-	if s.UserCollection == nil {
-		return nil, errors.New("user collection not initialized")
-	}
-	if s.Context == nil {
-		return nil, errors.New("context not initialized")
-	}
-
-	// Validate input
 	if userID == "" {
 		return nil, errors.New("user ID cannot be empty")
 	}
 
-	// Convert string ID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user ID")
+		return nil, fmt.Errorf("invalid user ID format: %w", err)
 	}
 
-	// Create filter
-	filter := bson.M{"_id": objectID}
-
-	// Find the user
 	var user models.User
-	result := config.UserCollection.FindOne(context.Background(), filter)
+	filter := bson.M{"_id": objectID}
+	result := db.UserCollection.FindOne(context.Background(), filter)
 	if err := result.Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("user not found")
@@ -83,29 +86,29 @@ func (s *UserService) GetUser(userID string) (*models.User, error) {
 
 // GetAllUsers retrieves all users
 func (s *UserService) GetAllUsers() ([]models.User, error) {
-	cursor, err := config.UserCollection.Find(context.Background(), bson.M{})
+	cursor, err := db.UserCollection.Find(context.Background(), bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
 	}
-	defer cursor.Close(s.Context)
+	defer cursor.Close(context.Background())
 
 	var users []models.User
-	for cursor.Next(s.Context) {
+	for cursor.Next(context.Background()) {
 		var user models.User
 		if err := cursor.Decode(&user); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to decode user: %w", err)
 		}
 		users = append(users, user)
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cursor error: %w", err)
 	}
 
 	return users, nil
 }
 
-// UpdateUser updates a user by their ID
+// UpdateUser updates a user by ID
 func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error {
 	if updatedUser == nil {
 		return errors.New("updated user cannot be nil")
@@ -113,21 +116,28 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return errors.New("invalid user ID")
+		return fmt.Errorf("invalid user ID format: %w", err)
 	}
 
 	filter := bson.M{"_id": objectID}
 	update := bson.M{
 		"$set": bson.M{
-			"firstname": updatedUser.FirstName,
-			"lastname":  updatedUser.LastName,
-			"updatedat": time.Now(),
+			"firstname":  updatedUser.FirstName,
+			"lastname":   updatedUser.LastName,
+			"username":   updatedUser.Username,
+			"password":   updatedUser.Password,
+			"usertype":   updatedUser.UserType,
+			"roles":      updatedUser.Roles,
+			"isactive":   updatedUser.UserIsActive,
+			"isverified": updatedUser.IsVerified,
+			"phone":      updatedUser.Phone,
+			"updatedat":  time.Now(),
 		},
 	}
 
-	result, err := config.UserCollection.UpdateOne(context.Background(), filter, update)
+	result, err := db.UserCollection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
@@ -137,17 +147,17 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 	return nil
 }
 
-// DeleteUser deletes a user by their ID
+// DeleteUser deletes a user by ID
 func (s *UserService) DeleteUser(userID string) error {
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return errors.New("invalid user ID")
+		return fmt.Errorf("invalid user ID format: %w", err)
 	}
 
 	filter := bson.M{"_id": objectID}
-	result, err := config.UserCollection.DeleteOne(context.Background(), filter)
+	result, err := db.UserCollection.DeleteOne(context.Background(), filter)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	if result.DeletedCount == 0 {
@@ -157,28 +167,19 @@ func (s *UserService) DeleteUser(userID string) error {
 	return nil
 }
 
-// GetUserByUsername retrieves a user by their username
+// GetUserByUsername retrieves a user by username
 func GetUserByUsername(username string) (*models.User, error) {
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
 
-	filter := bson.M{"username": username}
-	// Check if filter is not nil
-	if filter == nil {
-		// Handle the error
-		return nil, errors.New("Filter is nil")
-	}
-
-	// FindOne with error handling
-	result := config.UserCollection.FindOne(context.Background(), filter)
-
 	var user models.User
-	if err := result.Decode(&user); err != nil {
+	filter := bson.M{"username": username}
+	if err := db.UserCollection.FindOne(context.Background(), filter).Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("user not found")
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
 	}
 
 	return &user, nil
