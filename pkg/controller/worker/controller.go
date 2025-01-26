@@ -1,4 +1,4 @@
-package controller
+package worker
 
 import (
 	"context"
@@ -225,6 +225,9 @@ func (tta *taskToAgent) SendToWorker(c context.Context, groupName string, payloa
 	select {
 	case res := <-resultCh:
 		// Send response to the user
+		if !res.Success {
+			return nil, errors.New(res.Output)
+		}
 		return res, nil
 	case <-time.After(10 * time.Second):
 		return nil, errors.New("timed out waiting for worker result")

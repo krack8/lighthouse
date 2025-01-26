@@ -1,8 +1,9 @@
-package controller
+package api
 
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/controller/worker"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -49,7 +50,6 @@ func (ctrl *namespaceController) GetNamespaceList(ctx *gin.Context) {
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
-	taskName := tasks.GetCurrentTaskName()
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal GetNamespaceList Task input ", "err", err.Error())
@@ -61,16 +61,17 @@ func (ctrl *namespaceController) GetNamespaceList(ctx *gin.Context) {
 		k8s.SendErrorResponse(ctx, "Missing group or payload param")
 		return
 	}
-	result.Data, err = TaskToAgent().SendToWorker(ctx, group, payload, taskName, inputTask)
+	taskName := tasks.GetTaskName(k8s.NamespaceService().GetNamespaceList)
+	log.Logger.Info("Printing task name from namespace controller: " + taskName)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, group, payload, taskName, inputTask)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
-	k8s.SendResponse(ctx, result)
-
-	//err = we.Get(ctx, &result)
-	//if err != nil {
-	//	log.Logger.Errorw("Unable to get result for GetNamespaceList", "err", err, "wid", we.GetID(), "rid", we.GetRunID())
-	//}
-	//
-	//k8s.SendResponse(ctx, result)
+	output := k8s.OutputNamespaceList{}
+	err = json.Unmarshal([]byte(res.Output), &output)
+	if err != nil {
+		k8s.SendErrorResponse(ctx, err.Error())
+	}
+	result.Data = output
+	k8s.SendSuccessResponse(ctx, result)
 }

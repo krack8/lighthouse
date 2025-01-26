@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/tasks"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"time"
-
-	"google.golang.org/grpc"
+	"sync"
 
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 )
+
+var taskMutex sync.Mutex
 
 func main() {
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
@@ -64,37 +63,27 @@ func main() {
 				task := payload.NewTask
 				log.Printf("Worker received a new task: ID=%s, payload=%s",
 					task.Id, task.Payload)
-
-				// Here is where you do the actual business logic.
-				// We'll just pretend to do some work and return a result.
 				go func(taskID, taskPayload string, task *pb.Task) {
-					// Simulate some processing time.
-					var res interface{}
-					newTask := tasks.TaskRegistry[task.Name]
-					switch v := newTask.TaskInput.(type) {
-					case k8s.GetNamespaceInputParams:
-						fmt.Println("Bhua:", v)
-					case k8s.GetNamespaceListInputParams:
-						input := k8s.GetNamespaceListInputParams{}
-						_ = json.Unmarshal([]byte(task.Input), &input)
-						fmt.Println("Get Namespace List Input Params:", v)
-						fmt.Println(input.Limit, input.Search)
-						execute, _ := newTask.TaskFunc.(func(context.Context, k8s.GetNamespaceListInputParams) (interface{}, error))
-						res, err = execute(context.Background(), k8s.GetNamespaceListInputParams{})
+					taskMutex.Lock()
+					defer taskMutex.Unlock()
+					TaskResult := &pb.TaskResult{}
+					res, err := tasks.TaskSelector(task)
+					if err != nil {
+						TaskResult.Success = false
+						TaskResult.Output = err.Error()
+					} else {
+						output, err := json.Marshal(res)
 						if err != nil {
-							log.Printf(err.Error())
+							TaskResult.Success = false
+							TaskResult.Output = err.Error()
 						}
+						TaskResult.Success = true
+						TaskResult.Output = string(output)
 					}
-					time.Sleep(2 * time.Second)
-
-					// Build the result.
+					TaskResult.TaskId = taskID
 					resultMsg := &pb.TaskStreamRequest{
 						Payload: &pb.TaskStreamRequest_TaskResult{
-							TaskResult: &pb.TaskResult{
-								TaskId:  taskID,
-								Success: true,
-								Output:  fmt.Sprintf("Processed payload: %s", res),
-							},
+							TaskResult: TaskResult,
 						},
 					}
 

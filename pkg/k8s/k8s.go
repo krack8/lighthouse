@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 
+	_context "context"
 	"github.com/krack8/lighthouse/pkg/context"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -49,18 +51,18 @@ func GetClientset() *kubernetes.Clientset {
 	return clientset
 }
 
-//func ListNamespaces(clientset kubernetes.Interface) ([]string, error) {
-//	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
-//	if err != nil {
-//		return nil, fmt.Errorf("failed to list namespaces: %w", err)
-//	}
-//
-//	var namespaceNames []string
-//	for _, ns := range namespaces.Items {
-//		namespaceNames = append(namespaceNames, ns.Name)
-//	}
-//	return namespaceNames, nil
-//}
+func ListNamespaces(clientset kubernetes.Interface) ([]string, error) {
+	namespaces, err := clientset.CoreV1().Namespaces().List(_context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list namespaces: %w", err)
+	}
+
+	var namespaceNames []string
+	for _, ns := range namespaces.Items {
+		namespaceNames = append(namespaceNames, ns.Name)
+	}
+	return namespaceNames, nil
+}
 
 var nilResponse ResponseDTO = ResponseDTO{}
 

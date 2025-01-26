@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/krack8/lighthouse/pkg/controller"
+	"github.com/krack8/lighthouse/pkg/controller/worker"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/server"
 	"log"
@@ -10,7 +10,7 @@ import (
 
 func main() {
 	_log.InitializeLogger()
-	controller.StartGrpcServer()
+	worker.StartGrpcServer()
 
 	// Start HTTP server
 	server.Start()

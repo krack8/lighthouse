@@ -89,6 +89,10 @@ func GetCurrentTaskName() string {
 	return functionName
 }
 
+func GetTaskName(funcTask interface{}) string {
+	return GetFuncName(funcTask)
+}
+
 func GeneratePayloadTask() {
 
 }

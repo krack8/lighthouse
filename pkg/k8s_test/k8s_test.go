@@ -1,4 +1,4 @@
-package k8s_test_test
+package k8s_test
 
 import (
 	"context"
