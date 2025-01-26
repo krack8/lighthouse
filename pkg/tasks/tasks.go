@@ -1,7 +1,6 @@
 package tasks
 
 import (
-	"fmt"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"reflect"
@@ -39,12 +38,7 @@ func RegisterTask(funcTask interface{}, input interface{}) {
 	task := &Task{TaskFunc: funcTask}
 	task.TaskName = GetFuncName(funcTask)
 	task.TaskInput = input
-	fmt.Println("Printing tasks info :" + task.TaskName)
 	TaskRegistry[task.TaskName] = task
-	fmt.Println("Printing tasks ...")
-	fmt.Println(task)
-	fmt.Println("Printing tasks registry ...")
-	fmt.Println(TaskRegistry)
 }
 
 func GetTask(taskName string) *Task {
@@ -74,7 +68,6 @@ func GetFuncName(funcTask interface{}) string {
 	if lastSubsIndex != -1 {
 		functionName = functionName[:lastSubsIndex]
 	}
-	fmt.Println("Printing tasks Actual Name : " + functionName)
 	return functionName
 }
 
@@ -89,14 +82,9 @@ func GetCurrentTaskName() string {
 	if lastSubsIndex != -1 {
 		functionName = functionName[:lastSubsIndex]
 	}
-	fmt.Println("Current function name:", functionName)
 	return functionName
 }
 
 func GetTaskName(funcTask interface{}) string {
 	return GetFuncName(funcTask)
-}
-
-func GeneratePayloadTask() {
-
 }
