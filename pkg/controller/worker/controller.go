@@ -217,7 +217,9 @@ func (s *serverImpl) Process(groupName string, payload string, taskName string, 
 	return resultCh, nil
 }
 
-func (tta *taskToAgent) SendToWorker(c context.Context, groupName string, payload string, taskName string, input []byte) (*pb.TaskResult, error) {
+func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input []byte) (*pb.TaskResult, error) {
+	groupName := "GroupA"
+	payload := taskName
 	resultCh, err := srv.Process(groupName, payload, taskName, input)
 	if err != nil {
 		return nil, err

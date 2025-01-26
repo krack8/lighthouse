@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -15,6 +16,7 @@ import (
 var taskMutex sync.Mutex
 
 func main() {
+	_log.InitializeLogger()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
 	authToken := "my-secret"

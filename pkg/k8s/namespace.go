@@ -168,7 +168,7 @@ func (namespace *namespaceService) GetNamespaceList(c context.Context, p GetName
 	//p.output.Result = p.removeNamespaceListFields()
 	return ResponseDTO{
 		Status: "success",
-		Data:   GetNamespaceListInputParams{},
+		Data:   OutputNamespaceList{},
 	}, nil
 }
 
