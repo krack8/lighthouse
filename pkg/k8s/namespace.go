@@ -161,14 +161,14 @@ func (p *GetNamespaceListInputParams) Process(c context.Context) error {
 }
 
 func (namespace *namespaceService) GetNamespaceList(c context.Context, p GetNamespaceListInputParams) (interface{}, error) {
-	//err := p.Process(c)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//p.output.Result = p.removeNamespaceListFields()
+	err := p.Process(c)
+	if err != nil {
+		return nil, err
+	}
+	p.output.Result = p.removeNamespaceListFields()
 	return ResponseDTO{
 		Status: "success",
-		Data:   OutputNamespaceList{},
+		Data:   p.output,
 	}, nil
 }
 

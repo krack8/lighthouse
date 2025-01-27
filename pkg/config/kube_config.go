@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"github.com/krack8/lighthouse/pkg/log"
 	snapshotV1 "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned/typed/volumesnapshot/v1"
 	networkingv1beta1 "istio.io/client-go/pkg/clientset/versioned/typed/networking/v1beta1"
@@ -10,7 +11,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	metrics "k8s.io/metrics/pkg/client/clientset/versioned"
+	"path/filepath"
 )
 
 var clientSet *kubernetes.Clientset
@@ -21,10 +24,22 @@ var metricsClientSet *metrics.Clientset
 var networkingV1beta1ClientSet *networkingv1beta1.NetworkingV1beta1Client
 
 func InitiateKubeClientSet() {
+	var kubeConfig *string
 	var restConfig *rest.Config
 	var err error
 
-	restConfig, err = clientcmd.BuildConfigFromFlags("", "")
+	if IsK8() {
+		restConfig, err = clientcmd.BuildConfigFromFlags("", "")
+	} else {
+		if home := homedir.HomeDir(); home != "" {
+			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", KubeConfigFile), "(optional) absolute path to the kubeconfig file")
+			restConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
+			log.Logger.Info(filepath.Join(home, ".kube", KubeConfigFile))
+
+		} else {
+			restConfig, err = clientcmd.BuildConfigFromFlags("", "")
+		}
+	}
 
 	if err != nil {
 		log.Logger.Errorw(err.Error())
