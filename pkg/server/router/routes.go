@@ -47,4 +47,19 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/controller-revision/:name", api.ControllerRevisionController().GetControllerRevisionDetails)
 	httpRg.POST("api/v1/controller-revision", api.ControllerRevisionController().DeployControllerRevision)
 	httpRg.DELETE("api/v1/controller-revision/:name", api.ControllerRevisionController().DeleteControllerRevision)
+	// CRD
+	httpRg.GET("api/v1/crd", api.CrdController().GetCrdList)
+	httpRg.GET("api/v1/crd/:name", api.CrdController().GetCrdDetails)
+	httpRg.POST("api/v1/crd", api.CrdController().DeployCrd)
+	httpRg.DELETE("api/v1/crd/:name", api.CrdController().DeleteCrd)
+	// Custom Resource
+	httpRg.GET("api/v1/custom-resource", api.CustomResourceController().GetCustomResourceList)
+	httpRg.GET("api/v1/custom-resource/:name", api.CustomResourceController().GetCustomResourceDetails)
+	httpRg.POST("api/v1/custom-resource", api.CustomResourceController().DeployCustomResource)
+	httpRg.DELETE("api/v1/custom-resource/:name", api.CustomResourceController().DeleteCustomResource)
+	//Cronjob
+	httpRg.GET("api/v1/cronjob", api.CronJobController().GetCronJobList)
+	httpRg.GET("api/v1/cronjob/:name", api.CronJobController().GetCronJobDetails)
+	httpRg.POST("api/v1/cronjob", api.CronJobController().DeployCronJob)
+	httpRg.DELETE("api/v1/cronjob/:name", api.CronJobController().DeleteCronJob)
 }
