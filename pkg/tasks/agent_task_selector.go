@@ -924,6 +924,282 @@ func TaskSelector(task *pb.Task) (interface{}, error) {
 			return nil, err
 		}
 		return res, nil
+		//ingress
+	case k8s.GetIngressListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetIngressListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetIngressDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetIngressDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployIngressInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployIngressInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteIngressInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteIngressInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//istioGateway
+	case k8s.GetIstioGatewayListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetIstioGatewayListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetIstioGatewayDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetIstioGatewayDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployIstioGatewayInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployIstioGatewayInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteIstioGatewayInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteIstioGatewayInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//loadBalancer
+	case k8s.GetLoadBalancerListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetLoadBalancerListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetLoadBalancerDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetLoadBalancerDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//manifest
+	case k8s.DeployManifestInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployManifestInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//network
+	case k8s.GetNetworkPolicyListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetNetworkPolicyListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetNetworkPolicyDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetNetworkPolicyDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//node
+	case k8s.GetNodeListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetNodeListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetNodeInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetNodeInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.NodeCordonInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.NodeCordonInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.NodeTaintInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.NodeTaintInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.NodeUnTaintInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.NodeUnTaintInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
 	default:
 		return nil, ErrUnexpectedTask
 	}
