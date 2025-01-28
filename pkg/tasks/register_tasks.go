@@ -117,4 +117,45 @@ func InitTaskRegistry() {
 
 	//Manifest
 	RegisterTask(k8s.ManifestService().DeployManifest, k8s.DeployManifestInputParams{})
+
+	//networkPolicy
+	RegisterTask(k8s.NetworkPolicyService().GetNetworkPolicyList, k8s.GetNetworkPolicyListInputParams{})
+	RegisterTask(k8s.NetworkPolicyService().GetNetworkPolicyDetails, k8s.GetNetworkPolicyDetailsInputParams{})
+
+	//node
+	RegisterTask(k8s.NodeService().GetNodeList, k8s.GetNodeListInputParams{})
+	RegisterTask(k8s.NodeService().GetNodeDetails, k8s.GetNodeInputParams{})
+	RegisterTask(k8s.NodeService().NodeCordon, k8s.NodeCordonInputParams{})
+	RegisterTask(k8s.NodeService().NodeTaint, k8s.NodeTaintInputParams{})
+	RegisterTask(k8s.NodeService().NodeUnTaint, k8s.NodeUnTaintInputParams{})
+
+	//pod
+	RegisterTask(k8s.PodService().GetPodList, k8s.GetPodListInputParams{})
+	RegisterTask(k8s.PodService().GetPodDetails, k8s.GetPodDetailsInputParams{})
+	RegisterTask(k8s.PodService().GetPodLogs, k8s.GetPodLogsInputParams{})
+	RegisterTask(k8s.PodService().GetPodStats, k8s.GetPodStatsInputParams{})
+	RegisterTask(k8s.PodService().DeployPod, k8s.DeployPodInputParams{})
+	RegisterTask(k8s.PodService().DeletePod, k8s.DeletePodInputParams{})
+
+	//podDisruptionBudget
+	RegisterTask(k8s.PodDisruptionBudgetsService().GetPodDisruptionBudgetsList, k8s.GetPodDisruptionBudgetsListInputParams{})
+	RegisterTask(k8s.PodDisruptionBudgetsService().GetPodDisruptionBudgetsDetails, k8s.GetPodDisruptionBudgetsDetailsInputParams{})
+	RegisterTask(k8s.PodDisruptionBudgetsService().DeployPodDisruptionBudgets, k8s.DeployPodDisruptionBudgetsInputParams{})
+	RegisterTask(k8s.PodDisruptionBudgetsService().DeletePodDisruptionBudgets, k8s.DeletePodDisruptionBudgetsInputParams{})
+
+	//podMetrics
+	RegisterTask(k8s.PodMetricsService().GetPodMetricsList, k8s.GetPodMetricsListInputParams{})
+	RegisterTask(k8s.PodMetricsService().GetPodMetricsDetails, k8s.GetPodMetricsDetailsInputParams{})
+
+	//pv
+	RegisterTask(k8s.PvService().GetPvList, k8s.GetPvListInputParams{})
+	RegisterTask(k8s.PvService().GetPvDetails, k8s.GetPvDetailsInputParams{})
+	RegisterTask(k8s.PvService().DeployPv, k8s.DeployPvInputParams{})
+	RegisterTask(k8s.PvService().DeletePv, k8s.DeletePvInputParams{})
+
+	//pvc
+	RegisterTask(k8s.PvcService().GetPvcList, k8s.GetPvcListInputParams{})
+	RegisterTask(k8s.PvcService().GetPvcDetails, k8s.GetPvcDetailsInputParams{})
+	RegisterTask(k8s.PvcService().DeployPvc, k8s.DeployPvcInputParams{})
+	RegisterTask(k8s.PvcService().DeletePvc, k8s.DeletePvcInputParams{})
 }

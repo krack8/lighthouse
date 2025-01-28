@@ -5,16 +5,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/controller/api"
 )
 
-// @title           Swagger API
-// @version         1.0
-
-// @host      localhost:8080
-// @BasePath  /api
-
-// @securityDefinitions.apikey  ApiKeyAuth
-// @in header
-// @name Authorization
-
 func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// Namespace
 	httpRg.GET("api/v1/namespace", api.NamespaceController().GetNamespaceList)
@@ -111,4 +101,38 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/load-balancer/:name", api.LoadBalancerController().GetLoadBalancerDetails)
 	// Manifest
 	httpRg.POST("api/v1/manifest", api.ManifestController().DeployManifest)
+	// Network Policy
+	httpRg.GET("api/v1/network-policy", api.NetworkPolicyController().GetNetworkPolicyList)
+	httpRg.GET("api/v1/network-policy/:name", api.NetworkPolicyController().GetNetworkPolicyDetails)
+	//Node
+	httpRg.GET("api/v1/node", api.NodeController().GetNodeList)
+	httpRg.GET("api/v1/node/:name", api.NodeController().GetNodeDetails)
+	httpRg.GET("api/v1/node/cordon/:name", api.NodeController().NodeCordon)
+	httpRg.POST("api/v1/node/taint/:name", api.NodeController().NodeTaint)
+	httpRg.POST("api/v1/node/untaint/:name", api.NodeController().NodeUnTaint)
+	// Pod
+	httpRg.GET("api/v1/pod", api.PodController().GetPodList)
+	httpRg.GET("api/v1/pod/:name", api.PodController().GetPodDetails)
+	httpRg.GET("api/v1/pod/logs/:name", api.PodController().GetPodLogs)
+	httpRg.POST("api/v1/pod", api.PodController().DeployPod)
+	httpRg.DELETE("api/v1/pod/:name", api.PodController().DeletePod)
+	httpRg.GET("api/v1/pod/stats", api.PodController().GetPodStats)
+	// PodDisruptionBudgets
+	httpRg.GET("api/v1/PDB", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsList)
+	httpRg.GET("api/v1/PDB/:name", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsDetails)
+	httpRg.POST("api/v1/PDB", api.PodDisruptionBudgetsController().DeployPodDisruptionBudgets)
+	httpRg.DELETE("api/v1/PDB/:name", api.PodDisruptionBudgetsController().DeletePodDisruptionBudgets)
+	// Pod Metrics
+	httpRg.GET("api/v1/pod-metrics", api.PodMetricsController().GetPodMetricsList)
+	httpRg.GET("api/v1/pod-metrics/:pod", api.PodMetricsController().GetPodMetricsDetails)
+	// PV
+	httpRg.GET("api/v1/pv", api.PvController().GetPvList)
+	httpRg.GET("api/v1/pv/:name", api.PvController().GetPvDetails)
+	httpRg.POST("api/v1/pv", api.PvController().DeployPv)
+	httpRg.DELETE("api/v1/pv/:name", api.PvController().DeletePv)
+	// Persistent Volume Claim
+	httpRg.GET("api/v1/pvc", api.PvcController().GetPvcList)
+	httpRg.GET("api/v1/pvc/:name", api.PvcController().GetPvcDetails)
+	httpRg.POST("api/v1/pvc", api.PvcController().DeployPvc)
+	httpRg.DELETE("api/v1/pvc/:name", api.PvcController().DeletePvc)
 }
