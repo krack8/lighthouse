@@ -62,4 +62,43 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/cronjob/:name", api.CronJobController().GetCronJobDetails)
 	httpRg.POST("api/v1/cronjob", api.CronJobController().DeployCronJob)
 	httpRg.DELETE("api/v1/cronjob/:name", api.CronJobController().DeleteCronJob)
+	// Daemonset
+	httpRg.GET("api/v1/daemonset", api.DaemonSetController().GetDaemonSetList)
+	httpRg.GET("api/v1/daemonset/:name", api.DaemonSetController().GetDaemonSetDetails)
+	httpRg.POST("api/v1/daemonset", api.DaemonSetController().DeployDaemonSet)
+	httpRg.DELETE("api/v1/daemonset/:name", api.DaemonSetController().DeleteDaemonSet)
+	httpRg.GET("api/v1/daemonset/stats", api.DaemonSetController().GetDaemonSetStats)
+	// Deployment
+	httpRg.GET("api/v1/deployment", api.DeploymentController().GetDeploymentList)
+	httpRg.GET("api/v1/deployment/:name", api.DeploymentController().GetDeploymentDetails)
+	httpRg.POST("api/v1/deployment", api.DeploymentController().DeployDeployment)
+	httpRg.DELETE("api/v1/deployment/:name", api.DeploymentController().DeleteDeployment)
+	httpRg.GET("api/v1/deployment/stats", api.DeploymentController().GetDeploymentStats)
+	httpRg.GET("api/v1/deployment/:name/pods", api.DeploymentController().GetDeploymentPodList)
+	// Endpoints
+	httpRg.GET("api/v1/endpoints", api.EndpointsController().GetEndpointsList)
+	httpRg.GET("api/v1/endpoints/:name", api.EndpointsController().GetEndpointsDetails)
+	httpRg.POST("api/v1/endpoints", api.EndpointsController().DeployEndpoints)
+	httpRg.DELETE("api/v1/endpoints/:name", api.EndpointsController().DeleteEndpoints)
+	// EndpointSlice
+	httpRg.GET("api/v1/endpoint-slice", api.EndpointSliceController().GetEndpointSliceList)
+	httpRg.GET("api/v1/endpoint-slice/:name", api.EndpointSliceController().GetEndpointSliceDetails)
+	httpRg.POST("api/v1/endpoint-slice", api.EndpointSliceController().DeployEndpointSlice)
+	httpRg.DELETE("api/v1/endpoint-slice/:name", api.EndpointSliceController().DeleteEndpointSlice)
+	// event
+	httpRg.GET("api/v1/event", api.EventController().GetEventList)
+	httpRg.GET("api/v1/event/:name", api.EventController().GetEventDetails)
+	// HPA
+	httpRg.GET("api/v1/hpa", api.HpaController().GetHpaList)
+	httpRg.GET("api/v1/hpa/:name", api.HpaController().GetHpaDetails)
+	// Ingress
+	httpRg.GET("api/v1/ingress", api.IngressController().GetIngressList)
+	httpRg.GET("api/v1/ingress/:name", api.IngressController().GetIngressDetails)
+	httpRg.POST("api/v1/ingress", api.IngressController().DeployIngress)
+	httpRg.DELETE("api/v1/ingress/:name", api.IngressController().DeleteIngress)
+	// Istio Gateway
+	httpRg.GET("api/v1/gateway", api.IstioGatewayController().GetIstioGatewayList)
+	httpRg.GET("api/v1/gateway/:name", api.IstioGatewayController().GetIstioGatewayDetails)
+	httpRg.POST("api/v1/gateway", api.IstioGatewayController().DeployIstioGateway)
+	httpRg.DELETE("api/v1/gateway/:name", api.IstioGatewayController().DeleteIstioGateway)
 }
