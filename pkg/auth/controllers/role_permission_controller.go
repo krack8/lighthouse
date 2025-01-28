@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"net/http"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RbacController struct {
@@ -15,67 +13,62 @@ type RbacController struct {
 }
 
 // CreatePermissionHandler handles the creation of a new permission
-func (rbac *RbacController) CreatePermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) CreatePermissionHandler(c *gin.Context) {
 	var permission models.Permission
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&permission); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&permission); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	// Create Permission
 	permissionID, err := rbac.RbacService.CreatePermission(permission)
 	if err != nil {
-		http.Error(w, "Error creating permission", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating permission"})
 		return
 	}
 
 	// Respond with the ID of the created permission
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]primitive.ObjectID{"permission_id": permissionID})
+	c.JSON(http.StatusCreated, gin.H{"permission_id": permissionID})
 }
 
 // CreateRoleHandler handles the creation of a new role
-func (rbac *RbacController) CreateRoleHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) CreateRoleHandler(c *gin.Context) {
 	var role models.Role
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&role); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&role); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	// Create Role
 	roleID, err := rbac.RbacService.CreateRole(role)
 	if err != nil {
-		http.Error(w, "Error creating role", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating role"})
 		return
 	}
 
 	// Respond with the ID of the created role
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]primitive.ObjectID{"role_id": roleID})
+	c.JSON(http.StatusCreated, gin.H{"role_id": roleID})
 }
 
 // AssignRolesHandler assigns multiple roles to a user.
-func (rbac *RbacController) AssignRolesHandler(w http.ResponseWriter, r *http.Request) {
+func (rbac *RbacController) AssignRolesHandler(c *gin.Context) {
 	var request struct {
 		Username string   `json:"username"`
 		Roles    []string `json:"roles"`
 	}
 
 	// Parse the JSON request body
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	// Call the service to assign the roles
 	err := rbac.RbacService.AssignRole(request.Username, request.Roles)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Roles %v assigned to user '%s'\n", request.Roles, request.Username)
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Roles %v assigned to user '%s'", request.Roles, request.Username)})
 }

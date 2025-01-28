@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"net/http"
@@ -10,84 +10,81 @@ import (
 	"time"
 )
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+// LoginHandler handles user login requests
+func LoginHandler(c *gin.Context) {
 	var requestBody map[string]string
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+
+	// Bind the request body to the map
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	username := requestBody["username"]
 	password := requestBody["password"]
+
 	// Ensure both username and password are provided
 	if username == "" || password == "" {
-		http.Error(w, "Username and password are required", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username and password are required"})
 		return
 	}
 
+	// Call the login service to get the tokens
 	accessToken, refreshToken, err := services.Login(username, password)
 	if err != nil {
 		// Return structured error in JSON format
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Return the access and refresh tokens as JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	c.JSON(http.StatusOK, gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 	})
 }
 
 // RefreshTokenHandler handles token refresh requests
-func RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+func RefreshTokenHandler(c *gin.Context) {
 	var request map[string]string
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+
+	// Bind the request body to the map
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	refreshToken := request["refresh_token"]
 	if refreshToken == "" {
-		http.Error(w, "Missing refresh token", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
 		return
 	}
 
 	// Validate the refresh token
 	claims, err := utils.ValidateToken(refreshToken, os.Getenv("JWT_REFRESH_SECRET"))
 	if err != nil {
-		http.Error(w, "Invalid or expired refresh token", http.StatusUnauthorized)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
 		return
 	}
 
 	// Load expiry durations from environment variables
 	accessTokenExpiry, err := parseDurationFromEnv("ACCESS_TOKEN_EXPIRY")
 	if err != nil {
-		http.Error(w, "Failed to load access token expiry", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load access token expiry"})
 		return
 	}
 
 	// Generate a new access token
 	accessToken, err := utils.GenerateToken(claims.Username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
-		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
 	}
 
-	// Send response
-	response := map[string]string{
+	// Send response with the new access token
+	c.JSON(http.StatusOK, gin.H{
 		"access_token": accessToken,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
 // Helper function to parse durations from environment variables

@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
@@ -14,79 +13,74 @@ type UserController struct {
 }
 
 // CreateUserHandler handles the creation of a new user.
-func (uc *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) CreateUserHandler(c *gin.Context) {
 	var user models.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+	if err := c.ShouldBindJSON(&user); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	createdUser, err := uc.UserService.CreateUser(&user)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusCreated, createdUser)
+	utils.RespondWithJSON(c, http.StatusCreated, createdUser)
 }
 
 // GetUserHandler handles fetching a user by ID.
-func (uc *UserController) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
+func (uc *UserController) GetUserHandler(c *gin.Context) {
+	id := c.Param("id")
 
 	user, err := uc.UserService.GetUser(id)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, user)
+	utils.RespondWithJSON(c, http.StatusOK, user)
 }
 
-// GetUserHandler handles fetching a user by ID.
-func (uc *UserController) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+// GetAllUsersHandler handles fetching all users.
+func (uc *UserController) GetAllUsersHandler(c *gin.Context) {
 	userList, err := uc.UserService.GetAllUsers()
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, userList)
+	utils.RespondWithJSON(c, http.StatusOK, userList)
 }
 
 // UpdateUserHandler handles updating a user's information.
-func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
+func (uc *UserController) UpdateUserHandler(c *gin.Context) {
+	id := c.Param("id")
 
 	var updatedData models.User
-	if err := json.NewDecoder(r.Body).Decode(&updatedData); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+	if err := c.ShouldBindJSON(&updatedData); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err := uc.UserService.UpdateUser(id, &updatedData)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Write([]byte("User updated successfully"))
-	utils.RespondWithJSON(w, http.StatusOK, nil)
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
 // DeleteUserHandler handles deleting a user by ID.
-func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
+func (uc *UserController) DeleteUserHandler(c *gin.Context) {
+	id := c.Param("id")
 
 	err := uc.UserService.DeleteUser(id)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Write([]byte("User deleted successfully"))
-	utils.RespondWithJSON(w, http.StatusOK, nil)
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
