@@ -158,4 +158,67 @@ func InitTaskRegistry() {
 	RegisterTask(k8s.PvcService().GetPvcDetails, k8s.GetPvcDetailsInputParams{})
 	RegisterTask(k8s.PvcService().DeployPvc, k8s.DeployPvcInputParams{})
 	RegisterTask(k8s.PvcService().DeletePvc, k8s.DeletePvcInputParams{})
+
+	//replicaSet
+	RegisterTask(k8s.ReplicaSetService().GetReplicaSetList, k8s.GetReplicaSetListInputParams{})
+	RegisterTask(k8s.ReplicaSetService().GetReplicaSetDetails, k8s.GetReplicaSetDetailsInputParams{})
+	RegisterTask(k8s.ReplicaSetService().GetReplicaSetStats, k8s.GetReplicaSetStatsInputParams{})
+	RegisterTask(k8s.ReplicaSetService().DeployReplicaSet, k8s.DeployReplicaSetInputParams{})
+	RegisterTask(k8s.ReplicaSetService().DeleteReplicaSet, k8s.DeleteReplicaSetInputParams{})
+
+	//replicationController
+	RegisterTask(k8s.ReplicationControllerService().GetReplicationControllerList, k8s.GetReplicationControllerListInputParams{})
+	RegisterTask(k8s.ReplicationControllerService().GetReplicationControllerList, k8s.GetReplicationControllerDetailsInputParams{})
+	RegisterTask(k8s.ReplicationControllerService().DeployReplicationController, k8s.DeployReplicationControllerInputParams{})
+	RegisterTask(k8s.ReplicationControllerService().DeleteReplicationController, k8s.DeleteReplicationControllerInputParams{})
+
+	//resourceQuota
+	RegisterTask(k8s.ResourceQuotaService().GetResourceQuotaList, k8s.GetResourceQuotaListInputParams{})
+	RegisterTask(k8s.ResourceQuotaService().GetResourceQuotaDetails, k8s.GetResourceQuotaDetailsInputParams{})
+	RegisterTask(k8s.ResourceQuotaService().DeployResourceQuota, k8s.DeployResourceQuotaInputParams{})
+	RegisterTask(k8s.ResourceQuotaService().DeleteResourceQuota, k8s.DeleteResourceQuotaInputParams{})
+
+	//role
+	RegisterTask(k8s.RoleService().GetRoleList, k8s.GetRoleListInputParams{})
+	RegisterTask(k8s.RoleService().GetRoleDetails, k8s.GetRoleDetailsInputParams{})
+	RegisterTask(k8s.RoleService().DeployRole, k8s.DeployRoleInputParams{})
+	RegisterTask(k8s.RoleService().DeleteRole, k8s.DeleteRoleInputParams{})
+
+	//roleBinding
+	RegisterTask(k8s.RoleBindingService().GetRoleBindingList, k8s.GetRoleBindingListInputParams{})
+	RegisterTask(k8s.RoleBindingService().GetRoleBindingDetails, k8s.GetRoleBindingDetailsInputParams{})
+	RegisterTask(k8s.RoleBindingService().DeployRoleBinding, k8s.DeployRoleBindingInputParams{})
+	RegisterTask(k8s.RoleBindingService().DeleteRoleBinding, k8s.DeleteRoleBindingInputParams{})
+
+	//serviceAccount
+	RegisterTask(k8s.ServiceAccountService().GetServiceAccountList, k8s.GetServiceAccountListInputParams{})
+	RegisterTask(k8s.ServiceAccountService().GetServiceAccountDetails, k8s.GetServiceAccountDetailsInputParams{})
+	RegisterTask(k8s.ServiceAccountService().DeployServiceAccount, k8s.DeployServiceAccountInputParams{})
+	RegisterTask(k8s.ServiceAccountService().DeleteServiceAccount, k8s.DeleteServiceAccountInputParams{})
+
+	//secret
+	RegisterTask(k8s.SecretService().GetSecretList, k8s.GetSecretListInputParams{})
+	RegisterTask(k8s.SecretService().GetSecretDetails, k8s.GetSecretDetailsInputParams{})
+	RegisterTask(k8s.SecretService().DeploySecret, k8s.DeploySecretInputParams{})
+	RegisterTask(k8s.SecretService().DeleteSecret, k8s.DeleteSecretInputParams{})
+
+	//statefulSet
+	RegisterTask(k8s.StatefulSetService().GetStatefulSetList, k8s.GetStatefulSetListInputParams{})
+	RegisterTask(k8s.StatefulSetService().GetStatefulSetDetails, k8s.GetStatefulSetDetailsInputParams{})
+	RegisterTask(k8s.StatefulSetService().GetStatefulSetStats, k8s.GetStatefulSetStatsInputParams{})
+	RegisterTask(k8s.StatefulSetService().GetStatefulSetPodList, k8s.GetStatefulSetPodListInputParams{})
+	RegisterTask(k8s.StatefulSetService().DeployStatefulSet, k8s.DeployStatefulSetInputParams{})
+	RegisterTask(k8s.StatefulSetService().DeleteStatefulSet, k8s.DeleteStatefulSetInputParams{})
+
+	//storageClass
+	RegisterTask(k8s.StorageClassService().GetStorageClassList, k8s.GetStorageClassListInputParams{})
+	RegisterTask(k8s.StorageClassService().GetStorageClassDetails, k8s.GetStorageClassDetailsInputParams{})
+	RegisterTask(k8s.StorageClassService().DeployStorageClass, k8s.DeployStorageClassInputParams{})
+	RegisterTask(k8s.StorageClassService().DeleteStorageClass, k8s.DeleteStorageClassInputParams{})
+
+	//svc
+	RegisterTask(k8s.SvcService().GetSvcList, k8s.GetSvcListInputParams{})
+	RegisterTask(k8s.SvcService().GetSvcDetails, k8s.GetSvcDetailsInputParams{})
+	RegisterTask(k8s.SvcService().DeploySvc, k8s.DeploySvcInputParams{})
+	RegisterTask(k8s.SvcService().DeleteSvc, k8s.DeleteSvcInputParams{})
 }

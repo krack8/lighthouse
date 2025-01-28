@@ -6,6 +6,7 @@ import (
 	middleware "github.com/krack8/lighthouse/pkg/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/api"
 )
+
 var userController *controllers.UserController
 
 // Declare the userService as a global variable
@@ -164,4 +165,57 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/pvc/:name", api.PvcController().GetPvcDetails)
 	httpRg.POST("api/v1/pvc", api.PvcController().DeployPvc)
 	httpRg.DELETE("api/v1/pvc/:name", api.PvcController().DeletePvc)
+	// ReplicaSet
+	httpRg.GET("api/v1/replicaset", api.ReplicaSetController().GetReplicaSetList)
+	httpRg.GET("api/v1/replicaset/:name", api.ReplicaSetController().GetReplicaSetDetails)
+	httpRg.GET("api/v1/replicaset/stats", api.ReplicaSetController().GetReplicaSetStats)
+	httpRg.POST("api/v1/replicaset", api.ReplicaSetController().DeployReplicaSet)
+	httpRg.DELETE("api/v1/replicaset/:name", api.ReplicaSetController().DeleteReplicaSet)
+	// ReplicationController
+	httpRg.GET("api/v1/replication-controller", api.ReplicationControllerController().GetReplicationControllerList)
+	httpRg.GET("api/v1/replication-controller/:name", api.ReplicationControllerController().GetReplicationControllerDetails)
+	httpRg.POST("api/v1/replication-controller", api.ReplicationControllerController().DeployReplicationController)
+	httpRg.DELETE("api/v1/replication-controller/:name", api.ReplicationControllerController().DeleteReplicationController)
+	// Resource Quota
+	httpRg.GET("api/v1/resource-quota", api.ResourceQuotaController().GetResourceQuotaList)
+	httpRg.GET("api/v1/resource-quota/:name", api.ResourceQuotaController().GetResourceQuotaDetails)
+	httpRg.POST("api/v1/resource-quota", api.ResourceQuotaController().DeployResourceQuota)
+	httpRg.DELETE("api/v1/resource-quota/:name", api.ResourceQuotaController().DeleteResourceQuota)
+	// Role
+	httpRg.GET("api/v1/role", api.RoleController().GetRoleList)
+	httpRg.GET("api/v1/role/:name", api.RoleController().GetRoleDetails)
+	httpRg.POST("api/v1/role", api.RoleController().DeployRole)
+	httpRg.DELETE("api/v1/role/:name", api.RoleController().DeleteRole)
+	// RoleBinding
+	httpRg.GET("api/v1/role-binding", api.RoleBindingController().GetRoleBindingList)
+	httpRg.GET("api/v1/role-binding/:name", api.RoleBindingController().GetRoleBindingDetails)
+	httpRg.POST("api/v1/role-binding", api.RoleBindingController().DeployRoleBinding)
+	httpRg.DELETE("api/v1/role-binding/:name", api.RoleBindingController().DeleteRoleBinding)
+	// Service Account
+	httpRg.GET("api/v1/service-account", api.ServiceAccountController().GetServiceAccountList)
+	httpRg.GET("api/v1/service-account/:name", api.ServiceAccountController().GetServiceAccountDetails)
+	httpRg.POST("api/v1/service-account", api.ServiceAccountController().DeployServiceAccount)
+	httpRg.DELETE("api/v1/service-account/:name", api.ServiceAccountController().DeleteServiceAccount)
+	// Secret
+	httpRg.GET("api/v1/secret", api.SecretController().GetSecretList)
+	httpRg.GET("api/v1/secret/:name", api.SecretController().GetSecretDetails)
+	httpRg.POST("api/v1/secret", api.SecretController().DeploySecret)
+	httpRg.DELETE("api/v1/secret/:name", api.SecretController().DeleteSecret)
+	// StatefulSet
+	httpRg.GET("api/v1/statefulset", api.StatefulSetController().GetStatefulSetList)
+	httpRg.GET("api/v1/statefulset/:name", api.StatefulSetController().GetStatefulSetDetails)
+	httpRg.POST("api/v1/statefulset", api.StatefulSetController().DeployStatefulSet)
+	httpRg.DELETE("api/v1/statefulset/:name", api.StatefulSetController().DeleteStatefulSet)
+	httpRg.GET("api/v1/statefulset/stats", api.StatefulSetController().GetStatefulSetStats)
+	httpRg.GET("api/v1/statefulset/:name/pods", api.StatefulSetController().GetStatefulSetPodList)
+	// Storage class
+	httpRg.GET("api/v1/storage-class", api.StorageClassController().GetStorageClassList)
+	httpRg.GET("api/v1/storage-class/:name", api.StorageClassController().GetStorageClassDetails)
+	httpRg.POST("api/v1/storage-class", api.StorageClassController().DeployStorageClass)
+	httpRg.DELETE("api/v1/storage-class/:name", api.StorageClassController().DeleteStorageClass)
+	// Service
+	httpRg.GET("api/v1/service", api.SvcController().GetSvcList)
+	httpRg.GET("api/v1/service/:name", api.SvcController().GetSvcDetails)
+	httpRg.POST("api/v1/service", api.SvcController().DeploySVC)
+	httpRg.DELETE("api/v1/service/:name", api.SvcController().DeleteSvc)
 }
