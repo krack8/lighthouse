@@ -290,5 +290,4 @@ func StartGrpcServer() {
 			log.Fatalf("Failed to serve gRPC: %v", err)
 		}
 	}()
-	http.HandleFunc("/execute", srv.httpExecuteHandler)
 }

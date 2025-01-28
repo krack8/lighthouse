@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	cfg "github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/controller/api"
 	"github.com/krack8/lighthouse/pkg/log"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -158,10 +157,10 @@ func (p *GetJobListInputParams) Process() error {
 func (svc *jobService) GetJobList(c context.Context, p GetJobListInputParams) (interface{}, error) {
 	err := p.Process()
 	if err != nil {
-		return api.ErrorResponse(err)
+		return ErrorResponse(err)
 	}
 
-	return api.ResponseDTO{
+	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
 	}, nil
@@ -182,10 +181,10 @@ func (p *GetJobInputParams) Process() error {
 func (svc *jobService) GetJobDetails(c context.Context, p GetJobInputParams) (interface{}, error) {
 	err := p.Process()
 	if err != nil {
-		return api.ErrorResponse(err)
+		return ErrorResponse(err)
 	}
 
-	return api.ResponseDTO{
+	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
 	}, nil
@@ -223,10 +222,10 @@ func (p *DeployJobInputParams) Process(c context.Context) error {
 func (svc *jobService) DeployJob(c context.Context, p DeployJobInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
-		return api.ErrorResponse(err)
+		return ErrorResponse(err)
 	}
 
-	return api.ResponseDTO{
+	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
 	}, nil
@@ -257,10 +256,10 @@ func (p *DeleteJobInputParams) Process(c context.Context) error {
 func (svc *jobService) DeleteJob(c context.Context, p DeleteJobInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
-		return api.ErrorResponse(err)
+		return ErrorResponse(err)
 	}
 
-	return api.ResponseDTO{
+	return ResponseDTO{
 		Status: "success",
 		Data:   nil,
 	}, nil
