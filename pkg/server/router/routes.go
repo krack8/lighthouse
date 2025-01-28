@@ -101,4 +101,14 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/gateway/:name", api.IstioGatewayController().GetIstioGatewayDetails)
 	httpRg.POST("api/v1/gateway", api.IstioGatewayController().DeployIstioGateway)
 	httpRg.DELETE("api/v1/gateway/:name", api.IstioGatewayController().DeleteIstioGateway)
+	//Job
+	httpRg.GET("api/v1/job", api.JobController().GetJobList)
+	httpRg.GET("api/v1/job/:name", api.JobController().GetJobDetails)
+	httpRg.POST("api/v1/job", api.JobController().DeployJob)
+	httpRg.DELETE("api/v1/job/:name", api.JobController().DeleteJob)
+	//Load Balancer
+	httpRg.GET("api/v1/load-balancer", api.LoadBalancerController().GetLoadBalancerList)
+	httpRg.GET("api/v1/load-balancer/:name", api.LoadBalancerController().GetLoadBalancerDetails)
+	// Manifest
+	httpRg.POST("api/v1/manifest", api.ManifestController().DeployManifest)
 }

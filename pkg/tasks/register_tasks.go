@@ -104,4 +104,17 @@ func InitTaskRegistry() {
 	RegisterTask(k8s.IstioGatewayService().GetIstioGatewayDetails, k8s.GetIstioGatewayDetailsInputParams{})
 	RegisterTask(k8s.IstioGatewayService().DeployIstioGateway, k8s.DeployIstioGatewayInputParams{})
 	RegisterTask(k8s.IstioGatewayService().DeleteIstioGateway, k8s.DeleteIstioGatewayInputParams{})
+
+	//job
+	RegisterTask(k8s.JobService().GetJobList, k8s.GetJobListInputParams{})
+	RegisterTask(k8s.JobService().GetJobDetails, k8s.GetJobInputParams{})
+	RegisterTask(k8s.JobService().DeployJob, k8s.DeployJobInputParams{})
+	RegisterTask(k8s.JobService().DeleteJob, k8s.DeleteJobInputParams{})
+
+	//loadBalancer
+	RegisterTask(k8s.LoadBalancerService().GetLoadBalancerList, k8s.GetLoadBalancerListInputParams{})
+	RegisterTask(k8s.LoadBalancerService().GetLoadBalancerDetails, k8s.GetLoadBalancerDetailsInputParams{})
+
+	//Manifest
+	RegisterTask(k8s.ManifestService().DeployManifest, k8s.DeployManifestInputParams{})
 }
