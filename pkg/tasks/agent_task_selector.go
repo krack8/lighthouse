@@ -1200,6 +1200,616 @@ func TaskSelector(task *pb.Task) (interface{}, error) {
 			return nil, err
 		}
 		return res, nil
+		//pod
+	case k8s.GetPodListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPodDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPodStatsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodStatsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPodLogsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodLogsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployPodInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployPodInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeletePodInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeletePodInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//podDisruptionBudget
+	case k8s.GetPodDisruptionBudgetsListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodDisruptionBudgetsListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPodDisruptionBudgetsDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodDisruptionBudgetsDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployPodDisruptionBudgetsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployPodDisruptionBudgetsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeletePodDisruptionBudgetsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeletePodDisruptionBudgetsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//podMetrics
+	case k8s.GetPodMetricsListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodMetricsListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPodMetricsDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPodMetricsDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//pv
+	case k8s.GetPvListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPvListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPvDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPvDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployPvInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployPvInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeletePvInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeletePvInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//pvc
+	case k8s.GetPvcListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPvcListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetPvcDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetPvcDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployPvcInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployPvcInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeletePvcInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeletePvcInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//replicaset
+	case k8s.GetReplicaSetListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetReplicaSetListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetReplicaSetDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetReplicaSetDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployReplicaSetInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployReplicaSetInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteReplicaSetInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteReplicaSetInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//replicationController
+	case k8s.GetReplicationControllerListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetReplicationControllerListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetReplicationControllerDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetReplicationControllerDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployReplicationControllerInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployReplicationControllerInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteReplicationControllerInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteReplicationControllerInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//resourceQuota
+	case k8s.GetResourceQuotaListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetResourceQuotaListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetResourceQuotaDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetResourceQuotaDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployResourceQuotaInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployResourceQuotaInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteResourceQuotaInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteResourceQuotaInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//role
+	case k8s.GetRoleListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetRoleListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetRoleDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetRoleDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployRoleInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployRoleInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteRoleInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteRoleInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+		//roleBinding
+	case k8s.GetRoleBindingListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetRoleBindingListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetRoleBindingDetailsInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetRoleBindingDetailsInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployRoleBindingInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployRoleBindingInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteRoleBindingInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteRoleBindingInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
 	default:
 		return nil, ErrUnexpectedTask
 	}
