@@ -2,10 +2,39 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/auth/controllers"
+	middleware "github.com/krack8/lighthouse/pkg/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/api"
 )
+var userController *controllers.UserController
+
+// Declare the userService as a global variable
+var rbacController *controllers.RbacController
 
 func AddApiRoutes(httpRg *gin.RouterGroup) {
+
+	// Define the login route separately without middleware
+	// Login route
+	httpRg.POST("/auth/login", controllers.LoginHandler)
+
+	// Refresh token route
+	httpRg.POST("/auth/refresh-token", controllers.RefreshTokenHandler)
+
+	// Apply the AuthMiddleware to the /api/v1 routes
+	apiGroup := httpRg.Group("/api/v1", middleware.AuthMiddleware())
+
+	// User routes
+	apiGroup.POST("/users", userController.CreateUserHandler)
+	apiGroup.GET("/users", userController.GetAllUsersHandler)
+	apiGroup.GET("/users/:id", userController.GetUserHandler)
+	apiGroup.PUT("/users/:id", userController.UpdateUserHandler)
+	apiGroup.DELETE("/users/:id", userController.DeleteUserHandler)
+
+	// RBAC routes
+	apiGroup.POST("/rbac/permissions", rbacController.CreatePermissionHandler)
+	apiGroup.POST("/rbac/roles", rbacController.CreateRoleHandler)
+	apiGroup.POST("/rbac/assign-roles", rbacController.AssignRolesHandler)
+
 	// Namespace
 	httpRg.GET("api/v1/namespace", api.NamespaceController().GetNamespaceList)
 	httpRg.GET("api/v1/namespace/names", api.NamespaceController().GetNamespaceNameList)
