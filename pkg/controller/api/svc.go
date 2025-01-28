@@ -65,10 +65,12 @@ func (ctrl *svcController) GetSvcList(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -95,10 +97,12 @@ func (ctrl *svcController) GetSvcDetails(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -129,10 +133,12 @@ func (ctrl *svcController) DeploySVC(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -158,10 +164,12 @@ func (ctrl *svcController) DeleteSvc(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }

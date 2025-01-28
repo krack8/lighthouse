@@ -66,10 +66,12 @@ func (ctrl *daemonSetController) GetDaemonSetList(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -95,10 +97,12 @@ func (ctrl *daemonSetController) GetDaemonSetDetails(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -128,10 +132,12 @@ func (ctrl *daemonSetController) DeployDaemonSet(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -157,10 +163,12 @@ func (ctrl *daemonSetController) DeleteDaemonSet(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -201,10 +209,12 @@ func (ctrl *daemonSetController) GetDaemonSetStats(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }

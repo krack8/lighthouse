@@ -221,4 +221,24 @@ func InitTaskRegistry() {
 	RegisterTask(k8s.SvcService().GetSvcDetails, k8s.GetSvcDetailsInputParams{})
 	RegisterTask(k8s.SvcService().DeploySvc, k8s.DeploySvcInputParams{})
 	RegisterTask(k8s.SvcService().DeleteSvc, k8s.DeleteSvcInputParams{})
+
+	//virtualService
+	RegisterTask(k8s.VirtualServiceService().GetVirtualServiceList, k8s.GetVirtualServiceListInputParams{})
+	RegisterTask(k8s.VirtualServiceService().GetVirtualServiceDetails, k8s.GetVirtualServiceDetailsInputParams{})
+	RegisterTask(k8s.VirtualServiceService().DeployVirtualService, k8s.DeployVirtualServiceInputParams{})
+	RegisterTask(k8s.VirtualServiceService().DeleteVirtualService, k8s.DeleteVirtualServiceInputParams{})
+
+	//volumeSnapshot
+	RegisterTask(k8s.VolumeSnapshotService().GetVolumeSnapshotList, k8s.GetVolumeSnapshotListInputParams{})
+	RegisterTask(k8s.VolumeSnapshotService().GetVolumeSnapshotDetails, k8s.GetVolumeSnapshotDetailsInputParams{})
+	RegisterTask(k8s.VolumeSnapshotService().DeployVolumeSnapshot, k8s.DeployVolumeSnapshotInputParams{})
+	RegisterTask(k8s.VolumeSnapshotService().DeleteVolumeSnapshot, k8s.DeleteVolumeSnapshotInputParams{})
+
+	//volumeSnapshotClass
+	RegisterTask(k8s.VolumeSnapshotClassService().GetVolumeSnapshotClassList, k8s.GetVolumeSnapshotClassListInputParams{})
+	RegisterTask(k8s.VolumeSnapshotClassService().GetVolumeSnapshotClassDetails, k8s.GetVolumeSnapshotClassDetailsInputParams{})
+
+	//volumeSnapshotContent
+	RegisterTask(k8s.VolumeSnapshotContentService().GetVolumeSnapshotContentList, k8s.GetVolumeSnapshotContentListInputParams{})
+	RegisterTask(k8s.VolumeSnapshotContentService().GetVolumeSnapshotContentDetails, k8s.GetVolumeSnapshotContentDetailsInputParams{})
 }

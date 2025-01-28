@@ -55,10 +55,12 @@ func (ctrl *nodeController) GetNodeList(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -77,10 +79,12 @@ func (ctrl *nodeController) GetNodeDetails(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -99,10 +103,12 @@ func (ctrl *nodeController) NodeCordon(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -130,10 +136,12 @@ func (ctrl *nodeController) NodeTaint(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -159,10 +167,12 @@ func (ctrl *nodeController) NodeUnTaint(ctx *gin.Context) {
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }

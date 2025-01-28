@@ -65,10 +65,12 @@ func (ctrl *replicationControllerController) GetReplicationControllerList(ctx *g
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -95,10 +97,12 @@ func (ctrl *replicationControllerController) GetReplicationControllerDetails(ctx
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -128,10 +132,12 @@ func (ctrl *replicationControllerController) DeployReplicationController(ctx *gi
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -157,10 +163,12 @@ func (ctrl *replicationControllerController) DeleteReplicationController(ctx *gi
 	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }

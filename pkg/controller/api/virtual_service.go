@@ -7,29 +7,29 @@ import (
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
-	batchv1 "k8s.io/api/batch/v1"
+	"istio.io/client-go/pkg/apis/networking/v1beta1"
 )
 
-type JobControllerInterface interface {
-	GetJobList(ctx *gin.Context)
-	GetJobDetails(ctx *gin.Context)
-	DeployJob(ctx *gin.Context)
-	DeleteJob(ctx *gin.Context)
+type VirtualServiceControllerInterface interface {
+	GetVirtualServiceList(ctx *gin.Context)
+	GetVirtualServiceDetails(ctx *gin.Context)
+	DeployVirtualService(ctx *gin.Context)
+	DeleteVirtualService(ctx *gin.Context)
 }
 
-type jobController struct {
+type virtualServiceController struct {
 }
 
-var jc jobController
+var vsec virtualServiceController
 
-func JobController() *jobController {
-	return &jc
+func VirtualServiceController() *virtualServiceController {
+	return &vsec
 }
 
-func (ctrl *jobController) GetJobList(ctx *gin.Context) {
+func (ctrl *virtualServiceController) GetVirtualServiceList(ctx *gin.Context) {
 	var result ResponseDTO
 
-	input := new(k8s.GetJobListInputParams)
+	input := new(k8s.GetVirtualServiceListInputParams)
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -38,8 +38,8 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 		return
 	}
 	input.NamespaceName = queryNamespace
-	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
+	input.Search = ctx.Query("q")
 	input.Limit = ctx.Query("limit")
 
 	queryLabel := ctx.Query("labels")
@@ -53,11 +53,11 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 		}
 		if queryLabelMap != nil {
 			input.Labels = queryLabelMap
-			log.Logger.Info("Filter by param for job List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
+			log.Logger.Info("Filter by param for VirtualService List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
-	taskName := tasks.GetTaskName(k8s.JobService().GetJobList)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VirtualServiceService().GetVirtualServiceList)
+	logRequestedTaskController("virtual-service", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -75,11 +75,11 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
+func (ctrl *virtualServiceController) GetVirtualServiceDetails(ctx *gin.Context) {
 	var result ResponseDTO
 
-	input := new(k8s.GetJobInputParams)
-	input.JobName = ctx.Param("name")
+	input := new(k8s.GetVirtualServiceDetailsInputParams)
+	input.VirtualServiceName = ctx.Param("name")
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -88,8 +88,8 @@ func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
 		return
 	}
 	input.NamespaceName = queryNamespace
-	taskName := tasks.GetTaskName(k8s.JobService().GetJobDetails)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VirtualServiceService().GetVirtualServiceDetails)
+	logRequestedTaskController("virtual-service", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -107,23 +107,24 @@ func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) DeployJob(ctx *gin.Context) {
+func (ctrl *virtualServiceController) DeployVirtualService(ctx *gin.Context) {
 	var result ResponseDTO
-	payload := new(batchv1.Job)
+	payload := new(v1beta1.VirtualService)
 	if err := ctx.Bind(payload); err != nil {
-		log.Logger.Errorw("Failed to bind deploy job payload", "err", err.Error())
+		log.Logger.Errorw("Failed to bind deploy VirtualService payload", "err", err.Error())
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
-	input := new(k8s.DeployJobInputParams)
-	input.Job = payload
-	if input.Job.Namespace == "" {
-		log.Logger.Errorw("namespace required in payload", "value", "job deploy")
+
+	input := new(k8s.DeployVirtualServiceInputParams)
+	input.VirtualService = payload
+	if input.VirtualService.Namespace == "" {
+		log.Logger.Errorw("namespace required in payload", "value", "virtualService deploy")
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
-	taskName := tasks.GetTaskName(k8s.JobService().DeployJob)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VirtualServiceService().DeployVirtualService)
+	logRequestedTaskController("virtual-service", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -141,10 +142,10 @@ func (ctrl *jobController) DeployJob(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) DeleteJob(ctx *gin.Context) {
+func (ctrl *virtualServiceController) DeleteVirtualService(ctx *gin.Context) {
 	var result ResponseDTO
-	input := new(k8s.DeleteJobInputParams)
-	input.JobName = ctx.Param("name")
+	input := new(k8s.DeleteVirtualServiceInputParams)
+	input.VirtualServiceName = ctx.Param("name")
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -153,8 +154,8 @@ func (ctrl *jobController) DeleteJob(ctx *gin.Context) {
 		return
 	}
 	input.NamespaceName = queryNamespace
-	taskName := tasks.GetTaskName(k8s.JobService().DeleteJob)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VirtualServiceService().DeleteVirtualService)
+	logRequestedTaskController("virtual-service", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)

@@ -218,4 +218,20 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("api/v1/service/:name", api.SvcController().GetSvcDetails)
 	httpRg.POST("api/v1/service", api.SvcController().DeploySVC)
 	httpRg.DELETE("api/v1/service/:name", api.SvcController().DeleteSvc)
+	// Virtual Service
+	httpRg.GET("api/v1/virtual-service", api.VirtualServiceController().GetVirtualServiceList)
+	httpRg.GET("api/v1/virtual-service/:name", api.VirtualServiceController().GetVirtualServiceDetails)
+	httpRg.POST("api/v1/virtual-service", api.VirtualServiceController().DeployVirtualService)
+	httpRg.DELETE("api/v1/virtual-service/:name", api.VirtualServiceController().DeleteVirtualService)
+	// Volume Snapshot
+	httpRg.GET("api/v1/volume-snapshot", api.VolumeSnapshotController().GetVolumeSnapshotList)
+	httpRg.GET("api/v1/volume-snapshot/:name", api.VolumeSnapshotController().GetVolumeSnapshotDetails)
+	httpRg.POST("api/v1/volume-snapshot", api.VolumeSnapshotController().DeployVolumeSnapshot)
+	httpRg.DELETE("api/v1/volume-snapshot/:name", api.VolumeSnapshotController().DeleteVolumeSnapshot)
+	// Volume Snapshot Content
+	httpRg.GET("api/v1/volume-snapshot-content", api.VolumeSnapshotContentController().GetVolumeSnapshotContentList)
+	httpRg.GET("api/v1/volume-snapshot-content/:name", api.VolumeSnapshotContentController().GetVolumeSnapshotContentDetails)
+	// Volume Snapshot Class
+	httpRg.GET("api/v1/volume-snapshot-class", api.VolumeSnapshotClassController().GetVolumeSnapshotClassList)
+	httpRg.GET("api/v1/volume-snapshot-class/:name", api.VolumeSnapshotClassController().GetVolumeSnapshotClassDetails)
 }

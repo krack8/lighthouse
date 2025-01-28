@@ -4,32 +4,32 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/dto"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
-	batchv1 "k8s.io/api/batch/v1"
 )
 
-type JobControllerInterface interface {
-	GetJobList(ctx *gin.Context)
-	GetJobDetails(ctx *gin.Context)
-	DeployJob(ctx *gin.Context)
-	DeleteJob(ctx *gin.Context)
+type VolumeSnapshotControllerInterface interface {
+	GetVolumeSnapshotList(ctx *gin.Context)
+	GetVolumeSnapshotDetails(ctx *gin.Context)
+	DeployVolumeSnapshot(ctx *gin.Context)
+	DeleteVolumeSnapshot(ctx *gin.Context)
 }
 
-type jobController struct {
+type volumeSnapshotController struct {
 }
 
-var jc jobController
+var vsc volumeSnapshotController
 
-func JobController() *jobController {
-	return &jc
+func VolumeSnapshotController() *volumeSnapshotController {
+	return &vsc
 }
 
-func (ctrl *jobController) GetJobList(ctx *gin.Context) {
+func (ctrl *volumeSnapshotController) GetVolumeSnapshotList(ctx *gin.Context) {
 	var result ResponseDTO
 
-	input := new(k8s.GetJobListInputParams)
+	input := new(k8s.GetVolumeSnapshotListInputParams)
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -39,8 +39,6 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
-	input.Continue = ctx.Query("continue")
-	input.Limit = ctx.Query("limit")
 
 	queryLabel := ctx.Query("labels")
 	if queryLabel != "" {
@@ -53,11 +51,11 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 		}
 		if queryLabelMap != nil {
 			input.Labels = queryLabelMap
-			log.Logger.Info("Filter by param for job List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
+			log.Logger.Info("Filter by param for VolumeSnapshot List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
-	taskName := tasks.GetTaskName(k8s.JobService().GetJobList)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().GetVolumeSnapshotList)
+	logRequestedTaskController("volume-snapshot", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -75,11 +73,11 @@ func (ctrl *jobController) GetJobList(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
+func (ctrl *volumeSnapshotController) GetVolumeSnapshotDetails(ctx *gin.Context) {
 	var result ResponseDTO
 
-	input := new(k8s.GetJobInputParams)
-	input.JobName = ctx.Param("name")
+	input := new(k8s.GetVolumeSnapshotDetailsInputParams)
+	input.VolumeSnapshotName = ctx.Param("name")
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -88,8 +86,8 @@ func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
 		return
 	}
 	input.NamespaceName = queryNamespace
-	taskName := tasks.GetTaskName(k8s.JobService().GetJobDetails)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().GetVolumeSnapshotDetails)
+	logRequestedTaskController("volume-snapshot", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -107,23 +105,24 @@ func (ctrl *jobController) GetJobDetails(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) DeployJob(ctx *gin.Context) {
+func (ctrl *volumeSnapshotController) DeployVolumeSnapshot(ctx *gin.Context) {
 	var result ResponseDTO
-	payload := new(batchv1.Job)
+	payload := new(dto.VolumeSnapshotV1)
 	if err := ctx.Bind(payload); err != nil {
-		log.Logger.Errorw("Failed to bind deploy job payload", "err", err.Error())
+		log.Logger.Errorw("Failed to bind deploy VolumeSnapshot payload", "err", err.Error())
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
-	input := new(k8s.DeployJobInputParams)
-	input.Job = payload
-	if input.Job.Namespace == "" {
-		log.Logger.Errorw("namespace required in payload", "value", "job deploy")
+
+	input := new(k8s.DeployVolumeSnapshotInputParams)
+	input.VolumeSnapshot = payload
+	if input.VolumeSnapshot.Namespace == "" {
+		log.Logger.Errorw("namespace required in payload", "value", "volumeSnapshot deploy")
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
-	taskName := tasks.GetTaskName(k8s.JobService().DeployJob)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().DeployVolumeSnapshot)
+	logRequestedTaskController("volume-snapshot", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
@@ -141,10 +140,10 @@ func (ctrl *jobController) DeployJob(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-func (ctrl *jobController) DeleteJob(ctx *gin.Context) {
+func (ctrl *volumeSnapshotController) DeleteVolumeSnapshot(ctx *gin.Context) {
 	var result ResponseDTO
-	input := new(k8s.DeleteJobInputParams)
-	input.JobName = ctx.Param("name")
+	input := new(k8s.DeleteVolumeSnapshotInputParams)
+	input.VolumeSnapshotName = ctx.Param("name")
 
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
@@ -153,8 +152,8 @@ func (ctrl *jobController) DeleteJob(ctx *gin.Context) {
 		return
 	}
 	input.NamespaceName = queryNamespace
-	taskName := tasks.GetTaskName(k8s.JobService().DeleteJob)
-	logRequestedTaskController("job", taskName)
+	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().DeleteVolumeSnapshot)
+	logRequestedTaskController("volume-snapshot", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)

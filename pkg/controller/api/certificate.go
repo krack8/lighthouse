@@ -68,6 +68,7 @@ func (ctrl *certificateController) GetCertificateList(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -97,6 +98,7 @@ func (ctrl *certificateController) GetCertificateDetails(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -130,6 +132,7 @@ func (ctrl *certificateController) DeployCertificate(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
@@ -159,6 +162,7 @@ func (ctrl *certificateController) DeleteCertificate(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	SendResponse(ctx, result)
 }
