@@ -28,6 +28,7 @@ func InitEnvironmentVariables() {
 	} else {
 		log.Logger.Infow("Started with NO AUTH disabled", "[NO-AUTH]", NoAuth)
 	}
+	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 }
 
 func IsNoAuth() bool {

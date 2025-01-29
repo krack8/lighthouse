@@ -18,6 +18,7 @@ var taskMutex sync.Mutex
 
 func main() {
 	_log.InitializeLogger()
+	config.InitEnvironmentVariables()
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
