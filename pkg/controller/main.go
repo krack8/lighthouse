@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/krack8/lighthouse/pkg/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/auth/config"
+	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/controller/worker"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/server"
@@ -14,6 +15,7 @@ import (
 func main() {
 	_log.InitializeLogger()
 	worker.StartGrpcServer()
+	cfg.InitEnvironmentVariables()
 
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {

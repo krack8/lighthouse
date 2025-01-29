@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/auth/controllers"
-	middleware "github.com/krack8/lighthouse/pkg/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/api"
 )
 
@@ -15,264 +14,254 @@ var rbacController *controllers.RbacController
 
 func AddApiRoutes(httpRg *gin.RouterGroup) {
 
-	// Define the login route separately without middleware
-	// Login route
-	httpRg.POST("/auth/login", controllers.LoginHandler)
-
-	// Refresh token route
-	httpRg.POST("/auth/refresh-token", controllers.RefreshTokenHandler)
-
-	// Apply the AuthMiddleware to the /api/v1 routes
-	apiGroup := httpRg.Group("/api/v1", middleware.AuthMiddleware())
-
 	// User routes
-	apiGroup.POST("/users", authApi.UserController.CreateUserHandler)
-	apiGroup.GET("/users", authApi.UserController.GetAllUsersHandler)
-	apiGroup.GET("/users/:id", authApi.UserController.GetUserHandler)
-	apiGroup.PUT("/users/:id", authApi.UserController.UpdateUserHandler)
-	apiGroup.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
+	httpRg.POST("/users", authApi.UserController.CreateUserHandler)
+	httpRg.GET("/users", authApi.UserController.GetAllUsersHandler)
+	httpRg.GET("/users/:id", authApi.UserController.GetUserHandler)
+	httpRg.PUT("/users/:id", authApi.UserController.UpdateUserHandler)
+	httpRg.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
 
 	// RBAC routes
-	apiGroup.POST("/rbac/permissions", authApi.RbacController.CreatePermissionHandler)
-	apiGroup.POST("/rbac/roles", authApi.RbacController.CreateRoleHandler)
-	apiGroup.POST("/rbac/assign-roles", authApi.RbacController.AssignRolesHandler)
+	httpRg.POST("/rbac/permissions", authApi.RbacController.CreatePermissionHandler)
+	httpRg.POST("/rbac/roles", authApi.RbacController.CreateRoleHandler)
+	httpRg.POST("/rbac/assign-roles", authApi.RbacController.AssignRolesHandler)
 
 	// Namespace
-	apiGroup.GET("api/v1/namespace", api.NamespaceController().GetNamespaceList)
-	apiGroup.GET("api/v1/namespace/names", api.NamespaceController().GetNamespaceNameList)
-	apiGroup.GET("api/v1/namespace/:name", api.NamespaceController().GetNamespaceDetails)
-	apiGroup.POST("api/v1/namespace", api.NamespaceController().DeployNamespace)
-	apiGroup.DELETE("api/v1/namespace/:name", api.NamespaceController().DeleteNamespace)
+	httpRg.GET("/namespace", api.NamespaceController().GetNamespaceList)
+	httpRg.GET("/namespace/names", api.NamespaceController().GetNamespaceNameList)
+	httpRg.GET("/namespace/:name", api.NamespaceController().GetNamespaceDetails)
+	httpRg.POST("/namespace", api.NamespaceController().DeployNamespace)
+	httpRg.DELETE("/namespace/:name", api.NamespaceController().DeleteNamespace)
 
 	// Certificate
-	apiGroup.GET("api/v1/certificate", api.CertificateController().GetCertificateList)
-	apiGroup.GET("api/v1/certificate/:name", api.CertificateController().GetCertificateDetails)
-	apiGroup.POST("api/v1/certificate", api.CertificateController().DeployCertificate)
-	apiGroup.DELETE("api/v1/certificate/:name", api.CertificateController().DeleteCertificate)
+	httpRg.GET("/certificate", api.CertificateController().GetCertificateList)
+	httpRg.GET("/certificate/:name", api.CertificateController().GetCertificateDetails)
+	httpRg.POST("/certificate", api.CertificateController().DeployCertificate)
+	httpRg.DELETE("/certificate/:name", api.CertificateController().DeleteCertificate)
 
 	// Config Map
-	apiGroup.GET("api/v1/config-map", api.ConfigMapController().GetConfigMapList)
-	apiGroup.GET("api/v1/config-map/:name", api.ConfigMapController().GetConfigMapDetails)
-	apiGroup.POST("api/v1/config-map", api.ConfigMapController().DeployConfigMap)
-	apiGroup.DELETE("api/v1/config-map/:name", api.ConfigMapController().DeleteConfigMap)
+	httpRg.GET("/config-map", api.ConfigMapController().GetConfigMapList)
+	httpRg.GET("/config-map/:name", api.ConfigMapController().GetConfigMapDetails)
+	httpRg.POST("/config-map", api.ConfigMapController().DeployConfigMap)
+	httpRg.DELETE("/config-map/:name", api.ConfigMapController().DeleteConfigMap)
 
 	// ClusterRole
-	apiGroup.GET("api/v1/cluster-role", api.ClusterRoleController().GetClusterRoleList)
-	apiGroup.GET("api/v1/cluster-role/:name", api.ClusterRoleController().GetClusterRoleDetails)
-	apiGroup.POST("api/v1/cluster-role", api.ClusterRoleController().DeployClusterRole)
-	apiGroup.DELETE("api/v1/cluster-role/:name", api.ClusterRoleController().DeleteClusterRole)
+	httpRg.GET("/cluster-role", api.ClusterRoleController().GetClusterRoleList)
+	httpRg.GET("/cluster-role/:name", api.ClusterRoleController().GetClusterRoleDetails)
+	httpRg.POST("/cluster-role", api.ClusterRoleController().DeployClusterRole)
+	httpRg.DELETE("/cluster-role/:name", api.ClusterRoleController().DeleteClusterRole)
 
 	// ClusterRoleBinding
-	apiGroup.GET("api/v1/cluster-role-binding", api.ClusterRoleBindingController().GetClusterRoleBindingList)
-	apiGroup.GET("api/v1/cluster-role-binding/:name", api.ClusterRoleBindingController().GetClusterRoleBindingDetails)
-	apiGroup.POST("api/v1/cluster-role-binding", api.ClusterRoleBindingController().DeployClusterRoleBinding)
-	apiGroup.DELETE("api/v1/cluster-role-binding/:name", api.ClusterRoleBindingController().DeleteClusterRoleBinding)
+	httpRg.GET("/cluster-role-binding", api.ClusterRoleBindingController().GetClusterRoleBindingList)
+	httpRg.GET("/cluster-role-binding/:name", api.ClusterRoleBindingController().GetClusterRoleBindingDetails)
+	httpRg.POST("/cluster-role-binding", api.ClusterRoleBindingController().DeployClusterRoleBinding)
+	httpRg.DELETE("/cluster-role-binding/:name", api.ClusterRoleBindingController().DeleteClusterRoleBinding)
 
 	// ControllerRevision
-	apiGroup.GET("api/v1/controller-revision", api.ControllerRevisionController().GetControllerRevisionList)
-	apiGroup.GET("api/v1/controller-revision/:name", api.ControllerRevisionController().GetControllerRevisionDetails)
-	apiGroup.POST("api/v1/controller-revision", api.ControllerRevisionController().DeployControllerRevision)
-	apiGroup.DELETE("api/v1/controller-revision/:name", api.ControllerRevisionController().DeleteControllerRevision)
+	httpRg.GET("/controller-revision", api.ControllerRevisionController().GetControllerRevisionList)
+	httpRg.GET("/controller-revision/:name", api.ControllerRevisionController().GetControllerRevisionDetails)
+	httpRg.POST("/controller-revision", api.ControllerRevisionController().DeployControllerRevision)
+	httpRg.DELETE("/controller-revision/:name", api.ControllerRevisionController().DeleteControllerRevision)
 
 	// CRD
-	apiGroup.GET("api/v1/crd", api.CrdController().GetCrdList)
-	apiGroup.GET("api/v1/crd/:name", api.CrdController().GetCrdDetails)
-	apiGroup.POST("api/v1/crd", api.CrdController().DeployCrd)
-	apiGroup.DELETE("api/v1/crd/:name", api.CrdController().DeleteCrd)
+	httpRg.GET("/crd", api.CrdController().GetCrdList)
+	httpRg.GET("/crd/:name", api.CrdController().GetCrdDetails)
+	httpRg.POST("/crd", api.CrdController().DeployCrd)
+	httpRg.DELETE("/crd/:name", api.CrdController().DeleteCrd)
 
 	// Custom Resource
-	apiGroup.GET("api/v1/custom-resource", api.CustomResourceController().GetCustomResourceList)
-	apiGroup.GET("api/v1/custom-resource/:name", api.CustomResourceController().GetCustomResourceDetails)
-	apiGroup.POST("api/v1/custom-resource", api.CustomResourceController().DeployCustomResource)
-	apiGroup.DELETE("api/v1/custom-resource/:name", api.CustomResourceController().DeleteCustomResource)
+	httpRg.GET("/custom-resource", api.CustomResourceController().GetCustomResourceList)
+	httpRg.GET("/custom-resource/:name", api.CustomResourceController().GetCustomResourceDetails)
+	httpRg.POST("/custom-resource", api.CustomResourceController().DeployCustomResource)
+	httpRg.DELETE("/custom-resource/:name", api.CustomResourceController().DeleteCustomResource)
 
 	//Cronjob
-	apiGroup.GET("api/v1/cronjob", api.CronJobController().GetCronJobList)
-	apiGroup.GET("api/v1/cronjob/:name", api.CronJobController().GetCronJobDetails)
-	apiGroup.POST("api/v1/cronjob", api.CronJobController().DeployCronJob)
-	apiGroup.DELETE("api/v1/cronjob/:name", api.CronJobController().DeleteCronJob)
+	httpRg.GET("/cronjob", api.CronJobController().GetCronJobList)
+	httpRg.GET("/cronjob/:name", api.CronJobController().GetCronJobDetails)
+	httpRg.POST("/cronjob", api.CronJobController().DeployCronJob)
+	httpRg.DELETE("/cronjob/:name", api.CronJobController().DeleteCronJob)
 
 	// Daemonset
-	apiGroup.GET("api/v1/daemonset", api.DaemonSetController().GetDaemonSetList)
-	apiGroup.GET("api/v1/daemonset/:name", api.DaemonSetController().GetDaemonSetDetails)
-	apiGroup.POST("api/v1/daemonset", api.DaemonSetController().DeployDaemonSet)
-	apiGroup.DELETE("api/v1/daemonset/:name", api.DaemonSetController().DeleteDaemonSet)
-	apiGroup.GET("api/v1/daemonset/stats", api.DaemonSetController().GetDaemonSetStats)
+	httpRg.GET("/daemonset", api.DaemonSetController().GetDaemonSetList)
+	httpRg.GET("/daemonset/:name", api.DaemonSetController().GetDaemonSetDetails)
+	httpRg.POST("/daemonset", api.DaemonSetController().DeployDaemonSet)
+	httpRg.DELETE("/daemonset/:name", api.DaemonSetController().DeleteDaemonSet)
+	httpRg.GET("/daemonset/stats", api.DaemonSetController().GetDaemonSetStats)
 
 	// Deployment
-	apiGroup.GET("api/v1/deployment", api.DeploymentController().GetDeploymentList)
-	apiGroup.GET("api/v1/deployment/:name", api.DeploymentController().GetDeploymentDetails)
-	apiGroup.POST("api/v1/deployment", api.DeploymentController().DeployDeployment)
-	apiGroup.DELETE("api/v1/deployment/:name", api.DeploymentController().DeleteDeployment)
-	apiGroup.GET("api/v1/deployment/stats", api.DeploymentController().GetDeploymentStats)
-	apiGroup.GET("api/v1/deployment/:name/pods", api.DeploymentController().GetDeploymentPodList)
+	httpRg.GET("/deployment", api.DeploymentController().GetDeploymentList)
+	httpRg.GET("/deployment/:name", api.DeploymentController().GetDeploymentDetails)
+	httpRg.POST("/deployment", api.DeploymentController().DeployDeployment)
+	httpRg.DELETE("/deployment/:name", api.DeploymentController().DeleteDeployment)
+	httpRg.GET("/deployment/stats", api.DeploymentController().GetDeploymentStats)
+	httpRg.GET("/deployment/:name/pods", api.DeploymentController().GetDeploymentPodList)
 
 	// Endpoints
-	apiGroup.GET("api/v1/endpoints", api.EndpointsController().GetEndpointsList)
-	apiGroup.GET("api/v1/endpoints/:name", api.EndpointsController().GetEndpointsDetails)
-	apiGroup.POST("api/v1/endpoints", api.EndpointsController().DeployEndpoints)
-	apiGroup.DELETE("api/v1/endpoints/:name", api.EndpointsController().DeleteEndpoints)
+	httpRg.GET("/endpoints", api.EndpointsController().GetEndpointsList)
+	httpRg.GET("/endpoints/:name", api.EndpointsController().GetEndpointsDetails)
+	httpRg.POST("/endpoints", api.EndpointsController().DeployEndpoints)
+	httpRg.DELETE("/endpoints/:name", api.EndpointsController().DeleteEndpoints)
 
 	// EndpointSlice
-	apiGroup.GET("api/v1/endpoint-slice", api.EndpointSliceController().GetEndpointSliceList)
-	apiGroup.GET("api/v1/endpoint-slice/:name", api.EndpointSliceController().GetEndpointSliceDetails)
-	apiGroup.POST("api/v1/endpoint-slice", api.EndpointSliceController().DeployEndpointSlice)
-	apiGroup.DELETE("api/v1/endpoint-slice/:name", api.EndpointSliceController().DeleteEndpointSlice)
+	httpRg.GET("/endpoint-slice", api.EndpointSliceController().GetEndpointSliceList)
+	httpRg.GET("/endpoint-slice/:name", api.EndpointSliceController().GetEndpointSliceDetails)
+	httpRg.POST("/endpoint-slice", api.EndpointSliceController().DeployEndpointSlice)
+	httpRg.DELETE("/endpoint-slice/:name", api.EndpointSliceController().DeleteEndpointSlice)
 
 	// event
-	apiGroup.GET("api/v1/event", api.EventController().GetEventList)
-	apiGroup.GET("api/v1/event/:name", api.EventController().GetEventDetails)
+	httpRg.GET("/event", api.EventController().GetEventList)
+	httpRg.GET("/event/:name", api.EventController().GetEventDetails)
 
 	// HPA
-	apiGroup.GET("api/v1/hpa", api.HpaController().GetHpaList)
-	apiGroup.GET("api/v1/hpa/:name", api.HpaController().GetHpaDetails)
+	httpRg.GET("/hpa", api.HpaController().GetHpaList)
+	httpRg.GET("/hpa/:name", api.HpaController().GetHpaDetails)
 
 	// Ingress
-	apiGroup.GET("api/v1/ingress", api.IngressController().GetIngressList)
-	apiGroup.GET("api/v1/ingress/:name", api.IngressController().GetIngressDetails)
-	apiGroup.POST("api/v1/ingress", api.IngressController().DeployIngress)
-	apiGroup.DELETE("api/v1/ingress/:name", api.IngressController().DeleteIngress)
+	httpRg.GET("/ingress", api.IngressController().GetIngressList)
+	httpRg.GET("/ingress/:name", api.IngressController().GetIngressDetails)
+	httpRg.POST("/ingress", api.IngressController().DeployIngress)
+	httpRg.DELETE("/ingress/:name", api.IngressController().DeleteIngress)
 
 	// Istio Gateway
-	apiGroup.GET("api/v1/gateway", api.IstioGatewayController().GetIstioGatewayList)
-	apiGroup.GET("api/v1/gateway/:name", api.IstioGatewayController().GetIstioGatewayDetails)
-	apiGroup.POST("api/v1/gateway", api.IstioGatewayController().DeployIstioGateway)
-	apiGroup.DELETE("api/v1/gateway/:name", api.IstioGatewayController().DeleteIstioGateway)
+	httpRg.GET("/gateway", api.IstioGatewayController().GetIstioGatewayList)
+	httpRg.GET("/gateway/:name", api.IstioGatewayController().GetIstioGatewayDetails)
+	httpRg.POST("/gateway", api.IstioGatewayController().DeployIstioGateway)
+	httpRg.DELETE("/gateway/:name", api.IstioGatewayController().DeleteIstioGateway)
 
 	//Job
-	apiGroup.GET("api/v1/job", api.JobController().GetJobList)
-	apiGroup.GET("api/v1/job/:name", api.JobController().GetJobDetails)
-	apiGroup.POST("api/v1/job", api.JobController().DeployJob)
-	apiGroup.DELETE("api/v1/job/:name", api.JobController().DeleteJob)
+	httpRg.GET("/job", api.JobController().GetJobList)
+	httpRg.GET("/job/:name", api.JobController().GetJobDetails)
+	httpRg.POST("/job", api.JobController().DeployJob)
+	httpRg.DELETE("/job/:name", api.JobController().DeleteJob)
 
 	//Load Balancer
-	apiGroup.GET("api/v1/load-balancer", api.LoadBalancerController().GetLoadBalancerList)
-	apiGroup.GET("api/v1/load-balancer/:name", api.LoadBalancerController().GetLoadBalancerDetails)
+	httpRg.GET("/load-balancer", api.LoadBalancerController().GetLoadBalancerList)
+	httpRg.GET("/load-balancer/:name", api.LoadBalancerController().GetLoadBalancerDetails)
 
 	// Manifest
-	apiGroup.POST("api/v1/manifest", api.ManifestController().DeployManifest)
+	httpRg.POST("/manifest", api.ManifestController().DeployManifest)
 
 	// Network Policy
-	apiGroup.GET("api/v1/network-policy", api.NetworkPolicyController().GetNetworkPolicyList)
-	apiGroup.GET("api/v1/network-policy/:name", api.NetworkPolicyController().GetNetworkPolicyDetails)
+	httpRg.GET("/network-policy", api.NetworkPolicyController().GetNetworkPolicyList)
+	httpRg.GET("/network-policy/:name", api.NetworkPolicyController().GetNetworkPolicyDetails)
 
 	//Node
-	apiGroup.GET("api/v1/node", api.NodeController().GetNodeList)
-	apiGroup.GET("api/v1/node/:name", api.NodeController().GetNodeDetails)
-	apiGroup.GET("api/v1/node/cordon/:name", api.NodeController().NodeCordon)
-	apiGroup.POST("api/v1/node/taint/:name", api.NodeController().NodeTaint)
-	apiGroup.POST("api/v1/node/untaint/:name", api.NodeController().NodeUnTaint)
+	httpRg.GET("/node", api.NodeController().GetNodeList)
+	httpRg.GET("/node/:name", api.NodeController().GetNodeDetails)
+	httpRg.GET("/node/cordon/:name", api.NodeController().NodeCordon)
+	httpRg.POST("/node/taint/:name", api.NodeController().NodeTaint)
+	httpRg.POST("/node/untaint/:name", api.NodeController().NodeUnTaint)
 
 	// Pod
-	apiGroup.GET("api/v1/pod", api.PodController().GetPodList)
-	apiGroup.GET("api/v1/pod/:name", api.PodController().GetPodDetails)
-	apiGroup.GET("api/v1/pod/logs/:name", api.PodController().GetPodLogs)
-	apiGroup.POST("api/v1/pod", api.PodController().DeployPod)
-	apiGroup.DELETE("api/v1/pod/:name", api.PodController().DeletePod)
-	apiGroup.GET("api/v1/pod/stats", api.PodController().GetPodStats)
+	httpRg.GET("/pod", api.PodController().GetPodList)
+	httpRg.GET("/pod/:name", api.PodController().GetPodDetails)
+	httpRg.GET("/pod/logs/:name", api.PodController().GetPodLogs)
+	httpRg.POST("/pod", api.PodController().DeployPod)
+	httpRg.DELETE("/pod/:name", api.PodController().DeletePod)
+	httpRg.GET("/pod/stats", api.PodController().GetPodStats)
 
 	// PodDisruptionBudgets
-	apiGroup.GET("api/v1/PDB", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsList)
-	apiGroup.GET("api/v1/PDB/:name", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsDetails)
-	apiGroup.POST("api/v1/PDB", api.PodDisruptionBudgetsController().DeployPodDisruptionBudgets)
-	apiGroup.DELETE("api/v1/PDB/:name", api.PodDisruptionBudgetsController().DeletePodDisruptionBudgets)
+	httpRg.GET("/PDB", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsList)
+	httpRg.GET("/PDB/:name", api.PodDisruptionBudgetsController().GetPodDisruptionBudgetsDetails)
+	httpRg.POST("/PDB", api.PodDisruptionBudgetsController().DeployPodDisruptionBudgets)
+	httpRg.DELETE("/PDB/:name", api.PodDisruptionBudgetsController().DeletePodDisruptionBudgets)
 
 	// Pod Metrics
-	apiGroup.GET("api/v1/pod-metrics", api.PodMetricsController().GetPodMetricsList)
-	apiGroup.GET("api/v1/pod-metrics/:pod", api.PodMetricsController().GetPodMetricsDetails)
+	httpRg.GET("/pod-metrics", api.PodMetricsController().GetPodMetricsList)
+	httpRg.GET("/pod-metrics/:pod", api.PodMetricsController().GetPodMetricsDetails)
 
 	// PV
-	apiGroup.GET("api/v1/pv", api.PvController().GetPvList)
-	apiGroup.GET("api/v1/pv/:name", api.PvController().GetPvDetails)
-	apiGroup.POST("api/v1/pv", api.PvController().DeployPv)
-	apiGroup.DELETE("api/v1/pv/:name", api.PvController().DeletePv)
+	httpRg.GET("/pv", api.PvController().GetPvList)
+	httpRg.GET("/pv/:name", api.PvController().GetPvDetails)
+	httpRg.POST("/pv", api.PvController().DeployPv)
+	httpRg.DELETE("/pv/:name", api.PvController().DeletePv)
 
 	// Persistent Volume Claim
-	apiGroup.GET("api/v1/pvc", api.PvcController().GetPvcList)
-	apiGroup.GET("api/v1/pvc/:name", api.PvcController().GetPvcDetails)
-	apiGroup.POST("api/v1/pvc", api.PvcController().DeployPvc)
-	apiGroup.DELETE("api/v1/pvc/:name", api.PvcController().DeletePvc)
+	httpRg.GET("/pvc", api.PvcController().GetPvcList)
+	httpRg.GET("/pvc/:name", api.PvcController().GetPvcDetails)
+	httpRg.POST("/pvc", api.PvcController().DeployPvc)
+	httpRg.DELETE("/pvc/:name", api.PvcController().DeletePvc)
 
 	// ReplicaSet
-	apiGroup.GET("api/v1/replicaset", api.ReplicaSetController().GetReplicaSetList)
-	apiGroup.GET("api/v1/replicaset/:name", api.ReplicaSetController().GetReplicaSetDetails)
-	apiGroup.GET("api/v1/replicaset/stats", api.ReplicaSetController().GetReplicaSetStats)
-	apiGroup.POST("api/v1/replicaset", api.ReplicaSetController().DeployReplicaSet)
-	apiGroup.DELETE("api/v1/replicaset/:name", api.ReplicaSetController().DeleteReplicaSet)
+	httpRg.GET("/replicaset", api.ReplicaSetController().GetReplicaSetList)
+	httpRg.GET("/replicaset/:name", api.ReplicaSetController().GetReplicaSetDetails)
+	httpRg.GET("/replicaset/stats", api.ReplicaSetController().GetReplicaSetStats)
+	httpRg.POST("/replicaset", api.ReplicaSetController().DeployReplicaSet)
+	httpRg.DELETE("/replicaset/:name", api.ReplicaSetController().DeleteReplicaSet)
 
 	// ReplicationController
-	apiGroup.GET("api/v1/replication-controller", api.ReplicationControllerController().GetReplicationControllerList)
-	apiGroup.GET("api/v1/replication-controller/:name", api.ReplicationControllerController().GetReplicationControllerDetails)
-	apiGroup.POST("api/v1/replication-controller", api.ReplicationControllerController().DeployReplicationController)
-	apiGroup.DELETE("api/v1/replication-controller/:name", api.ReplicationControllerController().DeleteReplicationController)
+	httpRg.GET("/replication-controller", api.ReplicationControllerController().GetReplicationControllerList)
+	httpRg.GET("/replication-controller/:name", api.ReplicationControllerController().GetReplicationControllerDetails)
+	httpRg.POST("/replication-controller", api.ReplicationControllerController().DeployReplicationController)
+	httpRg.DELETE("/replication-controller/:name", api.ReplicationControllerController().DeleteReplicationController)
 
 	// Resource Quota
-	apiGroup.GET("api/v1/resource-quota", api.ResourceQuotaController().GetResourceQuotaList)
-	apiGroup.GET("api/v1/resource-quota/:name", api.ResourceQuotaController().GetResourceQuotaDetails)
-	apiGroup.POST("api/v1/resource-quota", api.ResourceQuotaController().DeployResourceQuota)
-	apiGroup.DELETE("api/v1/resource-quota/:name", api.ResourceQuotaController().DeleteResourceQuota)
+	httpRg.GET("/resource-quota", api.ResourceQuotaController().GetResourceQuotaList)
+	httpRg.GET("/resource-quota/:name", api.ResourceQuotaController().GetResourceQuotaDetails)
+	httpRg.POST("/resource-quota", api.ResourceQuotaController().DeployResourceQuota)
+	httpRg.DELETE("/resource-quota/:name", api.ResourceQuotaController().DeleteResourceQuota)
 
 	// Role
-	apiGroup.GET("api/v1/role", api.RoleController().GetRoleList)
-	apiGroup.GET("api/v1/role/:name", api.RoleController().GetRoleDetails)
-	apiGroup.POST("api/v1/role", api.RoleController().DeployRole)
-	apiGroup.DELETE("api/v1/role/:name", api.RoleController().DeleteRole)
+	httpRg.GET("/role", api.RoleController().GetRoleList)
+	httpRg.GET("/role/:name", api.RoleController().GetRoleDetails)
+	httpRg.POST("/role", api.RoleController().DeployRole)
+	httpRg.DELETE("/role/:name", api.RoleController().DeleteRole)
 
 	// RoleBinding
-	apiGroup.GET("api/v1/role-binding", api.RoleBindingController().GetRoleBindingList)
-	apiGroup.GET("api/v1/role-binding/:name", api.RoleBindingController().GetRoleBindingDetails)
-	apiGroup.POST("api/v1/role-binding", api.RoleBindingController().DeployRoleBinding)
-	apiGroup.DELETE("api/v1/role-binding/:name", api.RoleBindingController().DeleteRoleBinding)
+	httpRg.GET("/role-binding", api.RoleBindingController().GetRoleBindingList)
+	httpRg.GET("/role-binding/:name", api.RoleBindingController().GetRoleBindingDetails)
+	httpRg.POST("/role-binding", api.RoleBindingController().DeployRoleBinding)
+	httpRg.DELETE("/role-binding/:name", api.RoleBindingController().DeleteRoleBinding)
 
 	// Service Account
-	apiGroup.GET("api/v1/service-account", api.ServiceAccountController().GetServiceAccountList)
-	apiGroup.GET("api/v1/service-account/:name", api.ServiceAccountController().GetServiceAccountDetails)
-	apiGroup.POST("api/v1/service-account", api.ServiceAccountController().DeployServiceAccount)
-	apiGroup.DELETE("api/v1/service-account/:name", api.ServiceAccountController().DeleteServiceAccount)
+	httpRg.GET("/service-account", api.ServiceAccountController().GetServiceAccountList)
+	httpRg.GET("/service-account/:name", api.ServiceAccountController().GetServiceAccountDetails)
+	httpRg.POST("/service-account", api.ServiceAccountController().DeployServiceAccount)
+	httpRg.DELETE("/service-account/:name", api.ServiceAccountController().DeleteServiceAccount)
 
 	// Secret
-	apiGroup.GET("api/v1/secret", api.SecretController().GetSecretList)
-	apiGroup.GET("api/v1/secret/:name", api.SecretController().GetSecretDetails)
-	apiGroup.POST("api/v1/secret", api.SecretController().DeploySecret)
-	apiGroup.DELETE("api/v1/secret/:name", api.SecretController().DeleteSecret)
+	httpRg.GET("/secret", api.SecretController().GetSecretList)
+	httpRg.GET("/secret/:name", api.SecretController().GetSecretDetails)
+	httpRg.POST("/secret", api.SecretController().DeploySecret)
+	httpRg.DELETE("/secret/:name", api.SecretController().DeleteSecret)
 
 	// StatefulSet
-	apiGroup.GET("api/v1/statefulset", api.StatefulSetController().GetStatefulSetList)
-	apiGroup.GET("api/v1/statefulset/:name", api.StatefulSetController().GetStatefulSetDetails)
-	apiGroup.POST("api/v1/statefulset", api.StatefulSetController().DeployStatefulSet)
-	apiGroup.DELETE("api/v1/statefulset/:name", api.StatefulSetController().DeleteStatefulSet)
-	apiGroup.GET("api/v1/statefulset/stats", api.StatefulSetController().GetStatefulSetStats)
-	apiGroup.GET("api/v1/statefulset/:name/pods", api.StatefulSetController().GetStatefulSetPodList)
+	httpRg.GET("/statefulset", api.StatefulSetController().GetStatefulSetList)
+	httpRg.GET("/statefulset/:name", api.StatefulSetController().GetStatefulSetDetails)
+	httpRg.POST("/statefulset", api.StatefulSetController().DeployStatefulSet)
+	httpRg.DELETE("/statefulset/:name", api.StatefulSetController().DeleteStatefulSet)
+	httpRg.GET("/statefulset/stats", api.StatefulSetController().GetStatefulSetStats)
+	httpRg.GET("/statefulset/:name/pods", api.StatefulSetController().GetStatefulSetPodList)
 
 	// Storage class
-	apiGroup.GET("api/v1/storage-class", api.StorageClassController().GetStorageClassList)
-	apiGroup.GET("api/v1/storage-class/:name", api.StorageClassController().GetStorageClassDetails)
-	apiGroup.POST("api/v1/storage-class", api.StorageClassController().DeployStorageClass)
-	apiGroup.DELETE("api/v1/storage-class/:name", api.StorageClassController().DeleteStorageClass)
+	httpRg.GET("/storage-class", api.StorageClassController().GetStorageClassList)
+	httpRg.GET("/storage-class/:name", api.StorageClassController().GetStorageClassDetails)
+	httpRg.POST("/storage-class", api.StorageClassController().DeployStorageClass)
+	httpRg.DELETE("/storage-class/:name", api.StorageClassController().DeleteStorageClass)
 
 	// Service
-	apiGroup.GET("api/v1/service", api.SvcController().GetSvcList)
-	apiGroup.GET("api/v1/service/:name", api.SvcController().GetSvcDetails)
-	apiGroup.POST("api/v1/service", api.SvcController().DeploySVC)
-	apiGroup.DELETE("api/v1/service/:name", api.SvcController().DeleteSvc)
+	httpRg.GET("/service", api.SvcController().GetSvcList)
+	httpRg.GET("/service/:name", api.SvcController().GetSvcDetails)
+	httpRg.POST("/service", api.SvcController().DeploySVC)
+	httpRg.DELETE("/service/:name", api.SvcController().DeleteSvc)
 
 	// Virtual Service
-	apiGroup.GET("api/v1/virtual-service", api.VirtualServiceController().GetVirtualServiceList)
-	apiGroup.GET("api/v1/virtual-service/:name", api.VirtualServiceController().GetVirtualServiceDetails)
-	apiGroup.POST("api/v1/virtual-service", api.VirtualServiceController().DeployVirtualService)
-	apiGroup.DELETE("api/v1/virtual-service/:name", api.VirtualServiceController().DeleteVirtualService)
+	httpRg.GET("/virtual-service", api.VirtualServiceController().GetVirtualServiceList)
+	httpRg.GET("/virtual-service/:name", api.VirtualServiceController().GetVirtualServiceDetails)
+	httpRg.POST("/virtual-service", api.VirtualServiceController().DeployVirtualService)
+	httpRg.DELETE("/virtual-service/:name", api.VirtualServiceController().DeleteVirtualService)
 
 	// Volume Snapshot
-	apiGroup.GET("api/v1/volume-snapshot", api.VolumeSnapshotController().GetVolumeSnapshotList)
-	apiGroup.GET("api/v1/volume-snapshot/:name", api.VolumeSnapshotController().GetVolumeSnapshotDetails)
-	apiGroup.POST("api/v1/volume-snapshot", api.VolumeSnapshotController().DeployVolumeSnapshot)
-	apiGroup.DELETE("api/v1/volume-snapshot/:name", api.VolumeSnapshotController().DeleteVolumeSnapshot)
+	httpRg.GET("/volume-snapshot", api.VolumeSnapshotController().GetVolumeSnapshotList)
+	httpRg.GET("/volume-snapshot/:name", api.VolumeSnapshotController().GetVolumeSnapshotDetails)
+	httpRg.POST("/volume-snapshot", api.VolumeSnapshotController().DeployVolumeSnapshot)
+	httpRg.DELETE("/volume-snapshot/:name", api.VolumeSnapshotController().DeleteVolumeSnapshot)
 
 	// Volume Snapshot Content
-	apiGroup.GET("api/v1/volume-snapshot-content", api.VolumeSnapshotContentController().GetVolumeSnapshotContentList)
-	apiGroup.GET("api/v1/volume-snapshot-content/:name", api.VolumeSnapshotContentController().GetVolumeSnapshotContentDetails)
+	httpRg.GET("/volume-snapshot-content", api.VolumeSnapshotContentController().GetVolumeSnapshotContentList)
+	httpRg.GET("/volume-snapshot-content/:name", api.VolumeSnapshotContentController().GetVolumeSnapshotContentDetails)
 
 	// Volume Snapshot Class
-	apiGroup.GET("api/v1/volume-snapshot-class", api.VolumeSnapshotClassController().GetVolumeSnapshotClassList)
-	apiGroup.GET("api/v1/volume-snapshot-class/:name", api.VolumeSnapshotClassController().GetVolumeSnapshotClassDetails)
+	httpRg.GET("/volume-snapshot-class", api.VolumeSnapshotClassController().GetVolumeSnapshotClassList)
+	httpRg.GET("/volume-snapshot-class/:name", api.VolumeSnapshotClassController().GetVolumeSnapshotClassDetails)
 }
