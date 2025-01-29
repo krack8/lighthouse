@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"time"
 
 	"github.com/krack8/lighthouse/pkg/auth/models"
@@ -125,7 +126,7 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 			"firstname":  updatedUser.FirstName,
 			"lastname":   updatedUser.LastName,
 			"username":   updatedUser.Username,
-			"password":   updatedUser.Password,
+			"password":   utils.HashPassword(updatedUser.Password),
 			"usertype":   updatedUser.UserType,
 			"roles":      updatedUser.Roles,
 			"isactive":   updatedUser.UserIsActive,

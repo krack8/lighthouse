@@ -12,10 +12,16 @@ import (
 	"time"
 )
 
-// RBAC Service struct for user operations
+// RBAC service handles rbac-related business logic
 type RbacService struct {
-	RbacCollection Collection
-	Context        context.Context
+	collection Collection
+}
+
+// NewRbacService creates a new RbacService instance
+func NewRbacService(collection Collection) *RbacService {
+	return &RbacService{
+		collection: collection,
+	}
 }
 
 // CreatePermission creates a new permission

@@ -12,6 +12,12 @@ type UserController struct {
 	UserService *services.UserService
 }
 
+func NewUserController(userService *services.UserService) *UserController {
+	return &UserController{
+		UserService: userService,
+	}
+}
+
 // CreateUserHandler handles the creation of a new user.
 func (uc *UserController) CreateUserHandler(c *gin.Context) {
 	var user models.User

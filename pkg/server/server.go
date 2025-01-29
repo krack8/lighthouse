@@ -21,22 +21,7 @@ func Start() {
 	r.Use(cors.New(corsConfig), gin.LoggerWithWriter(gin.DefaultWriter, "/health", "/swagger/*any"))
 	// Setting API Base Path for HTTP APIs
 	httpRouter := r.Group("/")
-	//r.GET("/ws/v1/pod/logs/:name", v1.PodController().GetPodStreamLogs)
-	// Setting up all Http Routes
 
-	/*// Initialize services and controllers
-	userService := &services.UserService{} // Ensure it is properly initialized
-	userController := &controllers.UserController{UserService: userService}
-
-	rbacService := &services.RbacService{} // Ensure it is properly initialized
-	rbacController := &controllers.RbacController{RbacService: rbacService}
-
-	// Initialize routes from various route files
-	routes.InitPermissionRoutes(rbacController, router) // permission-related routes
-	routes.InitRoleRoutes(rbacController, router)       // role-related routes
-
-	routes.InitAuthRoutes(router)                 // Auth-related routes
-	routes.InitUserRoutes(userController, router) // user-related routes*/
 	// Get the application port from the environment
 	port := os.Getenv("PORT")
 	if port == "" {
