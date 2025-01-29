@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/krack8/lighthouse/pkg/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/controller/worker"
 	_log "github.com/krack8/lighthouse/pkg/log"
@@ -35,6 +36,9 @@ func main() {
 
 	// Initialize the default user if needed
 	config.InitializeDefaultUser()
+
+	// Initialize auth controllers with services
+	authApi.Init()
 
 	// Start HTTP server
 	server.Start()

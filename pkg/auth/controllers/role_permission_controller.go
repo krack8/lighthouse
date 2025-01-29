@@ -12,6 +12,12 @@ type RbacController struct {
 	RbacService *services.RbacService
 }
 
+func NewRbacController(rbacService *services.RbacService) *RbacController {
+	return &RbacController{
+		RbacService: rbacService,
+	}
+}
+
 // CreatePermissionHandler handles the creation of a new permission
 func (rbac *RbacController) CreatePermissionHandler(c *gin.Context) {
 	var permission models.Permission
