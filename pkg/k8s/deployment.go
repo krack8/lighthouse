@@ -362,7 +362,8 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 			p.output.Ready += int(obj.Status.ReadyReplicas)
 			podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
 			if err != nil {
-				panic(err.Error())
+				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+				return err
 			}
 			for _, podMetrics := range podMetricsList.Items {
 				for _, container := range podMetrics.Containers {
@@ -385,7 +386,8 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 
 		podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
 		if err != nil {
-			panic(err.Error())
+			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+			return err
 		}
 		for _, podMetrics := range podMetricsList.Items {
 			for _, container := range podMetrics.Containers {
@@ -478,7 +480,8 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 			p.output.PodList[idx].ManagedFields = nil
 			podMetrics, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), pod.Name, metav1.GetOptions{})
 			if err != nil {
-				panic(err.Error())
+				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+				return err
 			}
 			for _, container := range podMetrics.Containers {
 				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0

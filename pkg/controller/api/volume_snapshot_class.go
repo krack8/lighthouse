@@ -33,7 +33,7 @@ func (ctrl *volumeSnapshotClassController) GetVolumeSnapshotClassList(ctx *gin.C
 		jsonLabel := []byte(queryLabel)
 		queryLabelMap := map[string]string{}
 
-		err := json.Unmarshal([]byte(jsonLabel), &queryLabelMap)
+		err := json.Unmarshal(jsonLabel, &queryLabelMap)
 		if err != nil {
 			log.Logger.Error("query labels unmarshal error ", "err", err.Error())
 		}

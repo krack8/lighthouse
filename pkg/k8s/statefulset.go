@@ -344,7 +344,8 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 			p.output.Ready += int(obj.Status.ReadyReplicas)
 			podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("controller-revision-hash=%s", obj.Status.CurrentRevision)})
 			if err != nil {
-				panic(err.Error())
+				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+				return err
 			}
 			for _, podMetrics := range podMetricsList.Items {
 				for _, container := range podMetrics.Containers {
@@ -367,7 +368,8 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 		p.output.Ready += int(obj.Status.ReadyReplicas)
 		podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("controller-revision-hash=%s", obj.Status.CurrentRevision)})
 		if err != nil {
-			panic(err.Error())
+			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+			return err
 		}
 		for _, podMetrics := range podMetricsList.Items {
 			for _, container := range podMetrics.Containers {
@@ -465,7 +467,8 @@ func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 		p.output.PodList[idx].ManagedFields = nil
 		podMetrics, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), pod.Name, metav1.GetOptions{})
 		if err != nil {
-			panic(err.Error())
+			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
+			return err
 		}
 		for _, container := range podMetrics.Containers {
 			totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
