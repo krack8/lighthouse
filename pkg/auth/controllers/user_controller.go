@@ -95,14 +95,14 @@ func (uc *UserController) DeleteUserHandler(c *gin.Context) {
 func (uc *UserController) GetUserProfileInfoHandler(c *gin.Context) {
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Username not found in context"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
 		return
 	}
 	// username is of type interface{}, so cast it to string
 	usernameStr := username.(string)
 	user, err := uc.UserService.GetUserProfileInfo(usernameStr)
 	if err != nil {
-		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 

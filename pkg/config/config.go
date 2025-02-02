@@ -22,7 +22,7 @@ func InitEnvironmentVariables() {
 		log.Logger.Errorw("Failed to Load environment file", "err", err.Error())
 		os.Exit(1)
 	}
-	if os.Getenv("NO_AUTH") == "TRUE" {
+	if os.Getenv("AUTH_ENABLED") == "TRUE" {
 		NoAuth = true
 		log.Logger.Infow("Started with NO AUTH enabled", "[NO-AUTH]", NoAuth)
 	} else {

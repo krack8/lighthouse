@@ -43,9 +43,9 @@ func Start() {
 	r.GET("/", Home().Index)
 	// Define the login route separately without middleware
 	// Login route
-	r.POST("/auth/login", controllers.LoginHandler)
+	r.POST("/api/auth/login", controllers.LoginHandler)
 	// Refresh token route
-	r.POST("/auth/refresh-token", controllers.RefreshTokenHandler)
+	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
 
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {
