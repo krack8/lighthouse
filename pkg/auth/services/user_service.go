@@ -185,3 +185,16 @@ func GetUserByUsername(username string) (*models.User, error) {
 
 	return &user, nil
 }
+
+// GetUserProfileINfo fetch User Profile Info
+func (s *UserService) GetUserProfileInfo(username string) (*models.User, error) {
+	if username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	user, _ := GetUserByUsername(username)
+
+	if user == nil {
+		return nil, errors.New("user do not exists")
+	}
+	return user, nil
+}

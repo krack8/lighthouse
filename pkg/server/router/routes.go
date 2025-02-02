@@ -20,6 +20,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/users/:id", authApi.UserController.GetUserHandler)
 	httpRg.PUT("/users/:id", authApi.UserController.UpdateUserHandler)
 	httpRg.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
+	httpRg.GET("/users/profile", authApi.UserController.GetUserProfileInfoHandler)
 
 	// RBAC routes
 	httpRg.POST("/rbac/permissions", authApi.RbacController.CreatePermissionHandler)

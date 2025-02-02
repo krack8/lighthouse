@@ -65,7 +65,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
+		// store username
+		c.Set("username", claims.Username)
 		if user.UserType == models.RegularUser {
 			// Collect all permissions of the user's roles
 			var permissions []string

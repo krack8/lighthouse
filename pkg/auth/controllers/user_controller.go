@@ -90,3 +90,21 @@ func (uc *UserController) DeleteUserHandler(c *gin.Context) {
 
 	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
+
+// GetUserProfileInfoHandler fetch user details by token.
+func (uc *UserController) GetUserProfileInfoHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Username not found in context"})
+		return
+	}
+	// username is of type interface{}, so cast it to string
+	usernameStr := username.(string)
+	user, err := uc.UserService.GetUserProfileInfo(usernameStr)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, user)
+}
