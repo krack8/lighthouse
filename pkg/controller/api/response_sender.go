@@ -9,8 +9,8 @@ import (
 
 type ResponseDTO struct {
 	Status string      `json:"status"`
-	Msg    string      `json:"msg,omitempty"`
-	Data   interface{} `json:"data,omitempty"`
+	Msg    string      `json:"msg"`
+	Data   interface{} `json:"data"`
 }
 
 var nilResponse ResponseDTO = ResponseDTO{}
