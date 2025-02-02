@@ -9,7 +9,7 @@ import (
 )
 
 type Cluster struct {
-	ID              primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	ID              primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name            string             `json:"name" bson:"name"`
 	ClusterType     enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // e.g., "MASTER", "AGENT"
 	Token           string             `json:"-" bson:"token"`
@@ -20,7 +20,7 @@ type Cluster struct {
 }
 
 type TokenValidation struct {
-	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	ClusterID primitive.ObjectID `json:"cluster_id" bson:"cluster_id"`
 	Token     string             `json:"token" bson:"token"`
 	IsValid   bool               `json:"is_valid" bson:"is_valid"`
