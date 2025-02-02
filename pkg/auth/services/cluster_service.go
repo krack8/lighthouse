@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"time"
 
 	"github.com/krack8/lighthouse/pkg/auth/models"
@@ -49,13 +50,20 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 	return &cluster, nil
 }
 
-// GetAllclusters retrieves all clusters
 func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
-	cursor, err := db.ClusterCollection.Find(context.Background(), bson.M{})
+	// Filter for AGENT clusters
+	filter := bson.M{"cluster_type": bson.M{"$eq": enum.AGENT}}
+
+	cursor, err := db.ClusterCollection.Find(context.Background(), filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch clusters: %w", err)
+		return nil, fmt.Errorf("failed to fetch non-master clusters: %w", err)
 	}
-	defer cursor.Close(context.Background())
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, context.Background())
 
 	var clusters []models.Cluster
 	for cursor.Next(context.Background()) {

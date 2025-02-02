@@ -91,7 +91,12 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users: %w", err)
 	}
-	defer cursor.Close(context.Background())
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, context.Background())
 
 	var users []models.User
 	for cursor.Next(context.Background()) {
