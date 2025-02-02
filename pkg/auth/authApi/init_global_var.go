@@ -8,12 +8,14 @@ import (
 
 var (
 	// Global service instances
-	UserService *services.UserService
-	RbacService *services.RbacService
+	UserService    *services.UserService
+	RbacService    *services.RbacService
+	ClusterService *services.ClusterService
 
 	// UserController Global controller instances
-	UserController *controllers.UserController
-	RbacController *controllers.RbacController
+	UserController    *controllers.UserController
+	RbacController    *controllers.RbacController
+	ClusterController *controllers.ClusterController
 
 	once sync.Once
 )
@@ -24,10 +26,12 @@ func Init() {
 		// Initialize services
 		UserService = &services.UserService{}
 		RbacService = &services.RbacService{}
+		ClusterService = &services.ClusterService{}
 
 		// Initialize controllers with services
 		UserController = controllers.NewUserController(UserService)
 		RbacController = controllers.NewRbacController(RbacService)
+		ClusterController = controllers.NewClusterController(ClusterService)
 	})
 }
 

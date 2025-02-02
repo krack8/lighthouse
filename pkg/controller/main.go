@@ -39,6 +39,9 @@ func main() {
 	// Initialize the default user if needed
 	config.InitializeDefaultUser()
 
+	// Initialize the default cluster if needed
+	config.InitializeClusters()
+
 	// Initialize auth controllers with services
 	authApi.Init()
 

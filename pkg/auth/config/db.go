@@ -21,6 +21,8 @@ var (
 	PermissionCollection *mongo.Collection
 	RoleCollection       *mongo.Collection
 	UserCollection       *mongo.Collection
+	ClusterCollection    *mongo.Collection
+	TokenCollection      *mongo.Collection
 )
 
 // ConnectDB initializes the MongoDB client and collections.
@@ -57,6 +59,8 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 	UserCollection = client.Database(dbName).Collection(string(enum.UsersTable))
 	PermissionCollection = client.Database(dbName).Collection(string(enum.PermissionsTable))
 	RoleCollection = client.Database(dbName).Collection(string(enum.RolesTable))
+	ClusterCollection = client.Database(dbName).Collection(string(enum.ClusterTable))
+	TokenCollection = client.Database(dbName).Collection(string(enum.TokenTable))
 
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil
@@ -160,5 +164,80 @@ func InitRBAC() {
 		if err != nil {
 			log.Printf("Error inserting role: %v", err)
 		}
+	}
+}
+
+// InitializeClusters creates default clusters if none exist
+func InitializeClusters() {
+	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{})
+	if err != nil {
+		log.Fatalf("Error counting clusters: %v", err)
+	}
+
+	if clusterCount == 0 {
+		// Create master cluster
+		masterToken := utils.GenerateSecureToken(32)
+		masterCluster := models.Cluster{
+			ID:          primitive.NewObjectID(),
+			Name:        "master-cluster",
+			ClusterType: enum.MASTER,
+			Token:       masterToken,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			IsActive:    true,
+		}
+
+		// Create agent cluster
+		agentToken := utils.GenerateSecureToken(32)
+		agentCluster := models.Cluster{
+			ID:          primitive.NewObjectID(),
+			Name:        "agent-cluster",
+			ClusterType: enum.AGENT,
+			Token:       agentToken,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			IsActive:    true,
+		}
+
+		masterCluster.MasterClusterId = masterCluster.ID.Hex()
+		agentCluster.MasterClusterId = masterCluster.ID.Hex()
+		// Insert clusters
+		clusters := []interface{}{masterCluster, agentCluster}
+		_, err := ClusterCollection.InsertMany(context.Background(), clusters)
+		if err != nil {
+			log.Fatalf("Error creating default clusters: %v", err)
+		}
+
+		// Create token validations
+		masterTokenValidation := models.TokenValidation{
+			ID:        primitive.NewObjectID(),
+			ClusterID: masterCluster.ID,
+			Token:     masterToken,
+			IsValid:   true,
+			ExpiresAt: time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		agentTokenValidation := models.TokenValidation{
+			ID:        primitive.NewObjectID(),
+			ClusterID: agentCluster.ID,
+			Token:     agentToken,
+			IsValid:   true,
+			ExpiresAt: time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		// Insert token validations
+		tokenValidations := []interface{}{masterTokenValidation, agentTokenValidation}
+		_, err = TokenCollection.InsertMany(context.Background(), tokenValidations)
+		if err != nil {
+			log.Fatalf("Error creating token validations: %v", err)
+		}
+
+		log.Println("Default clusters and token validations created successfully")
+	} else {
+		log.Println("Clusters already exist. No default clusters created.")
 	}
 }

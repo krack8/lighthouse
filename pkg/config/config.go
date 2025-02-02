@@ -10,7 +10,7 @@ var ServerPort = "8080"
 var PageLimit = int64(10)
 var isK8 = false
 var KubeConfigFile = "dev-config.yaml"
-var NoAuth = false
+var Auth = false
 
 func IsK8() bool {
 	return isK8
@@ -23,14 +23,14 @@ func InitEnvironmentVariables() {
 		os.Exit(1)
 	}
 	if os.Getenv("AUTH_ENABLED") == "TRUE" {
-		NoAuth = true
-		log.Logger.Infow("Started with NO AUTH enabled", "[NO-AUTH]", NoAuth)
+		Auth = true
+		log.Logger.Infow("Started with NO AUTH enabled", "[NO-AUTH]", Auth)
 	} else {
-		log.Logger.Infow("Started with NO AUTH disabled", "[NO-AUTH]", NoAuth)
+		log.Logger.Infow("Started with NO AUTH disabled", "[NO-AUTH]", Auth)
 	}
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 }
 
-func IsNoAuth() bool {
-	return NoAuth
+func IsAuth() bool {
+	return Auth
 }

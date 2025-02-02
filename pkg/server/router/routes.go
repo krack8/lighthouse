@@ -22,6 +22,10 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
 	httpRg.GET("/users/profile", authApi.UserController.GetUserProfileInfoHandler)
 
+	// Cluster routes
+	httpRg.GET("/clusters", authApi.ClusterController.GetAllClustersHandler)
+	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
+
 	// RBAC routes
 	httpRg.POST("/rbac/permissions", authApi.RbacController.CreatePermissionHandler)
 	httpRg.POST("/rbac/roles", authApi.RbacController.CreateRoleHandler)

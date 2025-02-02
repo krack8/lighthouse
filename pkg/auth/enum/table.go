@@ -4,7 +4,9 @@ package enum
 type TableName string
 
 const (
-	UsersTable       TableName = "users"       // Enum for the User table name
-	PermissionsTable TableName = "permissions" // Enum for the User table name
-	RolesTable       TableName = "roles"       // Enum for the User table name
+	UsersTable       TableName = "users"
+	PermissionsTable TableName = "permissions"
+	RolesTable       TableName = "roles"
+	ClusterTable     TableName = "cluster"
+	TokenTable       TableName = "token"
 )
