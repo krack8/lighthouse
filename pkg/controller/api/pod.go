@@ -50,7 +50,7 @@ func (ctrl *podController) GetPodList(ctx *gin.Context) {
 		jsonLabel := []byte(queryLabel)
 		queryLabelMap := map[string]string{}
 
-		err := json.Unmarshal([]byte(jsonLabel), &queryLabelMap)
+		err := json.Unmarshal(jsonLabel, &queryLabelMap)
 		if err != nil {
 			log.Logger.Error("query labels unmarshal error ", "err", err.Error())
 		}
@@ -195,7 +195,7 @@ func (ctrl *podController) GetPodStats(ctx *gin.Context) {
 		jsonLabel := []byte(queryLabel)
 		queryLabelMap := map[string]string{}
 
-		err := json.Unmarshal([]byte(jsonLabel), &queryLabelMap)
+		err := json.Unmarshal(jsonLabel, &queryLabelMap)
 		if err != nil {
 			log.Logger.Error("query labels unmarshal error ", "err", err.Error())
 		}

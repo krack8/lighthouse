@@ -112,7 +112,7 @@ func (p *GetCertificateListInputParams) Find(c context.Context, certificateClien
 
 func (p *GetCertificateListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching certificate list")
-	var certificateList []*dto.Certificate
+	var certificateList = []*dto.Certificate{}
 	var err error
 
 	limit := cfg.PageLimit
@@ -181,7 +181,10 @@ func (svc *certificateService) GetCertificateList(c context.Context, p GetCertif
 	if err != nil {
 		return nil, err
 	}
-	return p.output, nil
+	return ResponseDTO{
+		Status: "success",
+		Data:   p.output,
+	}, nil
 }
 
 type GetCertificateDetailsInputParams struct {
