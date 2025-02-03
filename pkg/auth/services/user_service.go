@@ -125,29 +125,69 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 		return fmt.Errorf("invalid user ID format: %w", err)
 	}
 
+	// First fetch the existing user
+	var existingUser models.User
 	filter := bson.M{"_id": objectID}
-	update := bson.M{
-		"$set": bson.M{
-			"firstname":  updatedUser.FirstName,
-			"lastname":   updatedUser.LastName,
-			"username":   updatedUser.Username,
-			"password":   utils.HashPassword(updatedUser.Password),
-			"usertype":   updatedUser.UserType,
-			"roles":      updatedUser.Roles,
-			"isactive":   updatedUser.UserIsActive,
-			"isverified": updatedUser.IsVerified,
-			"phone":      updatedUser.Phone,
-			"updatedat":  time.Now(),
-		},
-	}
-
-	result, err := db.UserCollection.UpdateOne(context.Background(), filter, update)
+	err = db.UserCollection.FindOne(context.Background(), filter).Decode(&existingUser)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		if err == mongo.ErrNoDocuments {
+			return errors.New("user not found")
+		}
+		return fmt.Errorf("failed to fetch existing user: %w", err)
 	}
 
-	if result.MatchedCount == 0 {
-		return errors.New("user not found")
+	// Create update map with only non-empty fields
+	updateFields := bson.M{}
+
+	if updatedUser.FirstName != "" {
+		updateFields["first_name"] = updatedUser.FirstName
+	}
+	if updatedUser.LastName != "" {
+		updateFields["last_name"] = updatedUser.LastName
+	}
+	if updatedUser.Username != "" {
+		updateFields["username"] = updatedUser.Username
+	}
+	if updatedUser.Password != "" {
+		updateFields["password"] = utils.HashPassword(updatedUser.Password)
+	}
+	if updatedUser.UserType != "" {
+		updateFields["user_type"] = updatedUser.UserType
+	}
+	if len(updatedUser.Roles) > 0 {
+		updateFields["roles"] = updatedUser.Roles
+	}
+	if len(updatedUser.ClusterIdList) > 0 {
+		updateFields["clusterIdList"] = updatedUser.ClusterIdList
+	}
+	// For boolean fields, we need to check if they were explicitly set in the update
+	if updatedUser.UserIsActive != existingUser.UserIsActive {
+		updateFields["user_is_active"] = updatedUser.UserIsActive
+	}
+	if updatedUser.IsVerified != existingUser.IsVerified {
+		updateFields["is_verified"] = updatedUser.IsVerified
+	}
+	if updatedUser.Phone != "" {
+		updateFields["phone"] = updatedUser.Phone
+	}
+	if updatedUser.ForgotPasswordToken != "" {
+		updateFields["forgot_password_token"] = updatedUser.ForgotPasswordToken
+	}
+
+	// Always update the UpdatedAt timestamp
+	updateFields["updated_at"] = time.Now()
+
+	// Only perform update if there are fields to update
+	if len(updateFields) > 0 {
+		update := bson.M{"$set": updateFields}
+		result, err := db.UserCollection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			return fmt.Errorf("failed to update user: %w", err)
+		}
+
+		if result.MatchedCount == 0 {
+			return errors.New("user not found")
+		}
 	}
 
 	return nil
