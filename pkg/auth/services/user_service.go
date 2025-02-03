@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"time"
 
@@ -52,6 +53,7 @@ func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
+	user.Status = enum.VALID
 
 	_, err := db.UserCollection.InsertOne(context.Background(), user)
 	if err != nil {

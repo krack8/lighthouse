@@ -27,9 +27,15 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
 
 	// RBAC routes
-	httpRg.POST("/rbac/permissions", authApi.RbacController.CreatePermissionHandler)
-	httpRg.POST("/rbac/roles", authApi.RbacController.CreateRoleHandler)
-	httpRg.POST("/rbac/assign-roles", authApi.RbacController.AssignRolesHandler)
+	//httpRg.POST("/permissions", authApi.RbacController.CreatePermissionHandler)   /test-api to create permission for dev
+	httpRg.POST("/roles", authApi.RbacController.CreateRoleHandler)
+	httpRg.POST("/assign-roles", authApi.RbacController.AssignRolesHandler)
+	httpRg.GET("/permissions", authApi.RbacController.GetAllPermissionsHandler)
+	httpRg.GET("/permissions/:id", authApi.RbacController.GetPermissionByIDHandler)
+	httpRg.GET("/permissions/:category", authApi.RbacController.GetPermissionsByCategoryHandler)
+	httpRg.GET("/roles", authApi.RbacController.GetAllRolesHandler)
+	httpRg.GET("/roles/:id", authApi.RbacController.GetRoleByIDHandler)
+	httpRg.DELETE("/roles/:id", authApi.RbacController.DeleteRoleHandler)
 
 	// Namespace
 	httpRg.GET("/namespace", api.NamespaceController().GetNamespaceList)

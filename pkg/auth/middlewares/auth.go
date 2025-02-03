@@ -69,15 +69,19 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("username", claims.Username)
 		if user.UserType == models.RegularUser {
 			// Collect all permissions of the user's roles
-			var permissions []string
+			var permissionEndpoints []string
 			for _, role := range user.Roles {
 				for _, perm := range role.Permissions {
-					permissions = append(permissions, perm.Route+":"+perm.Method)
+					// Iterate through each endpoint in the EndpointList
+					for _, endpoint := range perm.EndpointList {
+						permissionEndpoints = append(permissionEndpoints,
+							endpoint.Route+":"+endpoint.Method)
+					}
 				}
 			}
 
 			// Check if user has permission for the requested route and method
-			if !services.CheckPermission(permissions, c.FullPath(), c.Request.Method) {
+			if !services.CheckPermission(permissionEndpoints, c.FullPath(), c.Request.Method) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "Permission denied"})
 				c.Abort()
 				return

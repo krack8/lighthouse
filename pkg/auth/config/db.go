@@ -100,6 +100,12 @@ func InitializeDefaultUser() {
 }
 
 func InitRBAC() {
+	// Initialize permissions
+	initializer := NewPermissionInitializer(PermissionCollection)
+	if err := initializer.InitializePermissions(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
 	permissionCount, err := PermissionCollection.CountDocuments(context.Background(), bson.M{})
 	if err != nil {
 		log.Fatalf("Error counting documents in users collection: %v", err)
@@ -113,27 +119,43 @@ func InitRBAC() {
 	var defaultPermissions []models.Permission
 
 	if permissionCount == 0 {
-		// Example permissions
+		// Default permissions
 		defaultPermissions = []models.Permission{
 			{
 				ID:          primitive.NewObjectID(),
 				Name:        "Create User",
 				Description: "Permission to create a user",
-				Route:       "/users",
-				Category:    enum.DEFAULT,
-				Method:      "POST",
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
+				EndpointList: []models.Endpoint{
+					{
+						Route:  "/users",
+						Method: "POST",
+					},
+					{
+						Route:  "/users",
+						Method: "GET",
+					},
+				},
+				Category:  enum.DEFAULT,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
 			},
 			{
 				ID:          primitive.NewObjectID(),
 				Name:        "Create Roles",
 				Description: "Create Role",
-				Route:       "/roles",
-				Method:      "POST",
-				Category:    enum.DEFAULT,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
+				EndpointList: []models.Endpoint{
+					{
+						Route:  "/roles",
+						Method: "POST",
+					},
+					{
+						Route:  "/roles",
+						Method: "GET",
+					},
+				},
+				Category:  enum.DEFAULT,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
 			},
 		}
 
