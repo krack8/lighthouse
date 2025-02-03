@@ -1061,6 +1061,67 @@ func TaskSelector(task *pb.Task) (interface{}, error) {
 			return nil, err
 		}
 		return res, nil
+		//job
+	case k8s.GetJobListInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetJobListInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.GetJobInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.GetJobInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeployJobInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeployJobInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s.DeleteJobInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s.DeleteJobInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
 		//loadBalancer
 	case k8s.GetLoadBalancerListInputParams:
 		logTaskStarted(task)

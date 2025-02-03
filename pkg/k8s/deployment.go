@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"errors"
-	"fmt"
 	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -307,11 +306,9 @@ func (svc *deploymentService) DeleteDeployment(c context.Context, p DeleteDeploy
 }
 
 type StatsDeployment struct {
-	Total       int
-	Ready       int
-	NotReady    int
-	TotalCPU    float64
-	TotalMemory float64
+	Total    int
+	Ready    int
+	NotReady int
 }
 
 func (s *StatsDeployment) New() *StatsDeployment {
@@ -343,9 +340,6 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 		return err
 	}
 
-	totalCPU := float64(0)
-	totalMemory := float64(0)
-
 	if p.Search != "" {
 		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		filteredDeployments := []appsv1.Deployment{}
@@ -360,22 +354,9 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 		for _, obj := range filteredDeployments {
 			p.output.Total += int(obj.Status.Replicas)
 			p.output.Ready += int(obj.Status.ReadyReplicas)
-			podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
-			if err != nil {
-				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-				return err
-			}
-			for _, podMetrics := range podMetricsList.Items {
-				for _, container := range podMetrics.Containers {
-					totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-					totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
 		}
 
 		p.output.NotReady = p.output.Total - p.output.Ready
-		p.output.TotalCPU = totalCPU
-		p.output.TotalMemory = totalMemory
 		return nil
 	}
 
@@ -383,22 +364,8 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 	for _, obj := range deploymentList.Items {
 		p.output.Total += int(obj.Status.Replicas)
 		p.output.Ready += int(obj.Status.ReadyReplicas)
-
-		podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
-		if err != nil {
-			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-			return err
-		}
-		for _, podMetrics := range podMetricsList.Items {
-			for _, container := range podMetrics.Containers {
-				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-				totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-			}
-		}
 	}
 	p.output.NotReady = p.output.Total - p.output.Ready
-	p.output.TotalCPU = totalCPU
-	p.output.TotalMemory = totalMemory
 	return nil
 }
 
@@ -415,11 +382,9 @@ func (svc *deploymentService) GetDeploymentStats(c context.Context, p GetDeploym
 }
 
 type DeploymentPodOutput struct {
-	PodList     []corev1.Pod
-	Resource    string
-	Remaining   int64
-	TotalCPU    float64
-	TotalMemory float64
+	PodList   []corev1.Pod
+	Resource  string
+	Remaining int64
 }
 
 type GetDeploymentPodListInputParams struct {
@@ -467,29 +432,15 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 		if p.Search != "" {
 			listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		}
-		//FieldSelector: fmt.Sprintf("spec.ports[0].nodePort=%s", port),
 		podList, err := podClient.List(context.Background(), listOptions)
 		if err != nil {
 			log.Logger.Errorw("Failed to get pod list", "err", err.Error())
 			return err
 		}
 		p.output.PodList = podList.Items
-		totalCPU := float64(0)
-		totalMemory := float64(0)
-		for idx, pod := range p.output.PodList {
+		for idx, _ := range p.output.PodList {
 			p.output.PodList[idx].ManagedFields = nil
-			podMetrics, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), pod.Name, metav1.GetOptions{})
-			if err != nil {
-				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-				return err
-			}
-			for _, container := range podMetrics.Containers {
-				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-				totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-			}
 		}
-		p.output.TotalCPU = totalCPU
-		p.output.TotalMemory = totalMemory
 		remaining := podList.RemainingItemCount
 
 		if remaining != nil {
@@ -502,23 +453,6 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 	} else {
 		return errors.New("unable to fetch pod list")
 	}
-	/////
-	//var replicasets []string
-	//for _, i := range output.Status.Conditions {
-	//	if i.Type == "Progressing" {
-	//		content := i.Message
-	//		re := regexp.MustCompile(`\"(.*)\"`)
-	//		match := re.FindStringSubmatch(content)
-	//		if len(match) > 1 {
-	//			fmt.Println("match found -", match[1])
-	//			replicasets = append(replicasets, match[1])
-	//		} else {
-	//			fmt.Println("match not found")
-	//		}
-	//	}
-	//}
-	//fmt.Println(replicasets)
-	////
 	return nil
 }
 

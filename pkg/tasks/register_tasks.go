@@ -168,7 +168,7 @@ func InitTaskRegistry() {
 
 	//replicationController
 	RegisterTask(k8s.ReplicationControllerService().GetReplicationControllerList, k8s.GetReplicationControllerListInputParams{})
-	RegisterTask(k8s.ReplicationControllerService().GetReplicationControllerList, k8s.GetReplicationControllerDetailsInputParams{})
+	RegisterTask(k8s.ReplicationControllerService().GetReplicationControllerDetails, k8s.GetReplicationControllerDetailsInputParams{})
 	RegisterTask(k8s.ReplicationControllerService().DeployReplicationController, k8s.DeployReplicationControllerInputParams{})
 	RegisterTask(k8s.ReplicationControllerService().DeleteReplicationController, k8s.DeleteReplicationControllerInputParams{})
 

@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -290,11 +289,9 @@ func (svc *statefulSetService) DeleteStatefulSet(c context.Context, p DeleteStat
 }
 
 type Stats struct {
-	Total       int
-	Ready       int
-	NotReady    int
-	TotalCPU    float64
-	TotalMemory float64
+	Total    int
+	Ready    int
+	NotReady int
 }
 
 func (s *Stats) New() *Stats {
@@ -319,8 +316,6 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
 	}
-	totalCPU := float64(0)
-	totalMemory := float64(0)
 
 	statefulSetList, err := statefulSetClient.List(context.Background(), listOptions)
 	if err != nil {
@@ -342,22 +337,9 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 		for _, obj := range filteredStatefulSet {
 			p.output.Total += int(obj.Status.Replicas)
 			p.output.Ready += int(obj.Status.ReadyReplicas)
-			podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("controller-revision-hash=%s", obj.Status.CurrentRevision)})
-			if err != nil {
-				log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-				return err
-			}
-			for _, podMetrics := range podMetricsList.Items {
-				for _, container := range podMetrics.Containers {
-					totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-					totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
 		}
 
 		p.output.NotReady = p.output.Total - p.output.Ready
-		p.output.TotalCPU = totalCPU
-		p.output.TotalMemory = totalMemory
 		return nil
 	}
 
@@ -366,22 +348,9 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 	for _, obj := range statefulSetList.Items {
 		p.output.Total += int(obj.Status.Replicas)
 		p.output.Ready += int(obj.Status.ReadyReplicas)
-		podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("controller-revision-hash=%s", obj.Status.CurrentRevision)})
-		if err != nil {
-			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-			return err
-		}
-		for _, podMetrics := range podMetricsList.Items {
-			for _, container := range podMetrics.Containers {
-				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-				totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-			}
-		}
 	}
 
 	p.output.NotReady = p.output.Total - p.output.Ready
-	p.output.TotalCPU = totalCPU
-	p.output.TotalMemory = totalMemory
 	return nil
 }
 
@@ -398,22 +367,16 @@ func (svc *statefulSetService) GetStatefulSetStats(c context.Context, p GetState
 }
 
 type StatefulSetPodOutput struct {
-	PodList     []corev1.Pod
-	Resource    string
-	Remaining   int64
-	TotalCPU    float64
-	TotalMemory float64
+	PodList   []corev1.Pod
+	Resource  string
+	Remaining int64
 }
 
 type GetStatefulSetPodListInputParams struct {
 	NamespaceName   string
 	StatefulSetName string
-	//Limit           string
-	Labels map[string]string
-	//Search    string
-	//CtrReHash string
-	//Continue string
-	output StatefulSetPodOutput
+	Labels          map[string]string
+	output          StatefulSetPodOutput
 }
 
 const (
@@ -430,11 +393,6 @@ func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 		return err
 	}
 	podClient := cfg.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
-	//limit := cfg.PageLimit
-	//if p.Limit != "" {
-	//	limit, _ = strconv.ParseInt(p.Limit, 10, 64)
-	//}
-	//listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	listOptions := metav1.ListOptions{}
 	if p.Labels == nil {
 		p.Labels = make(map[string]string)
@@ -443,59 +401,18 @@ func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 	p.Labels[PodLabelKey] = statefulSet.Status.CurrentRevision
 
 	labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-	//if p.Labels != nil {
-	//	listOptions = metav1.ListOptions{
-	//		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	//	}
-	//}
 	listOptions = metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
-	//if p.Search != "" {
-	//	listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
-	//}
-	//FieldSelector: fmt.Sprintf("spec.ports[0].nodePort=%s", port),
 	podList, err := podClient.List(context.Background(), listOptions)
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod list", "err", err.Error())
 		return err
 	}
-	totalCPU := float64(0)
-	totalMemory := float64(0)
 	p.output.PodList = podList.Items
-	for idx, pod := range p.output.PodList {
+	for idx, _ := range p.output.PodList {
 		p.output.PodList[idx].ManagedFields = nil
-		podMetrics, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), pod.Name, metav1.GetOptions{})
-		if err != nil {
-			log.Logger.Errorw("Failed to get pod metrics", "err", err.Error())
-			return err
-		}
-		for _, container := range podMetrics.Containers {
-			totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-			totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-		}
 	}
-	p.output.TotalCPU = totalCPU
-	p.output.TotalMemory = totalMemory
-	//var filteredPodList []corev1.Pod
-	//for idx, pod := range p.output.PodList {
-	//	for _, ref := range pod.OwnerReferences {
-	//		if ref.Kind == StatefulSetKind && ref.Name == p.StatefulSetName {
-	//			p.output.PodList[idx].ManagedFields = nil
-	//			filteredPodList = append(filteredPodList, p.output.PodList[idx])
-	//		}
-	//	}
-	//}
-	//remaining := podList.RemainingItemCount
-	//
-	//if remaining != nil && len(filteredPodList) > 0 {
-	//	p.output.Remaining = *remaining
-	//} else {
-	//	p.output.Remaining = 0
-	//}
-	//
-	//p.output.Resource = podList.Continue
-	//p.output.PodList = filteredPodList
 	return nil
 }
 
