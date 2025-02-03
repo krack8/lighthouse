@@ -2,6 +2,13 @@ package utils
 
 import "github.com/krack8/lighthouse/pkg/auth/models"
 
+// GetDefaultEndpoints returns endpoints for creating K8s namespaces
+func GetDefaultEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "GET", Route: "/api/v1/clusters"},
+	}
+}
+
 // GetCreateNamespaceEndpoints returns endpoints for creating K8s namespaces
 func GetCreateNamespaceEndpoints() []models.Endpoint {
 	return []models.Endpoint{

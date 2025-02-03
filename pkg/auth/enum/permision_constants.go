@@ -16,6 +16,7 @@ const (
 	HELM    PermissionCategory = "HELM"
 
 	// Permission names
+	DEFAULT_PERMISSION    PermissionName = "DEFAULT_PERMISSION"
 	VIEW_NAMESPACE        PermissionName = "VIEW_NAMESPACE_ENDPOINTS"
 	MANAGE_NAMESPACE      PermissionName = "MANAGE_NAMESPACE_ENDPOINTS"
 	VIEW_ENDPOINT_SLICE   PermissionName = "VIEW_ENDPOINT_SLICE"
@@ -24,6 +25,7 @@ const (
 	MANAGE_PDB            PermissionName = "MANAGE_PDB"
 
 	// Permission descriptions
+	DEFAULT_PERMISSION_DESCRIPTION    PermissionDescription = "DEFAULT_PERMISSION"
 	VIEW_NAMESPACE_DESCRIPTION        PermissionDescription = "Permission to view namespace endpoints"
 	MANAGE_NAMESPACE_DESCRIPTION      PermissionDescription = "Permission to manage namespace endpoints"
 	VIEW_ENDPOINT_SLICE_DESCRIPTION   PermissionDescription = "Permission to view endpoint slices"

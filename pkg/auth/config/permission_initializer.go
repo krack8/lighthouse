@@ -30,11 +30,12 @@ func NewPermissionInitializer(collection *mongo.Collection) *PermissionInitializ
 	return pi
 }
 
-// registerEndpoints maps permission names to their endpoint functions
+// registerEndpoints maps permission names to their endpoint functions. register addational
 func (pi *PermissionInitializer) registerEndpoints() {
 	pi.endpointRegistry = map[enum.PermissionName]func() []models.Endpoint{
-		enum.VIEW_NAMESPACE:   utils.GetViewNamespaceEndpoints,
-		enum.MANAGE_NAMESPACE: utils.GetManageEndpointsEndpoints,
+		enum.DEFAULT_PERMISSION: utils.GetDefaultEndpoints,
+		enum.VIEW_NAMESPACE:     utils.GetViewNamespaceEndpoints,
+		enum.MANAGE_NAMESPACE:   utils.GetManageEndpointsEndpoints,
 		// Add more mappings
 	}
 }
@@ -52,8 +53,11 @@ func (pi *PermissionInitializer) InitializePermissions(ctx context.Context) erro
 			Description:  string(def.Description),
 			Category:     def.Category,
 			EndpointList: endpointFunc(),
-			CreatedBy:    "SYSTEM",
-			UpdatedBy:    "SYSTEM",
+			Status:       enum.VALID,
+			CreatedBy:    string(enum.SYSTEM),
+			UpdatedBy:    string(enum.SYSTEM),
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		})
 		if err != nil {
 			return fmt.Errorf("failed to initialize permission %s: %v", permName, err)

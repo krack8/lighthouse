@@ -84,6 +84,9 @@ func InitializeDefaultUser() {
 			UserIsActive: true,
 			IsVerified:   true,
 			Phone:        "1234567890",
+			Status:       enum.VALID,
+			CreatedBy:    string(enum.SYSTEM),
+			UpdatedBy:    string(enum.SYSTEM),
 			CreatedAt:    time.Now(),
 			UpdatedAt:    time.Now(),
 		}
@@ -106,9 +109,11 @@ func InitRBAC() {
 		log.Fatal(err)
 	}
 
-	permissionCount, err := PermissionCollection.CountDocuments(context.Background(), bson.M{})
+	var defaultPermission models.Permission
+	// Find permissions by name
+	err := PermissionCollection.FindOne(context.Background(), bson.M{"name": string(enum.DEFAULT_PERMISSION)}).Decode(&defaultPermission)
 	if err != nil {
-		log.Fatalf("Error counting documents in users collection: %v", err)
+		log.Fatalf("Default permission not found: %v", err)
 	}
 
 	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{})
@@ -118,67 +123,18 @@ func InitRBAC() {
 
 	var defaultPermissions []models.Permission
 
-	if permissionCount == 0 {
-		// Default permissions
-		defaultPermissions = []models.Permission{
-			{
-				ID:          primitive.NewObjectID(),
-				Name:        "Create User",
-				Description: "Permission to create a user",
-				EndpointList: []models.Endpoint{
-					{
-						Route:  "/users",
-						Method: "POST",
-					},
-					{
-						Route:  "/users",
-						Method: "GET",
-					},
-				},
-				Category:  enum.DEFAULT,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			{
-				ID:          primitive.NewObjectID(),
-				Name:        "Create Roles",
-				Description: "Create Role",
-				EndpointList: []models.Endpoint{
-					{
-						Route:  "/roles",
-						Method: "POST",
-					},
-					{
-						Route:  "/roles",
-						Method: "GET",
-					},
-				},
-				Category:  enum.DEFAULT,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		}
-
-		// Convert the []models.Permission to []interface{}
-		var permissionsInterface []interface{}
-		for _, perm := range defaultPermissions {
-			permissionsInterface = append(permissionsInterface, perm)
-		}
-
-		// Insert the Default Permissions into the collection
-		_, err := PermissionCollection.InsertMany(context.Background(), permissionsInterface)
-		if err != nil {
-			log.Printf("Error inserting permissions: %v", err)
-		}
-	}
+	defaultPermissions = append(defaultPermissions, defaultPermission)
 
 	if roleCount == 0 {
 		// Example role with permissions
 		defaultRole := models.Role{
 			ID:          primitive.NewObjectID(),
-			Name:        "Admin",
-			Description: "Administrator role with all permissions",
+			Name:        "DEFAULT_ROLE",
+			Description: "Basic API Permissions",
 			Permissions: defaultPermissions,
+			Status:      enum.VALID,
+			CreatedBy:   string(enum.SYSTEM),
+			UpdatedBy:   string(enum.SYSTEM),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
@@ -206,6 +162,9 @@ func InitializeClusters() {
 			Name:        "master-cluster",
 			ClusterType: enum.MASTER,
 			Token:       masterToken,
+			Status:      enum.VALID,
+			CreatedBy:   string(enum.SYSTEM),
+			UpdatedBy:   string(enum.SYSTEM),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 			IsActive:    true,
@@ -218,6 +177,9 @@ func InitializeClusters() {
 			Name:        "agent-cluster",
 			ClusterType: enum.AGENT,
 			Token:       agentToken,
+			Status:      enum.VALID,
+			CreatedBy:   string(enum.SYSTEM),
+			UpdatedBy:   string(enum.SYSTEM),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 			IsActive:    true,
@@ -239,6 +201,9 @@ func InitializeClusters() {
 			Token:     masterToken,
 			IsValid:   true,
 			ExpiresAt: time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+			Status:    enum.VALID,
+			CreatedBy: string(enum.SYSTEM),
+			UpdatedBy: string(enum.SYSTEM),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}
@@ -249,6 +214,9 @@ func InitializeClusters() {
 			Token:     agentToken,
 			IsValid:   true,
 			ExpiresAt: time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+			Status:    enum.VALID,
+			CreatedBy: string(enum.SYSTEM),
+			UpdatedBy: string(enum.SYSTEM),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}

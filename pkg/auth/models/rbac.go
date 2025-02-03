@@ -14,7 +14,6 @@ type Permission struct {
 	EndpointList []Endpoint              `json:"endpoint_list" bson:"endpoint_list"`
 	Category     enum.PermissionCategory `json:"category" bson:"category"`
 	Status       enum.Status             `json:"status" bson:"status"`
-	UserType     UserType                `json:"user_type" bson:"user_type" validate:"required,oneof=ADMIN USER"`
 	CreatedAt    time.Time               `json:"created_at" bson:"created_at"`
 	UpdatedAt    time.Time               `json:"updated_at" bson:"updated_at"`
 	CreatedBy    string                  `json:"created_by" bson:"created_by"`

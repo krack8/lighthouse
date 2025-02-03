@@ -194,3 +194,23 @@ func (rbac *RbacController) GetPermissionsByCategoryHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"permissions": permissions})
 }
+
+// GetUserPermissionsHandler handles the permission request for a user
+func (rbac *RbacController) GetUserPermissionsHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	// username is of type interface{}, so cast it to string
+	usernameStr := username.(string)
+	// Get permissions
+	permissions, err := rbac.RbacService.GetPermissionsByUserType(usernameStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving permissions"})
+		return
+	}
+
+	// Return permissions directly without the "data" wrapper
+	c.JSON(http.StatusOK, permissions)
+}

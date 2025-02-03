@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/krack8/lighthouse/pkg/auth/dto"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"strings"
 	"time"
 )
@@ -108,7 +111,12 @@ func (r *RbacService) GetAllRoles() ([]models.Role, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve roles: %v", err)
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Slice to store roles
 	var roles []models.Role
@@ -177,7 +185,12 @@ func (r *RbacService) GetAllPermissions() ([]models.Permission, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve permissions: %v", err)
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Slice to store permissions
 	var permissions []models.Permission
@@ -222,7 +235,12 @@ func (r *RbacService) GetPermissionsByCategory(category string) ([]models.Permis
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve permissions by category: %v", err)
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Slice to store permissions
 	var permissions []models.Permission
@@ -233,4 +251,66 @@ func (r *RbacService) GetPermissionsByCategory(category string) ([]models.Permis
 	}
 
 	return permissions, nil
+}
+
+func (r *RbacService) GetPermissionsByUserType(username string) (*dto.PermissionResponse, error) {
+	if username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	user, _ := GetUserByUsername(username)
+
+	if user == nil {
+		return nil, errors.New("user do not exists")
+	}
+
+	// Initialize response
+	response := &dto.PermissionResponse{
+		DEFAULT:  make([]dto.PermissionDTO, 0),
+		CLUSTER:  make([]dto.PermissionDTO, 0),
+		HelmApps: make([]dto.PermissionDTO, 0),
+	}
+
+	// Create filter for Valid permissions
+	filter := bson.M{
+		"status": "V",
+	}
+
+	// Fetch permissions from database
+	cursor, err := db.PermissionCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, context.Background())
+
+	// Process permissions
+	var permissions []models.Permission
+	if err := cursor.All(context.Background(), &permissions); err != nil {
+		return nil, err
+	}
+
+	// Group permissions by category
+	for _, perm := range permissions {
+		dto := dto.PermissionDTO{
+			ID:          perm.ID,
+			Name:        perm.Name,
+			Description: perm.Description,
+		}
+
+		switch perm.Category {
+		case enum.DEFAULT:
+			response.DEFAULT = append(response.DEFAULT, dto)
+		case enum.CLUSTER:
+			response.CLUSTER = append(response.CLUSTER, dto)
+		case enum.HELM:
+			response.HelmApps = append(response.HelmApps, dto)
+		}
+		//add category here
+	}
+
+	return response, nil
 }

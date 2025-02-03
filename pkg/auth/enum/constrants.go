@@ -14,4 +14,6 @@ const (
 const (
 	VALID   Status = "V"
 	DELETED Status = "D"
+	HIDDEN  Status = "H"
+	SYSTEM  Status = "SYSTEM"
 )

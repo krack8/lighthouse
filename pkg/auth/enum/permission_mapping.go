@@ -8,6 +8,10 @@ type PermissionDefinition struct {
 
 // PermissionDefinitions maps permission names to their definitions
 var PermissionDefinitions = map[PermissionName]PermissionDefinition{
+	DEFAULT_PERMISSION: {
+		Description: DEFAULT_PERMISSION_DESCRIPTION,
+		Category:    DEFAULT,
+	},
 	VIEW_NAMESPACE: {
 		Description: VIEW_NAMESPACE_DESCRIPTION,
 		Category:    CLUSTER,
