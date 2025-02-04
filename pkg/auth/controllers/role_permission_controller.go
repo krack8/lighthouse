@@ -1,11 +1,17 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/dto"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"strings"
 	"time"
@@ -40,23 +46,63 @@ func (rbac *RbacController) CreatePermissionHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"permission_id": permissionID})
 }
 
-// Helper function to convert string slice to Permission slice
-func convertPermissionsToModels(permissions []string) []models.Permission {
-	permissionModels := make([]models.Permission, 0, len(permissions))
+// Helper function to convert permission ID strings to Permission slice
+func convertPermissionsToModels(permissionIDs []string) ([]models.Permission, error) {
+	// Create a slice to store ObjectIDs
+	objectIDs := make([]primitive.ObjectID, 0, len(permissionIDs))
 
-	for _, p := range permissions {
-		if strings.TrimSpace(p) != "" {
-			permissionModels = append(permissionModels, models.Permission{
-				Name: strings.TrimSpace(p),
-			})
+	// Convert string IDs to ObjectIDs
+	for _, idStr := range permissionIDs {
+		if strings.TrimSpace(idStr) == "" {
+			continue
 		}
+		objID, err := primitive.ObjectIDFromHex(strings.TrimSpace(idStr))
+		if err != nil {
+			return nil, fmt.Errorf("invalid permission ID: %s - %v", idStr, err)
+		}
+		objectIDs = append(objectIDs, objID)
 	}
 
-	return permissionModels
+	// If no valid IDs, return empty result
+	if len(objectIDs) == 0 {
+		return []models.Permission{}, nil
+	}
+
+	// Create filter for MongoDB query
+	filter := bson.M{
+		"_id":    bson.M{"$in": objectIDs},
+		"status": enum.VALID, // Assuming you want only active permissions
+	}
+
+	// Find permissions
+	cursor, err := db.PermissionCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching permissions: %v", err)
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, context.Background())
+
+	// Decode results into Permission models
+	var permissions []models.Permission
+	if err := cursor.All(context.Background(), &permissions); err != nil {
+		return nil, fmt.Errorf("error decoding permissions: %v", err)
+	}
+
+	return permissions, nil
 }
 
 // CreateRoleHandler handles the creation of a new role
 func (rbac *RbacController) CreateRoleHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
 	var roleDTO dto.RoleDTO
 	if err := c.ShouldBindJSON(&roleDTO); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -69,16 +115,23 @@ func (rbac *RbacController) CreateRoleHandler(c *gin.Context) {
 		return
 	}
 
+	PermissionList, e := convertPermissionsToModels(roleDTO.Permissions)
+	if e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to Convert Permission Model"})
+		return
+	}
+
 	// Convert DTO to model
 	role := models.Role{
+		ID:          primitive.NewObjectID(),
 		Name:        roleDTO.Name,
 		Description: roleDTO.Description,
-		Permissions: convertPermissionsToModels(roleDTO.Permissions),
-		Status:      roleDTO.Status,
+		Permissions: PermissionList,
+		Status:      enum.VALID,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-		CreatedBy:   roleDTO.CreatedBy,
-		UpdatedBy:   roleDTO.UpdatedBy,
+		CreatedBy:   requester,
+		UpdatedBy:   requester,
 	}
 
 	// Create Role

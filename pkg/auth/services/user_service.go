@@ -268,7 +268,12 @@ func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]mo
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	if err = cursor.All(ctx, &roles); err != nil {
 		return nil, err

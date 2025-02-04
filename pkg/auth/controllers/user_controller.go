@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/dto"
+	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -23,6 +25,13 @@ func NewUserController(userService *services.UserService) *UserController {
 // CreateUserHandler handles the creation of a new user.
 
 func (uc *UserController) CreateUserHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
+
 	var userDTO dto.UserDTO
 	if err := c.ShouldBindJSON(&userDTO); err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
@@ -30,7 +39,7 @@ func (uc *UserController) CreateUserHandler(c *gin.Context) {
 	}
 
 	// Convert DTO to User model
-	user, err := uc.convertDTOToUser(c, userDTO)
+	user, err := uc.convertDTOToUser(c, userDTO, requester)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
@@ -45,7 +54,8 @@ func (uc *UserController) CreateUserHandler(c *gin.Context) {
 	utils.RespondWithJSON(c, http.StatusCreated, createdUser)
 }
 
-func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.UserDTO) (*models.User, error) {
+func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.UserDTO, requester string) (*models.User, error) {
+
 	// Convert role IDs to Role objects
 	roles, err := uc.UserService.GetRolesByIds(ctx, userDTO.RoleIds)
 	if err != nil {
@@ -53,6 +63,7 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 	}
 
 	return &models.User{
+		ID:            primitive.NewObjectID(),
 		Username:      userDTO.Username,
 		FirstName:     userDTO.FirstName,
 		LastName:      userDTO.LastName,
@@ -63,9 +74,9 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 		UserIsActive:  userDTO.UserIsActive,
 		IsVerified:    userDTO.IsVerified,
 		Phone:         userDTO.Phone,
-		Status:        userDTO.Status,
-		CreatedBy:     userDTO.CreatedBy,
-		UpdatedBy:     userDTO.UpdatedBy,
+		Status:        enum.VALID,
+		CreatedBy:     requester,
+		UpdatedBy:     requester,
 	}, nil
 }
 
