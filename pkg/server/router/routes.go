@@ -37,7 +37,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/roles/:id", authApi.RbacController.GetRoleByIDHandler)
 	httpRg.PUT("/roles/:id", authApi.RbacController.UpdateRoleHandler)
 	httpRg.DELETE("/roles/:id", authApi.RbacController.DeleteRoleHandler)
-	httpRg.GET("/roles/:id/users", authApi.RbacController.DeleteRoleHandler)
+	httpRg.GET("/roles/:id/users", authApi.RbacController.GetUsersByRoleIDHandler)
 
 	// Namespace
 	httpRg.GET("/namespace", api.NamespaceController().GetNamespaceList)
