@@ -36,7 +36,6 @@ func NewUserService(collection Collection) *UserService {
 	}
 }
 
-// CreateUser creates a new user
 func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 	if user == nil {
 		return nil, errors.New("user cannot be nil")
@@ -45,8 +44,9 @@ func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 	if user.Username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
-	data, _ := GetUserByUsername(user.Username)
 
+	// Check if user exists
+	data, _ := GetUserByUsername(user.Username)
 	if data != nil {
 		return nil, errors.New("user already exists")
 	}
@@ -244,4 +244,35 @@ func (s *UserService) GetUserProfileInfo(username string) (*models.User, error) 
 		return nil, errors.New("user do not exists")
 	}
 	return user, nil
+}
+
+func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]models.Role, error) {
+	var roles []models.Role
+
+	// Convert string IDs to ObjectIDs
+	objectIds := make([]primitive.ObjectID, 0, len(roleIds))
+	for _, id := range roleIds {
+		objID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, err
+		}
+		objectIds = append(objectIds, objID)
+	}
+
+	// Find roles by IDs
+	cursor, err := db.RoleCollection.Find(ctx, bson.M{
+		"_id": bson.M{
+			"$in": objectIds,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &roles); err != nil {
+		return nil, err
+	}
+
+	return roles, nil
 }

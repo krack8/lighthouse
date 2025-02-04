@@ -28,22 +28,41 @@ func GetViewNamespaceEndpoints() []models.Endpoint {
 	}
 }
 
-// GetUpdateNamespaceEndpoint returns endpoints for updating K8s namespace operations
-func GetUpdateNamespaceEndpoint() []models.Endpoint {
+// GetK8sNamespaceCreateEndpoints returns endpoints for creating K8s namespaces
+func GetK8sNamespaceCreateEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "POST", Route: "/api/v1/namespace"},
+		{Method: "GET", Route: "/api/v1/namespace"},
+		{Method: "GET", Route: "/api/v1/namespace/@"},
+	}
+}
+
+// GetViewK8sNamespaceEndpoints returns endpoints for viewing K8s namespaces
+func GetViewK8sNamespaceEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "GET", Route: "/api/v1/namespace"},
+		{Method: "GET", Route: "api/v1/namespace/names"},
+		{Method: "GET", Route: "/api/v1/namespace/@"},
+		{Method: "GET", Route: "/api/v1/event"},
+	}
+}
+
+// GetK8sNamespaceUpdateEndpoints returns endpoints for updating K8s namespaces
+func GetK8sNamespaceUpdateEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/namespace"},
 	}
 }
 
-// GetDeleteNamespaceEndpoint returns endpoints for deleting K8s namespace operations
-func GetDeleteNamespaceEndpoint() []models.Endpoint {
+// GetK8sNamespaceDeleteEndpoints returns endpoints for deleting K8s namespaces
+func GetK8sNamespaceDeleteEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "DELETE", Route: "/api/v1/namespace/@"},
 	}
 }
 
-// ViewDeploymentEndpoints returns a slice of endpoints for viewing deployments
-func ViewDeploymentEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceDeploymentEndpoints returns endpoints for viewing K8s namespace deployments
+func GetViewK8sNamespaceDeploymentEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/deployment"},
 		{Method: "GET", Route: "/api/v1/deployment/stats"},
@@ -52,16 +71,16 @@ func ViewDeploymentEndpoints() []models.Endpoint {
 	}
 }
 
-// ManageDeploymentEndpoints returns a slice of endpoints for managing deployments
-func ManageDeploymentEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageDeploymentEndpoints returns endpoints for managing K8s namespace deployments
+func GetK8sNamespaceManageDeploymentEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/deployment"},
 		{Method: "DELETE", Route: "/api/v1/deployment/@"},
 	}
 }
 
-// ViewPodEndpoints returns a slice of endpoints for viewing pods
-func ViewPodEndpoints() []models.Endpoint {
+// GetViewK8sNamespacePodEndpoints returns endpoints for viewing K8s namespace pods
+func GetViewK8sNamespacePodEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/pod"},
 		{Method: "GET", Route: "/api/v1/pod/@"},
@@ -69,32 +88,32 @@ func ViewPodEndpoints() []models.Endpoint {
 	}
 }
 
-// ManagePodEndpoints returns a slice of endpoints for managing pods
-func ManagePodEndpoints() []models.Endpoint {
+// GetK8sNamespaceManagePodEndpoints returns endpoints for managing K8s namespace pods
+func GetK8sNamespaceManagePodEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/pod"},
 		{Method: "DELETE", Route: "/api/v1/pod/@"},
 	}
 }
 
-// ViewReplicaSetEndpoints returns a slice of endpoints for viewing replica sets
-func ViewReplicaSetEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceReplicaSetEndpoints returns endpoints for viewing K8s namespace replica sets
+func GetViewK8sNamespaceReplicaSetEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/replicaset"},
 		{Method: "GET", Route: "/api/v1/replicaset/@"},
 	}
 }
 
-// ManageReplicaSetEndpoints returns a slice of endpoints for managing replica sets
-func ManageReplicaSetEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageReplicaSetEndpoints returns endpoints for managing K8s namespace replica sets
+func GetK8sNamespaceManageReplicaSetEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/replicaset"},
 		{Method: "DELETE", Route: "/api/v1/replicaset/@"},
 	}
 }
 
-// ViewStatefulSetEndpoints returns a slice of endpoints for viewing stateful sets
-func ViewStatefulSetEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceStatefulSetEndpoints returns endpoints for viewing K8s namespace stateful sets
+func GetViewK8sNamespaceStatefulSetEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/statefulset"},
 		{Method: "GET", Route: "/api/v1/statefulset/@"},
@@ -103,140 +122,122 @@ func ViewStatefulSetEndpoints() []models.Endpoint {
 	}
 }
 
-// ManageStatefulSetEndpoints returns a slice of endpoints for managing stateful sets
-func ManageStatefulSetEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageStatefulSetEndpoints returns endpoints for managing K8s namespace stateful sets
+func GetK8sNamespaceManageStatefulSetEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/statefulset"},
 		{Method: "DELETE", Route: "/api/v1/statefulset/@"},
 	}
 }
 
-// ViewDaemonSetEndpoints returns a slice of endpoints for viewing daemon sets
-func ViewDaemonSetEndpoints() []models.Endpoint {
-	return []models.Endpoint{
-		{Method: "GET", Route: "/api/v1/daemonset"},
-		{Method: "GET", Route: "/api/v1/daemonset/stats"},
-		{Method: "GET", Route: "/api/v1/daemonset/@"},
-	}
-}
-
-// ManageDaemonSetEndpoints returns a slice of endpoints for managing daemon sets
-func ManageDaemonSetEndpoints() []models.Endpoint {
-	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/daemonset"},
-		{Method: "DELETE", Route: "/api/v1/daemonset/@"},
-	}
-}
-
-// ViewSecretEndpoints returns a slice of endpoints for viewing secrets
-func ViewSecretEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceSecretEndpoints returns endpoints for viewing K8s namespace secrets
+func GetViewK8sNamespaceSecretEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/secret"},
 		{Method: "GET", Route: "/api/v1/secret/@"},
 	}
 }
 
-// ManageSecretEndpoints returns a slice of endpoints for managing secrets
-func ManageSecretEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageSecretEndpoints returns endpoints for managing K8s namespace secrets
+func GetK8sNamespaceManageSecretEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/secret"},
 		{Method: "DELETE", Route: "/api/v1/secret/@"},
 	}
 }
 
-// ViewConfigMapEndpoints returns a slice of endpoints for viewing config maps
-func ViewConfigMapEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceConfigMapEndpoints returns endpoints for viewing K8s namespace config maps
+func GetViewK8sNamespaceConfigMapEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/config-map"},
 		{Method: "GET", Route: "/api/v1/config-map/@"},
 	}
 }
 
-// ManageConfigMapEndpoints returns a slice of endpoints for managing config maps
-func ManageConfigMapEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageConfigMapEndpoints returns endpoints for managing K8s namespace config maps
+func GetK8sNamespaceManageConfigMapEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/config-map"},
 		{Method: "DELETE", Route: "/api/v1/config-map/@"},
 	}
 }
 
-// ViewServiceAccountEndpoints returns a slice of endpoints for viewing service accounts
-func ViewServiceAccountEndpoints() []models.Endpoint {
-	return []models.Endpoint{
-		{Method: "GET", Route: "/api/v1/service-account"},
-		{Method: "GET", Route: "/api/v1/service-account/@"},
-	}
-}
-
-// ManageServiceAccountEndpoints returns a slice of endpoints for managing service accounts
-func ManageServiceAccountEndpoints() []models.Endpoint {
-	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/service-account"},
-		{Method: "GET", Route: "/api/v1/service-account/@"},
-	}
-}
-
-// ViewServiceEndpoints returns a slice of endpoints for viewing services
-func ViewServiceEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceServiceEndpoints returns endpoints for viewing K8s namespace services
+func GetViewK8sNamespaceServiceEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "GET", Route: "/api/v1/service"},
 		{Method: "GET", Route: "/api/v1/service/@"},
 	}
 }
 
-// ManageServiceEndpoints returns a slice of endpoints for managing services
-func ManageServiceEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageServiceEndpoints returns endpoints for managing K8s namespace services
+func GetK8sNamespaceManageServiceEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/service"},
 		{Method: "DELETE", Route: "/api/v1/service/@"},
 	}
 }
 
-// ManageIngressEndpoints returns a slice of endpoints for managing ingress
-func ManageIngressEndpoints() []models.Endpoint {
+// GetViewK8sNamespaceServiceAccountEndpoints returns endpoints for viewing K8s namespace service accounts
+func GetViewK8sNamespaceServiceAccountEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/ingress"},
-		{Method: "DELETE", Route: "/api/v1/ingress/@"},
+		{Method: "GET", Route: "/api/v1/service-account"},
+		{Method: "GET", Route: "/api/v1/service-account/@"},
 	}
 }
 
-// ManageCertificateEndpoints returns a slice of endpoints for managing certificates
-func ManageCertificateEndpoints() []models.Endpoint {
+// GetK8sNamespaceManageServiceAccountEndpoints returns endpoints for managing K8s namespace service accounts
+func GetK8sNamespaceManageServiceAccountEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/certificate"},
-		{Method: "DELETE", Route: "/api/v1/certificate/@"},
+		{Method: "POST", Route: "/api/v1/service-account"},
+		{Method: "GET", Route: "/api/v1/service-account/@"},
 	}
 }
 
-// ManageRoleEndpoints returns a slice of endpoints for managing roles
-func ManageRoleEndpoints() []models.Endpoint {
+// GetViewK8sNodeEndpoints returns endpoints for viewing K8s nodes
+func GetViewK8sNodeEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/role"},
-		{Method: "DELETE", Route: "/api/v1/role/@"},
+		{Method: "GET", Route: "/api/v1/node"},
+		{Method: "GET", Route: "/api/v1/node/@"},
 	}
 }
 
-// ManageRoleBindingEndpoints returns a slice of endpoints for managing role bindings
-func ManageRoleBindingEndpoints() []models.Endpoint {
+// GetManageK8sNodeTaintEndpoints returns endpoints for managing K8s node taints
+func GetManageK8sNodeTaintEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/role-binding"},
-		{Method: "DELETE", Route: "/api/v1/role-binding/@"},
+		{Method: "POST", Route: "api/v1/node/taint/@"},
+		{Method: "POST", Route: "api/v1/node/untaint/@"},
 	}
 }
 
-// ManageJobEndpoints returns a slice of endpoints for managing jobs
-func ManageJobEndpoints() []models.Endpoint {
+// GetViewK8sCustomResourceEndpoints returns endpoints for viewing K8s custom resources
+func GetViewK8sCustomResourceEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/job"},
-		{Method: "DELETE", Route: "/api/v1/job/@"},
+		{Method: "GET", Route: "/api/v1/custom-resource"},
+		{Method: "GET", Route: "/api/v1/custom-resource/@"},
 	}
 }
 
-// ManageCronJobEndpoints returns a slice of endpoints for managing cron jobs
-func ManageCronJobEndpoints() []models.Endpoint {
+// GetManageK8sCustomResourceEndpoints returns endpoints for managing K8s custom resources
+func GetManageK8sCustomResourceEndpoints() []models.Endpoint {
 	return []models.Endpoint{
-		{Method: "POST", Route: "/api/v1/cronjob"},
-		{Method: "DELETE", Route: "/api/v1/cronjob/@"},
+		{Method: "POST", Route: "/api/v1/custom-resource"},
+		{Method: "DELETE", Route: "/api/v1/custom-resource/@"},
+	}
+}
+
+// GetViewK8sNamespaceLogsEndpoints returns endpoints for viewing K8s namespace logs
+func GetViewK8sNamespaceLogsEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "GET", Route: "/api/v1/pod/logs/"},
+	}
+}
+
+// GetManageNamespaceEndpoints returns endpoints for managing K8s namespace endpoints
+func GetManageNamespaceEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "POST", Route: "api/v1/endpoints"},
+		{Method: "DELETE", Route: "api/v1/endpoints/@"},
 	}
 }
 

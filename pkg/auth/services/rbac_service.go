@@ -44,6 +44,18 @@ func (r *RbacService) CreateRole(role models.Role) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Additional validation if needed
+	if len(role.Permissions) == 0 {
+		return primitive.NilObjectID, errors.New("permissions cannot be empty")
+	}
+
+	// Validate each permission
+	for _, perm := range role.Permissions {
+		if strings.TrimSpace(perm.Name) == "" {
+			return primitive.NilObjectID, errors.New("invalid permission name")
+		}
+	}
+
 	result, err := db.RoleCollection.InsertOne(ctx, role)
 	if err != nil {
 		return primitive.NilObjectID, err

@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/auth/dto"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
@@ -19,20 +21,52 @@ func NewUserController(userService *services.UserService) *UserController {
 }
 
 // CreateUserHandler handles the creation of a new user.
+
 func (uc *UserController) CreateUserHandler(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var userDTO dto.UserDTO
+	if err := c.ShouldBindJSON(&userDTO); err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	createdUser, err := uc.UserService.CreateUser(&user)
+	// Convert DTO to User model
+	user, err := uc.convertDTOToUser(c, userDTO)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	createdUser, err := uc.UserService.CreateUser(user)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	utils.RespondWithJSON(c, http.StatusCreated, createdUser)
+}
+
+func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.UserDTO) (*models.User, error) {
+	// Convert role IDs to Role objects
+	roles, err := uc.UserService.GetRolesByIds(ctx, userDTO.RoleIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.User{
+		Username:      userDTO.Username,
+		FirstName:     userDTO.FirstName,
+		LastName:      userDTO.LastName,
+		Password:      userDTO.Password,
+		UserType:      models.UserType(userDTO.UserType),
+		Roles:         roles,
+		ClusterIdList: userDTO.ClusterIdList,
+		UserIsActive:  userDTO.UserIsActive,
+		IsVerified:    userDTO.IsVerified,
+		Phone:         userDTO.Phone,
+		Status:        userDTO.Status,
+		CreatedBy:     userDTO.CreatedBy,
+		UpdatedBy:     userDTO.UpdatedBy,
+	}, nil
 }
 
 // GetUserHandler handles fetching a user by ID.

@@ -3,10 +3,12 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/auth/dto"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type RbacController struct {
@@ -38,12 +40,45 @@ func (rbac *RbacController) CreatePermissionHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"permission_id": permissionID})
 }
 
+// Helper function to convert string slice to Permission slice
+func convertPermissionsToModels(permissions []string) []models.Permission {
+	permissionModels := make([]models.Permission, 0, len(permissions))
+
+	for _, p := range permissions {
+		if strings.TrimSpace(p) != "" {
+			permissionModels = append(permissionModels, models.Permission{
+				Name: strings.TrimSpace(p),
+			})
+		}
+	}
+
+	return permissionModels
+}
+
 // CreateRoleHandler handles the creation of a new role
 func (rbac *RbacController) CreateRoleHandler(c *gin.Context) {
-	var role models.Role
-	if err := c.ShouldBindJSON(&role); err != nil {
+	var roleDTO dto.RoleDTO
+	if err := c.ShouldBindJSON(&roleDTO); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
+	}
+
+	// Validate permissions slice
+	if len(roleDTO.Permissions) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Permissions cannot be empty"})
+		return
+	}
+
+	// Convert DTO to model
+	role := models.Role{
+		Name:        roleDTO.Name,
+		Description: roleDTO.Description,
+		Permissions: convertPermissionsToModels(roleDTO.Permissions),
+		Status:      roleDTO.Status,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		CreatedBy:   roleDTO.CreatedBy,
+		UpdatedBy:   roleDTO.UpdatedBy,
 	}
 
 	// Create Role
@@ -52,7 +87,6 @@ func (rbac *RbacController) CreateRoleHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating role"})
 		return
 	}
-
 	// Respond with the ID of the created role
 	c.JSON(http.StatusCreated, gin.H{"role_id": roleID})
 }
