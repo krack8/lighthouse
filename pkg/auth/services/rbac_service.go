@@ -326,3 +326,110 @@ func (r *RbacService) GetPermissionsByUserType(username string) (*dto.Permission
 
 	return response, nil
 }
+
+func (r *RbacService) UpdateRole(role models.Role) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Validate permissions
+	if len(role.Permissions) == 0 {
+		return errors.New("permissions cannot be empty")
+	}
+
+	// Create update filter
+	filter := bson.M{
+		"_id":    role.ID,
+		"status": enum.VALID,
+	}
+
+	// Create update document
+	update := bson.M{
+		"$set": bson.M{
+			"name":        role.Name,
+			"description": role.Description,
+			"permissions": role.Permissions,
+			"updated_at":  role.UpdatedAt,
+			"updated_by":  role.UpdatedBy,
+		},
+	}
+
+	// Perform update
+	result, err := db.RoleCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	// Check if document was found and updated
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+
+	return nil
+}
+
+func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit int) ([]models.User, int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Calculate skip value for pagination
+	skip := (page - 1) * limit
+
+	// Create match stage for aggregation
+	matchStage := bson.D{
+		{"$match", bson.D{
+			{"roles._id", roleID},
+			{"status", enum.VALID},
+			{"user_is_active", true},
+		}},
+	}
+
+	// Create pagination stages
+	paginationStage := bson.D{
+		{"$skip", skip},
+	}
+	limitStage := bson.D{
+		{"$limit", limit},
+	}
+
+	// Execute count query
+	countPipeline := mongo.Pipeline{matchStage}
+	countCursor, err := db.UserCollection.Aggregate(ctx, append(countPipeline, bson.D{
+		{"$count", "total"},
+	}))
+	if err != nil {
+		return nil, 0, err
+	}
+	defer countCursor.Close(ctx)
+
+	// Get total count
+	var countResult []bson.M
+	if err := countCursor.All(ctx, &countResult); err != nil {
+		return nil, 0, err
+	}
+
+	total := int64(0)
+	if len(countResult) > 0 {
+		total = countResult[0]["total"].(int64)
+	}
+
+	// Execute main query
+	pipeline := mongo.Pipeline{
+		matchStage,
+		paginationStage,
+		limitStage,
+	}
+
+	cursor, err := db.UserCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results
+	var users []models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
+}
