@@ -1,0 +1,158 @@
+<div>
+  <div class="flex items-center flex-wrap">
+    <div class="mr-4 head w-full flex justify-between items-center">
+      <div class="flex">
+        <h3 class="total_count ml-2">Total: {{ nodeList?.length || 0 }}</h3>
+        <button matTooltip="Refresh" class="btn primary float-right ml-10 mt-2" (click)="reloadList()">
+          <mat-icon [icIcon]="icRefresh"></mat-icon>
+        </button>
+      </div>
+
+      <div class="flex justify-between items-center">
+        <div class="filter-form">
+          <button (click)="onSearch()" mat-icon-button type="submit">
+            <mat-icon [icIcon]="icSearch">search</mat-icon>
+          </button>
+          <div (keyup.enter)="onSearch()">
+            <input
+              (input)="handleInputChange()"
+              class="outline-none"
+              [(ngModel)]="searchTerm"
+              type="text"
+              autocomplete="off"
+              placeholder="Search"
+            />
+          </div>
+          <button (click)="clearSearch()" *ngIf="searchTerm.length !== 0" mat-icon-button type="submit">
+            <mat-icon [icIcon]="icCross">cancel</mat-icon>
+          </button>
+        </div>
+
+        <div class="ml-6 mt-4">
+          <mat-form-field class="_k8s_search_form_field" appearance="outline">
+            <mat-label>Search By</mat-label>
+            <mat-select [(ngModel)]="searchBy">
+              <mat-option [value]="'name'">Name</mat-option>
+              <mat-option [value]="'label'">Label</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full px-0 mt-2">
+      <div *ngIf="nodeList?.length && !isLoading">
+        <div>
+          <div class="mt-4 mb-4"></div>
+          <div class="kube-table__wrapper">
+            <table class="kube-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th class="border-lef">Status</th>
+                  <th class="border-lef">Cpu Capacity</th>
+                  <th class="border-lef">Memory Capacity</th>
+                  <th class="border-lef">Pod Count</th>
+                  <th class="border-lef">IP Address</th>
+                  <th class="border-lef">Request Cpu Limit</th>
+                  <th class="border-lef">Usage</th>
+                  <th class="border-lef">Version</th>
+                  <th class=""></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of nodeList">
+                  <td width="22%">
+                    <button (click)="onNodeDetailsClick(item)" class="details__link flex items-center">
+                      <img src="assets/img/icons/cluster/min_node.svg" alt="" class="mr-4" width="40px" />
+                      <div>{{ item?.metadata.name }}</div>
+                    </button>
+                  </td>
+                  <td>
+                    <span *ngFor="let status of item?.status?.conditions">
+                      <span *ngIf="status.type === 'Ready'">
+                        <span *ngIf="status.status === 'True'; else notReady">
+                          {{ status.type }}
+                          <span *ngIf="item?.spec?.unschedulable"> , SchedulingDisabled </span>
+                        </span>
+                        <ng-template #notReady> Not Ready </ng-template>
+                      </span>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="ml-6">{{ item?.status.capacity.cpu }} core</span>
+                  </td>
+                  <td>{{ convertKbToGigabyte(item?.status.capacity.memory) }} GB</td>
+                  <td>{{ item?.status.capacity.pods }}</td>
+                  <td>{{ item?.status.addresses[0].address }}</td>
+                  <td>
+                    <span class="ml-6">{{ item?.status.capacity.cpu }}</span>
+                  </td>
+
+                  <td *ngIf="metricsAvailable">
+                    CPU: {{ convertCpuValueToBase(item?.cpu) }} core
+                    <br />
+                    Memory: {{ convertKbToGigabyte(item?.memory) }} GB
+                  </td>
+                  <td *ngIf="!metricsAvailable">-</td>
+
+                  <td>
+                    Kernel: {{ item?.status.nodeInfo.kernelVersion }}
+                    <br />
+                    Kublet: {{ item?.status.nodeInfo.kubeletVersion }}
+                  </td>
+
+                  <td>
+                    <button mat-button [matMenuTriggerFor]="menu" class="float-right" mat-icon-button>
+                      <mat-icon [icIcon]="icMoreHoriz"></mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                      <ng-container *hasAnyAuthority="'DRAIN_K8S_NODE'">
+                        <button
+                          *ngIf="getStatusDescriptions(item) === 'Ready, Scheduling Disabled'"
+                          (click)="nodeCordonUncordon(item?.metadata.name, 'Uncordon')"
+                          mat-menu-item
+                        >
+                          <mat-icon [icIcon]="icUncordon"></mat-icon> Uncordon
+                        </button>
+                        <button
+                          *ngIf="getStatusDescriptions(item) === 'Ready'"
+                          (click)="nodeCordonUncordon(item?.metadata.name, 'Cordon')"
+                          mat-menu-item
+                        >
+                          <mat-icon [icIcon]="icCordon"></mat-icon> Cordon
+                        </button>
+                      </ng-container>
+                      <button *hasAnyAuthority="'MANAGE_K8S_NODE_TAINT'" (click)="openTaintDialog(item)" mat-menu-item>
+                        <mat-icon [icIcon]="icTaints"></mat-icon> Taints
+                      </button>
+                      <button mat-menu-item [matMenuTriggerFor]="Labels"><mat-icon [icIcon]="icLabel"></mat-icon> Labels</button>
+
+                      <mat-menu class="my-menu" #Labels="matMenu">
+                        <div (click)="$event.stopPropagation()" class="p-2 label">
+                          <h3 class="mb-2">Labels</h3>
+
+                          <div class="kc-dataset">
+                            <h3 class="kc-dataset__value" *ngFor="let label of item?.metadata?.labels | keyvalue">
+                              <span class="kc-dataset-key">{{ label.key }}</span> : {{ label.value }}
+                            </h3>
+                            <h5 *ngIf="!item?.metadata?.labels">No labels found.</h5>
+                          </div>
+                        </div>
+                      </mat-menu>
+                    </mat-menu>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="opacity-75 mt-4" *ngIf="!nodeList?.length && !isLoading">There is nothing found!</h5>
+  </div>
+  <div class="mt-5" *ngIf="isLoading">
+    <mat-progress-spinner strokeWidth="2" diameter="40" mode="indeterminate"></mat-progress-spinner>
+  </div>
+</div>

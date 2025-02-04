@@ -1,0 +1,48 @@
+<div mat-dialog-content>
+  <div *ngIf="isLoadingData; else content" class="flex justify-center items-center overflow-hidden">
+    <mat-progress-spinner mode="indeterminate" strokeWidth="2" diameter="35"></mat-progress-spinner>
+    <span class="ml-4">Loading...</span>
+  </div>
+  <ng-template #content>
+    <div class="modal-wrapper">
+      <img src="/assets/img/bin.svg" />
+      <div class="dialog1">
+        <div class="flex items-center flex-col text-center">
+          <h3>Are you sure! want to delete the "{{ role.name }}" role?</h3>
+          <!-- User -->
+          <ng-container *ngIf="fetchUserError; else fetchedUsers">
+            <h5 class="_text-warn mt-3">Warning: {{ fetchUserError }}. Can't fetch attach users.</h5>
+          </ng-container>
+          <ng-template #fetchedUsers>
+            <ng-container *ngIf="userList?.length">
+              <h5 class="_text-warn mt-3">
+                Warning: {{ userList.length === 1 ? 'User is' : 'Users are' }} already associated with "{{ role.name }}" role. This role
+                will also be removed from the user{{ userList.length === 1 ? '' : 's' }} below
+              </h5>
+              <ol class="list-decimal text-left mt-2">
+                <li *ngFor="let _user of userList">{{ _user }}</li>
+              </ol>
+            </ng-container>
+          </ng-template>
+        </div>
+        <div class="modal-btns mt-5 mb-5">
+          <button mat-raised-button class="btn btn-default mr-5" mat-dialog-close type="button" id="cancel-btn">Cancel</button>
+          <button
+            [disabled]="isDeleting"
+            (click)="deleteRole()"
+            class="btn btn-danger"
+            mat-raised-button
+            cdkFocusInitial
+            type="button"
+            [id]="'delete-confirm-' + role.name | lowercase"
+          >
+            <div class="flex flex-col flex-auto items-center min-w-[80px]" *ngIf="isDeleting">
+              <mat-progress-bar mode="indeterminate" color="primary" class="mx-4 my-4"></mat-progress-bar>
+            </div>
+            <span *ngIf="!isDeleting">Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>

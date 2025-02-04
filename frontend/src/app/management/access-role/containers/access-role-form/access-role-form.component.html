@@ -1,0 +1,145 @@
+<kc-page-layout>
+  <kc-page-layout-content class="-mt-6" kcContainer>
+    <div class="mt-4">
+      <div *ngIf="roleLoading || permissionLoading">
+        <mat-progress-spinner mode="indeterminate" strokeWidth="2" diameter="40"></mat-progress-spinner>
+      </div>
+      <div *ngIf="!roleLoading && !permissionLoading">
+        <h4 class="text-xl font-medium">{{ roleId ? 'Update' : 'Create New' }} Role</h4>
+        <mat-horizontal-stepper #stepper [linear]="false" class="w-full role-stepper">
+          <mat-step [stepControl]="roleForm" style="pointer-events: none" @fadeInUp>
+            <form [formGroup]="roleForm">
+              <div class="flex flex-col">
+                <mat-form-field appearance="outline" class="custom-mat-form-field role-name-mat-form-field mt-2">
+                  <mat-label>Role Name</mat-label>
+                  <input formControlName="name" id="role-name" matInput required />
+                  <mat-error *ngIf="roleForm?.get('name')?.touched && roleForm.get('name')?.hasError('required')" class="form-error"
+                    >Role Name is required</mat-error
+                  >
+                </mat-form-field>
+                <mat-form-field class="custom-mat-form-field role-desc-mat-form-field mt-2" appearance="outline">
+                  <mat-label>Description</mat-label>
+                  <textarea cols="1" formControlName="description" id="description" matInput></textarea>
+                </mat-form-field>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <h4 class="text-xl font-medium">Access *</h4>
+                <div class="search">
+                  <div class="input">
+                    <button type="button" mat-icon-button class="ml-2">
+                      <mat-icon [icIcon]="icSearch"></mat-icon>
+                    </button>
+                    <input
+                      [(ngModel)]="searchAccess"
+                      aria-name="search"
+                      type="text"
+                      autocomplete="off"
+                      placeholder="Search"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <button [class.invisible]="!searchAccess" type="button" mat-icon-button (click)="searchAccess = ''">
+                      <i class="kc-close"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="_role-expansion_container">
+                <div class="_role-expansion_row">
+                  <div class="_role-expansion-panel">
+                    <div class="_role-expansion-panel-header">
+                      <mat-checkbox
+                        color="primary"
+                        class="mr-4"
+                        [checked]="allComplete"
+                        [indeterminate]="someComplete()"
+                        (change)="setAll($event.checked)"
+                      ></mat-checkbox>
+                      <div class="w-full">ALL</div>
+                    </div>
+                    <div class="px-8 py-6">
+                      <div class="permission-wrapper">
+                        <table class="_table">
+                          <thead>
+                            <tr>
+                              <th [width]="'35%'">Permission Name</th>
+                              <th class="border-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let permission of permissions | filter: searchAccess; let i = index">
+                              <td>
+                                <mat-checkbox
+                                  color="primary"
+                                  [id]="permission.name | lowercase"
+                                  class="mr-4"
+                                  [name]="permission.name"
+                                  [(ngModel)]="permission.checked"
+                                  [value]="permission.id"
+                                  [ngModelOptions]="{ standalone: true }"
+                                  (ngModelChange)="updateAllComplete()"
+                                  ><span class="ml-2">{{ permission.name | strReplace: '_' }}</span></mat-checkbox
+                                >
+                              </td>
+                              <td>
+                                {{ permission?.description || '-' }}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <div class="actions mt-8 flex justify-end">
+              <button [disabled]="roleForm.invalid" mat-flat-button color="accent" id="preview" (click)="next()">Preview</button>
+            </div>
+          </mat-step>
+          <mat-step>
+            <div class="preview-box mt-8 pb-8 mb-8 p-6">
+              <div class="title mb-4">Review</div>
+              <div class="prev-wrap">
+                <div class="info-name-box max-w-sm mb-8" fxLayout="row" fxLayoutAlign="start center">
+                  <div>
+                    <p class="_label">Role Name</p>
+                    <p class="_val">{{ roleForm.value.name }}</p>
+                  </div>
+                </div>
+                <div>
+                  <div class="prev-category">
+                    <h3 class="prev-category__title">Access</h3>
+                    <div class="prev-category__permission">
+                      <span *ngFor="let __permission of permissions">
+                        <div *ngIf="__permission.checked" class="permission-chip mt-2">
+                          {{ __permission.name | strReplace: '_' }}
+                        </div>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+              <button mat-stroked-button matStepperPrevious class="mr-6" id="back-btn">Back</button>
+              <button
+                (click)="onSubmit()"
+                mat-raised-button
+                color="primary"
+                [id]="roleId ? 'update' : 'create'"
+                type="submit"
+                [disabled]="roleForm.invalid"
+                [class.pointer-events-none]="submitting"
+              >
+                <div class="flex flex-col flex-auto items-center min-w-[80px]" *ngIf="submitting">
+                  <mat-progress-bar mode="indeterminate" color="primary" class="mx-4 my-4"></mat-progress-bar>
+                </div>
+                <span *ngIf="!submitting">{{ roleId ? 'Update' : 'Create' }} Role</span>
+              </button>
+            </div>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </div>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>

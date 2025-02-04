@@ -1,0 +1,36 @@
+.active_icon_img {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.activeClass {
+  background-color: rgba(68, 255, 43, 0.384);
+  border-radius: 15px;
+  padding: 5px 10px;
+  color: lavender;
+  font-weight: bold;
+}
+
+.inactiveClass {
+  background-color: rgba(255, 43, 43, 0.356);
+  border-radius: 15px;
+  padding: 5px 10px;
+  color: lavender;
+  font-weight: bold;
+}
+
+@media (max-width: 1023px) {
+  ._label_col {
+    order: 3;
+    display: flex;
+    margin-top: 20px;
+    width: 100%;
+  }
+}
+
+::ng-deep .cdk-overlay-pane .view-labels {
+  min-width: 550px;
+  max-height: 700px;
+}

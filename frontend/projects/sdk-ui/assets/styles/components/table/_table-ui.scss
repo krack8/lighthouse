@@ -1,0 +1,35 @@
+/*
+* Table UI used in dashboard page
+*/
+
+.table {
+  &-ui {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--background);
+    position: relative;
+    overflow: hidden;
+    min-width: 570px;
+
+    .inner-container {
+      //height: 221px;
+      // overflow-y: scroll;
+      // padding-bottom: 40px;
+      &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+        background: var(--background-info-name-box);
+      }
+
+      &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+        background: var(--background-kc-stepper);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--background-kc-stepper);
+      }
+    }
+  }
+}

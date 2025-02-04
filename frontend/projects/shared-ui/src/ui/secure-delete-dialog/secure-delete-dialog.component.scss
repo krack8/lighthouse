@@ -1,0 +1,46 @@
+.modal-wrapper {
+  width: 100%;
+  height: 100%;
+  display: block;
+  img {
+    margin: 40px auto;
+    max-width: 120px;
+    height: auto;
+  }
+  h2 {
+    text-align: center;
+  }
+  .modal-btns {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    button {
+      width: 120px;
+    }
+  }
+}
+.kc-btn-primary {
+  background: var(--color-primary);
+}
+:disabled {
+  background-color: var(--color-danger);
+}
+.form-control {
+  background: var(--background-kc-stepper);
+  border: 1px solid var(--border);
+  input {
+    background: var(--background-kc-stepper);
+    color: var(--text-color);
+  }
+}
+.text-primary {
+  color: #0d152f;
+}
+.dialog1,
+.dialog3 {
+  .bg-red-100 {
+    color: #0d152f;
+    text-align: center;
+  }
+}

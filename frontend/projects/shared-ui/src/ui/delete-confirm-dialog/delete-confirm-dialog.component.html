@@ -1,0 +1,23 @@
+<div mat-dialog-content>
+  <button class="text-secondary float-right" mat-dialog-close mat-icon-button type="button">
+    <i class="kc-close"></i>
+  </button>
+  <div class="modal-wrapper">
+    <img [src]="icon" />
+    <div class="dialog1">
+      <h3>{{ config.message || 'Are you sure!' }}</h3>
+      <div class="modal-btns mt-5 mb-5">
+        <button type="button" mat-raised-button class="btn_action btn btn-default" mat-dialog-close cdkFocusInitial>Cancel</button>
+        <button type="button" mat-raised-button class="btn_action kc-btn-warning btn_action--okay ml-5" (click)="onClick()">
+          <span *ngIf="!isSubmitting; else loaderTemplate">{{ config.deleteBtnText || 'Delete' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loaderTemplate>
+  <div *ngIf="isSubmitting" class="align-middle">
+    <mat-progress-bar mode="indeterminate" color="primary" class="my-4"></mat-progress-bar>
+  </div>
+</ng-template>

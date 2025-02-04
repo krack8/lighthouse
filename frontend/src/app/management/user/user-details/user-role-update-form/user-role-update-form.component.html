@@ -1,0 +1,63 @@
+<div>
+  <div class="flex items-center">
+    <h3 class="text-base">Update Roles</h3>
+    <button class="ml-auto" mat-dialog-close><mat-icon [icIcon]="icClose"></mat-icon></button>
+  </div>
+
+  <div *ngIf="isRolesLoading; else ContentTemplate" class="py-4">
+    <mat-spinner color="accent" strokeWidth="3" diameter="30" mode="indeterminate"></mat-spinner>
+  </div>
+  <ng-template #ContentTemplate>
+    <mat-dialog-content class="mt-8">
+      <mat-form-field class="custom-mat-form-field" appearance="outline">
+        <mat-label>Roles</mat-label>
+        <mat-select [(ngModel)]="roleIds" id="select-role-name" multiple>
+          <div class="select_search_wrapper">
+            <input
+              [(ngModel)]="searchRoleTerm"
+              aria-name="search"
+              type="text"
+              class="role_search w-full leading-tight focus:outline-none focus:shadow-outline"
+              autocomplete="off"
+              placeholder="Search ..."
+            />
+            <button type="button" color="warn" (click)="searchRoleTerm = ''" *ngIf="searchRoleTerm" mat-icon-button>
+              <mat-icon [icIcon]="icClose"></mat-icon>
+            </button>
+          </div>
+          <mat-option *ngFor="let item of roleList | filter: searchRoleTerm" [value]="item?.id">
+            {{ item.name }}
+            <mat-icon
+              *ngIf="item?.description"
+              [icIcon]="icInfo"
+              class="role_info_icon ml-2 text-blue-500"
+              [matTooltip]="item?.description"
+              matTooltipPosition="above"
+              size="15px"
+            ></mat-icon>
+          </mat-option>
+        </mat-select>
+        <mat-hint *ngIf="!roleList?.length" [align]="'end'" class="text-red-500">
+          No Roles Found!.
+          <a mat-dialog-close class="cursor-pointer underline" routerLink="manage/roles/create">Create a Role Here</a>
+        </mat-hint>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="pb-6">
+      <button type="button" mat-stroked-button id="cancel-btn" mat-dialog-close>Cancel</button>
+      <button
+        [disabled]="!roleIds?.length"
+        [class.pointer-events-none]="isSubmitting"
+        type="submit"
+        color="primary"
+        mat-flat-button
+        (click)="updateRoles()"
+      >
+        <div class="flex items-center">
+          <mat-spinner class="mr-3" *ngIf="isSubmitting" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+          <span>Update</span>
+        </div>
+      </button>
+    </mat-dialog-actions>
+  </ng-template>
+</div>

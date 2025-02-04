@@ -1,0 +1,40 @@
+<kc-page-layout>
+  <kc-page-layout-content kcContainer>
+    <div class="card p-4">
+      <div *ngIf="dataLoading; else content">
+        <mat-progress-spinner mode="indeterminate" color="primary" strokeWidth="2" diameter="40"></mat-progress-spinner>
+      </div>
+      <ng-template #content>
+        <div *ngIf="serverError">
+          <h3>Internal server error!!!</h3>
+        </div>
+        <div *ngIf="clusterList?.length > 0 && !serverError">
+          <!-- Clusters -->
+          <div class="cluster_items" [ngClass]="viewStyle + '_view'">
+            <ng-container *ngFor="let cluster of clusterList">
+              <div *ngIf="cluster?.currentState !== 'DELETED'" class="cluster_wrap p-4 rounded border-dotted border-2 border-sky-900">
+                <div matRipple class="cluster_card cluster_card--master" [routerLink]="['/clusters', cluster?.id, 'k8s']">
+                  <div class="cluster_inner">
+                    <div class="name_col flex items-center">
+                      <img width="55px" src="assets/img/icons/cluster-icon-2.svg" alt="" />
+                      <div class="ml-3" [matTooltip]="cluster?.name" matTooltipPosition="above">
+                        {{ cluster?.name }}
+                      </div>
+                    </div>
+                    <div class="inner-block flex items-center p-3 ml-auto xl:col-start-5">
+                      <span>On-boarded cluster</span>
+                    </div>
+                    <div class="flex items-center justify-center p-3 inner-block" [ngClass]="cluster?.currentState | lowercase">
+                      {{ cluster?.is_active ? 'Active' : 'Pending...' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+        <kc-cluster-intro *ngIf="!clusterList?.length && !serverError"></kc-cluster-intro>
+      </ng-template>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>

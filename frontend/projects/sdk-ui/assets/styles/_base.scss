@@ -1,0 +1,54 @@
+input {
+  background: transparent;
+}
+
+button {
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  &:focus {
+    outline: unset !important;
+  }
+}
+
+input,
+textarea {
+  box-sizing: content-box;
+  line-height: 1.5;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-color);
+  -webkit-box-shadow: 0 0 0px 1000px var(--background-1) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+code {
+  background: var(--background-app-bar);
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  font-size: 85%;
+  padding: 0.2em 0.4em;
+}
+
+blockquote {
+  background: var(--color-primary-50);
+  border-left: 3px solid var(--color-primary-500);
+  color: rgba(0, 0, 0, 0.87);
+  font-style: normal;
+  margin: 1em 0 1.5em;
+  padding: 1em 1.5em;
+
+  > * {
+    margin: 0;
+  }
+}

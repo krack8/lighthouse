@@ -1,0 +1,76 @@
+<div class="dropdown">
+  <div class="dropdown-header" fxLayout="row" fxLayoutAlign="space-between center">
+    <div fxLayout="row" fxLayoutAlign="start center">
+      <div class="user-image" fxLayout="row" fxLayoutAlign="center center">
+        <div *ngIf="!userData?.userInfo.image; else userImg">
+          <mat-icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              width="1em"
+              height="1em"
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 24 24"
+              style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+            >
+              <path fill="currentColor" d="M12 16c-2.69 0-5.77 1.28-6 2h12c-.2-.71-3.3-2-6-2z" opacity=".3"></path>
+              <circle cx="12" cy="8" r="2" fill="currentColor" opacity=".3"></circle>
+              <path
+                fill="currentColor"
+                d="M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm-6 4c.22-.72 3.31-2 6-2c2.7 0 5.8 1.29 6 2H6zm6-6c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2s-2-.9-2-2s.9-2 2-2z"
+              ></path>
+            </svg>
+          </mat-icon>
+        </div>
+        <ng-template #userImg>
+          <img
+            class="ml-auto"
+            src="data:{{ userData?.userInfo.imageContentType }};base64,{{ userData?.userInfo.image }}"
+            alt="profile photo"
+          />
+        </ng-template>
+      </div>
+      <div class="dropdown-heading">
+        {{ fullName | titlecase }}
+        <span class="text-style">{{ userData?.userInfo?.user_type === 'ADMIN' ? ' (Admin)' : '' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dropdown-content">
+    <span *ngFor="let item of items; trackBy: trackById">
+      <a
+        (click)="close()"
+        [routerLink]="item.route"
+        class="notification"
+        fxLayout="row"
+        fxLayoutAlign="start center"
+        matRipple
+        *ngIf="!(item.label === 'Change Password' && userData?.userInfo?.userRegistrationMethod !== 'EMAIL')"
+      >
+        <mat-icon [icIcon]="item.icon" [ngClass]="item.colorClass" class="notification-icon" fxFlex="none"></mat-icon>
+        <div fxFlex="auto">
+          <div class="notification-label">{{ item.label }}</div>
+          <div class="notification-description">{{ item.description }}</div>
+        </div>
+        <mat-icon class="notification-chevron" fxFlex="none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            width="1em"
+            height="1em"
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 24 24"
+            style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+          >
+            <path fill="currentColor" d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"></path>
+          </svg>
+        </mat-icon>
+      </a>
+    </span>
+  </div>
+
+  <div class="dropdown-footer" fxLayout="row" fxLayoutAlign="space-between center">
+    <a (click)="logout()" color="primary" mat-button>LOGOUT</a>
+  </div>
+</div>

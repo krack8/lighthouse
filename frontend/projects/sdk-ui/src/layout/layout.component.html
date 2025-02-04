@@ -1,0 +1,35 @@
+<div
+  [class.is-mobile]="mobileQuery$ | async"
+  [class.scroll-disabled]="scrollDisabled$ | async"
+  [class.sidenav-collapsed]="sidenavCollapsed$ | async"
+  [class.content-container]="containerEnabled$ | async"
+  class="page-container horizontal-layout toolbar-fixed"
+>
+  <kc-progress-bar></kc-progress-bar>
+
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #sidenav
+      [disableClose]="(mobileQuery$ | async) === false"
+      [fixedInViewport]="mobileQuery$ | async"
+      [mode]="(mobileQuery$ | async) ? 'over' : 'side'"
+      [opened]="(mobileQuery$ | async) === false"
+      class="sidenav"
+    >
+      <kc-sidenav [collapsed]="(sidenavCollapsed$ | async) ? true : false"></kc-sidenav>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="sidenav-content">
+      <kc-toolbar
+        [hasShadow]="(toolbarShadowEnabled$ | async) ? true : false"
+        [mobileQuery]="(mobileQuery$ | async) ? true : false"
+        class="toolbar"
+      ></kc-toolbar>
+
+      <main class="content">
+        <router-outlet></router-outlet>
+        <!-- <kc-upload-progress></kc-upload-progress> -->
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
