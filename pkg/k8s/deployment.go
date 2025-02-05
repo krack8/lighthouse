@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"errors"
-	"fmt"
 	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -307,11 +306,9 @@ func (svc *deploymentService) DeleteDeployment(c context.Context, p DeleteDeploy
 }
 
 type StatsDeployment struct {
-	Total       int
-	Ready       int
-	NotReady    int
-	TotalCPU    float64
-	TotalMemory float64
+	Total    int
+	Ready    int
+	NotReady int
 }
 
 func (s *StatsDeployment) New() *StatsDeployment {
@@ -343,9 +340,6 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 		return err
 	}
 
-	totalCPU := float64(0)
-	totalMemory := float64(0)
-
 	if p.Search != "" {
 		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		filteredDeployments := []appsv1.Deployment{}
@@ -360,21 +354,9 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 		for _, obj := range filteredDeployments {
 			p.output.Total += int(obj.Status.Replicas)
 			p.output.Ready += int(obj.Status.ReadyReplicas)
-			podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
-			if err != nil {
-				panic(err.Error())
-			}
-			for _, podMetrics := range podMetricsList.Items {
-				for _, container := range podMetrics.Containers {
-					totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-					totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
 		}
 
 		p.output.NotReady = p.output.Total - p.output.Ready
-		p.output.TotalCPU = totalCPU
-		p.output.TotalMemory = totalMemory
 		return nil
 	}
 
@@ -382,21 +364,8 @@ func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 	for _, obj := range deploymentList.Items {
 		p.output.Total += int(obj.Status.Replicas)
 		p.output.Ready += int(obj.Status.ReadyReplicas)
-
-		podMetricsList, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", obj.Labels["app"])})
-		if err != nil {
-			panic(err.Error())
-		}
-		for _, podMetrics := range podMetricsList.Items {
-			for _, container := range podMetrics.Containers {
-				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-				totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-			}
-		}
 	}
 	p.output.NotReady = p.output.Total - p.output.Ready
-	p.output.TotalCPU = totalCPU
-	p.output.TotalMemory = totalMemory
 	return nil
 }
 
@@ -413,21 +382,14 @@ func (svc *deploymentService) GetDeploymentStats(c context.Context, p GetDeploym
 }
 
 type DeploymentPodOutput struct {
-	PodList     []corev1.Pod
-	Resource    string
-	Remaining   int64
-	TotalCPU    float64
-	TotalMemory float64
+	PodList []corev1.Pod
 }
 
 type GetDeploymentPodListInputParams struct {
 	NamespaceName  string
 	DeploymentName string
 	Replicaset     string
-	Limit          string
 	Labels         map[string]string
-	Search         string
-	Continue       string
 	output         DeploymentPodOutput
 }
 
@@ -447,14 +409,8 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 	if replicaSet.Labels[PodTemplateHash] != "" {
 		podClient := cfg.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 
-		limit := cfg.PageLimit
-		if p.Limit != "" {
-			limit, _ = strconv.ParseInt(p.Limit, 10, 64)
-		}
-		listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
-		if p.Labels == nil {
-			p.Labels = make(map[string]string)
-		}
+		listOptions := metav1.ListOptions{}
+		p.Labels = make(map[string]string)
 		p.Labels["pod-template-hash"] = replicaSet.Labels["pod-template-hash"]
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
 		if p.Labels != nil {
@@ -462,60 +418,24 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 				LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 			}
 		}
-		if p.Search != "" {
-			listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
-		}
-		//FieldSelector: fmt.Sprintf("spec.ports[0].nodePort=%s", port),
 		podList, err := podClient.List(context.Background(), listOptions)
 		if err != nil {
 			log.Logger.Errorw("Failed to get pod list", "err", err.Error())
 			return err
 		}
-		p.output.PodList = podList.Items
-		totalCPU := float64(0)
-		totalMemory := float64(0)
-		for idx, pod := range p.output.PodList {
-			p.output.PodList[idx].ManagedFields = nil
-			podMetrics, err := cfg.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), pod.Name, metav1.GetOptions{})
-			if err != nil {
-				panic(err.Error())
-			}
-			for _, container := range podMetrics.Containers {
-				totalCPU += float64(container.Usage.Cpu().MilliValue()) / 1000.0
-				totalMemory += float64(container.Usage.Memory().Value()) / (1024 * 1024 * 1024)
+		p.output.PodList = []corev1.Pod{}
+		for idx, _ := range podList.Items {
+			podList.Items[idx].ManagedFields = nil
+			for _, owner := range podList.Items[idx].OwnerReferences {
+				if owner.UID == replicaSet.UID {
+					p.output.PodList = append(p.output.PodList, podList.Items[idx])
+					break // Pod can only have one controller
+				}
 			}
 		}
-		p.output.TotalCPU = totalCPU
-		p.output.TotalMemory = totalMemory
-		remaining := podList.RemainingItemCount
-
-		if remaining != nil {
-			p.output.Remaining = *remaining
-		} else {
-			p.output.Remaining = 0
-		}
-
-		p.output.Resource = podList.Continue
 	} else {
 		return errors.New("unable to fetch pod list")
 	}
-	/////
-	//var replicasets []string
-	//for _, i := range output.Status.Conditions {
-	//	if i.Type == "Progressing" {
-	//		content := i.Message
-	//		re := regexp.MustCompile(`\"(.*)\"`)
-	//		match := re.FindStringSubmatch(content)
-	//		if len(match) > 1 {
-	//			fmt.Println("match found -", match[1])
-	//			replicasets = append(replicasets, match[1])
-	//		} else {
-	//			fmt.Println("match not found")
-	//		}
-	//	}
-	//}
-	//fmt.Println(replicasets)
-	////
 	return nil
 }
 
