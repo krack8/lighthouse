@@ -312,7 +312,7 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 		// Verify old password
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
 		if err != nil {
-			return fmt.Errorf("incorrect old password")
+			return fmt.Errorf("incorrect current password")
 		}
 	}
 
