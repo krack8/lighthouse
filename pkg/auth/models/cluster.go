@@ -15,6 +15,7 @@ type Cluster struct {
 	Token           string             `json:"-" bson:"token"`
 	MasterClusterId string             `json:"masterClusterId" bson:"masterClusterId"`
 	IsActive        bool               `json:"is_active" bson:"is_active"`
+	HelmCommand     string             `json:"helm_command" bson:"helm_command"`
 	Status          enum.Status        `json:"status" bson:"status"`
 	CreatedAt       time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time          `json:"updated_at" bson:"updated_at"`

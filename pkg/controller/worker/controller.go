@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb"
+	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
@@ -69,31 +71,36 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			authToken := payload.WorkerInfo.AuthToken
 
 			//Verify the auth token if AUTH is ENABLED
-			//TODO: test the comment out code for agent auth
-			/*if cfg.IsAuth() {
+			if cfg.IsAuth() {
 				if authToken != "" {
-					if services.IsAgentAuthTokenValid() == false {
+					if services.IsAgentAuthTokenValid(authToken) == false {
 						log.Printf("Invalid Agent Token")
-						stream.Send(&pb.TaskStreamResponse{
+						err := stream.Send(&pb.TaskStreamResponse{
 							Payload: &pb.TaskStreamResponse_Ack{
 								Ack: &pb.Ack{
 									Message: "Invalid Agent Token",
 								},
 							},
 						})
+						if err != nil {
+							return err
+						}
 					}
 				} else {
 					log.Printf("Worker auth token is required")
-					stream.Send(&pb.TaskStreamResponse{
+					err := stream.Send(&pb.TaskStreamResponse{
 						Payload: &pb.TaskStreamResponse_Ack{
 							Ack: &pb.Ack{
 								Message: "Worker auth token is required",
 							},
 						},
 					})
+					if err != nil {
+						return err
+					}
 					return nil
 				}
-			}*/
+			}
 			log.Printf("New worker identified. group=%s, token=%s", groupName, authToken)
 
 			// Create the worker connection instance.

@@ -265,14 +265,18 @@ func (r *RbacService) GetPermissionsByCategory(category string) ([]models.Permis
 	return permissions, nil
 }
 
-func (r *RbacService) GetPermissionsByUserType(username string) (*dto.PermissionResponse, error) {
+func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResponse, error) {
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
-	user, _ := GetUserByUsername(username)
 
+	// Fetch user from the database
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
+	}
 	if user == nil {
-		return nil, errors.New("user do not exists")
+		return nil, errors.New("user does not exist")
 	}
 
 	// Initialize response
@@ -281,51 +285,38 @@ func (r *RbacService) GetPermissionsByUserType(username string) (*dto.Permission
 		Cluster:    make([]dto.PermissionDTO, 0),
 		Management: make([]dto.PermissionDTO, 0),
 		HelmApps:   make([]dto.PermissionDTO, 0),
+		// Add new categories here as needed
 	}
 
-	// Create filter for Valid permissions
-	filter := bson.M{
-		"status": "V",
+	// Process roles and permissions
+	permissionMap := map[enum.PermissionCategory]*[]dto.PermissionDTO{
+		enum.DEFAULT:    &response.Default,
+		enum.CLUSTER:    &response.Cluster,
+		enum.MANAGEMENT: &response.Management,
+		enum.HELM:       &response.HelmApps,
+		// Map new categories here
 	}
 
-	// Fetch permissions from database
-	cursor, err := db.PermissionCollection.Find(context.Background(), filter)
-	if err != nil {
-		return nil, err
-	}
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
-		if err != nil {
+	seenPermissions := make(map[primitive.ObjectID]bool) // To avoid duplicates
 
+	for _, role := range user.Roles {
+		for _, perm := range role.Permissions {
+			// Skip invalid or duplicate permissions
+			if perm.Status != enum.VALID || seenPermissions[perm.ID] {
+				continue
+			}
+			seenPermissions[perm.ID] = true
+
+			// Create DTO and group by category
+			dto := dto.PermissionDTO{
+				ID:          perm.ID,
+				Name:        perm.Name,
+				Description: perm.Description,
+			}
+			if categoryGroup, exists := permissionMap[perm.Category]; exists {
+				*categoryGroup = append(*categoryGroup, dto)
+			}
 		}
-	}(cursor, context.Background())
-
-	// Process permissions
-	var permissions []models.Permission
-	if err := cursor.All(context.Background(), &permissions); err != nil {
-		return nil, err
-	}
-
-	// Group permissions by category
-	for _, perm := range permissions {
-		dto := dto.PermissionDTO{
-			ID:          perm.ID,
-			Name:        perm.Name,
-			Description: perm.Description,
-		}
-
-		switch perm.Category {
-		case enum.DEFAULT:
-			response.Default = append(response.Default, dto)
-		case enum.CLUSTER:
-			response.Cluster = append(response.Cluster, dto)
-		case enum.MANAGEMENT:
-			response.Management = append(response.Management, dto)
-		case enum.HELM:
-			response.HelmApps = append(response.HelmApps, dto)
-		}
-
-		//add category here
 	}
 
 	return response, nil

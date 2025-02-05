@@ -81,11 +81,12 @@ func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
 	return clusters, nil
 }
 
-func ValidateClusterToken(token string) (*models.Cluster, error) {
+func ValidateAgentClusterToken(token string) (*models.Cluster, error) {
 	var tokenValidation models.TokenValidation
 	err := db.TokenCollection.FindOne(context.Background(), bson.M{
 		"token":      token,
 		"is_valid":   true,
+		"status":     enum.VALID,
 		"expires_at": bson.M{"$gt": time.Now()},
 	}).Decode(&tokenValidation)
 
@@ -95,8 +96,8 @@ func ValidateClusterToken(token string) (*models.Cluster, error) {
 
 	var cluster models.Cluster
 	err = db.ClusterCollection.FindOne(context.Background(), bson.M{
-		"_id":       tokenValidation.ClusterID,
-		"is_active": true,
+		"_id":    tokenValidation.ClusterID,
+		"status": enum.VALID,
 	}).Decode(&cluster)
 
 	if err != nil {

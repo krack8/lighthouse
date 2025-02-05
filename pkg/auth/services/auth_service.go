@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"log"
 	"os"
 	"time"
 )
@@ -59,6 +60,11 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 	return parsed, nil
 }
 
-func IsAgentAuthTokenValid() bool {
+func IsAgentAuthTokenValid(authToken string) bool {
+	cluster, err := ValidateAgentClusterToken(authToken)
+	if cluster == nil && err != nil {
+		log.Println("[Error]", err)
+		return false
+	}
 	return true
 }

@@ -24,9 +24,9 @@ func InitEnvironmentVariables() {
 	}
 	if os.Getenv("AUTH_ENABLED") == "TRUE" {
 		Auth = true
-		log.Logger.Infow("Started with NO AUTH enabled", "[NO-AUTH]", Auth)
+		log.Logger.Infow("Started with AUTH enabled", "[AUTH]", Auth)
 	} else {
-		log.Logger.Infow("Started with NO AUTH disabled", "[NO-AUTH]", Auth)
+		log.Logger.Infow("Started with AUTH disabled", "[AUTH]", Auth)
 	}
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 }
