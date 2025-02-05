@@ -277,9 +277,10 @@ func (r *RbacService) GetPermissionsByUserType(username string) (*dto.Permission
 
 	// Initialize response
 	response := &dto.PermissionResponse{
-		DEFAULT:  make([]dto.PermissionDTO, 0),
-		CLUSTER:  make([]dto.PermissionDTO, 0),
-		HelmApps: make([]dto.PermissionDTO, 0),
+		Default:    make([]dto.PermissionDTO, 0),
+		Cluster:    make([]dto.PermissionDTO, 0),
+		Management: make([]dto.PermissionDTO, 0),
+		HelmApps:   make([]dto.PermissionDTO, 0),
 	}
 
 	// Create filter for Valid permissions
@@ -315,12 +316,15 @@ func (r *RbacService) GetPermissionsByUserType(username string) (*dto.Permission
 
 		switch perm.Category {
 		case enum.DEFAULT:
-			response.DEFAULT = append(response.DEFAULT, dto)
+			response.Default = append(response.Default, dto)
 		case enum.CLUSTER:
-			response.CLUSTER = append(response.CLUSTER, dto)
+			response.Cluster = append(response.Cluster, dto)
+		case enum.MANAGEMENT:
+			response.Management = append(response.Management, dto)
 		case enum.HELM:
 			response.HelmApps = append(response.HelmApps, dto)
 		}
+
 		//add category here
 	}
 
@@ -379,7 +383,6 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 		{"$match", bson.D{
 			{"roles._id", roleID},
 			{"status", enum.VALID},
-			{"user_is_active", true},
 		}},
 	}
 

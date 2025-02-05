@@ -7,6 +7,7 @@ import (
 	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 
 	"github.com/krack8/lighthouse/pkg/auth/models"
@@ -280,4 +281,97 @@ func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]mo
 	}
 
 	return roles, nil
+}
+
+// ResetPassword handles password reset with old password verification
+func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newPassword string, requester string) error {
+	// Find user by ID
+	var user models.User
+	var req models.User
+	err := db.UserCollection.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("user not found")
+		}
+		return fmt.Errorf("failed to fetch user: %w", err)
+	}
+
+	// Verify old password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+	if err != nil {
+		return fmt.Errorf("incorrect old password")
+	}
+
+	if user.Username != requester {
+		err := db.UserCollection.FindOne(context.Background(), bson.M{"username": requester}).Decode(&req)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return fmt.Errorf("requester not found")
+			}
+			return fmt.Errorf("failed to fetch requester data: %w", err)
+		}
+		if req.UserType != models.AdminUser {
+			return fmt.Errorf("unauthorized !! you don't have ADMIN permission")
+		}
+
+	}
+
+	// Update password in database
+	update := bson.M{
+		"$set": bson.M{
+			"password":   utils.HashPassword(newPassword),
+			"updated_at": time.Now(),
+		},
+	}
+
+	_, err = db.UserCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": userID},
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}
+
+// InitiateForgotPassword starts the forgot password process
+func (s *UserService) InitiateForgotPassword(email string) error {
+	// Find user by email
+	var user models.User
+	err := db.UserCollection.FindOne(context.Background(), bson.M{"username": email}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("user not found")
+		}
+		return fmt.Errorf("failed to fetch user: %w", err)
+	}
+
+	// Generate reset token
+	token := utils.GenerateResetToken()
+
+	// Update user with reset token
+	update := bson.M{
+		"$set": bson.M{
+			"forgot_password_token": token,
+			"updated_at":            time.Now(),
+		},
+	}
+
+	_, err = db.UserCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": user.ID},
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update reset token: %w", err)
+	}
+
+	// TODO: Send email with reset link
+	// This part would integrate with your email service
+	resetLink := fmt.Sprintf("https://yourdomain.com/reset-password?token=%s", token)
+	_ = resetLink // Remove this line when implementing email sending
+
+	return nil
 }

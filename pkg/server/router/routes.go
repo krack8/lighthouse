@@ -21,13 +21,14 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.PUT("/users/:id", authApi.UserController.UpdateUserHandler)
 	httpRg.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
 	httpRg.GET("/users/profile", authApi.UserController.GetUserProfileInfoHandler)
+	httpRg.POST("/:id/reset-password", authApi.UserController.ResetPasswordHandler)
+	//httpRg.POST("/forgot-password", authApi.UserController.ForgotPasswordHandler) 	//TODO: need to integrate mail server
 
 	// Cluster routes
 	httpRg.GET("/clusters", authApi.ClusterController.GetAllClustersHandler)
 	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
 
 	// RBAC routes
-	//httpRg.POST("/permissions", authApi.RbacController.CreatePermissionHandler)   /test-api to create permission for dev
 	httpRg.POST("/roles", authApi.RbacController.CreateRoleHandler)
 	httpRg.POST("/assign-roles", authApi.RbacController.AssignRolesHandler)
 	httpRg.GET("/permissions", authApi.RbacController.GetAllPermissionsHandler)

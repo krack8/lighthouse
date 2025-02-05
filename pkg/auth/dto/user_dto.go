@@ -12,3 +12,14 @@ type UserDTO struct {
 	IsVerified    bool     `json:"is_verified"`
 	Phone         string   `json:"phone,omitempty"`
 }
+
+// ResetPasswordRequest represents the request payload for resetting password
+type ResetPasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" validate:"required"`
+	NewPassword     string `json:"newPassword" validate:"required,min=6,max=15"`
+}
+
+// ForgotPasswordRequest represents the request payload for forgot password
+type ForgotPasswordRequest struct {
+	Username string `json:"username" validate:"required,username"`
+}

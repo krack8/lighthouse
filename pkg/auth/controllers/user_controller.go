@@ -67,7 +67,7 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 		Username:      userDTO.Username,
 		FirstName:     userDTO.FirstName,
 		LastName:      userDTO.LastName,
-		Password:      userDTO.Password,
+		Password:      utils.HashPassword(userDTO.Password),
 		UserType:      models.UserType(userDTO.UserType),
 		Roles:         roles,
 		ClusterIdList: userDTO.ClusterIdList,
@@ -152,4 +152,63 @@ func (uc *UserController) GetUserProfileInfoHandler(c *gin.Context) {
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, user)
+}
+
+// ResetPasswordHandler handles the password reset with old password verification
+func (uc *UserController) ResetPasswordHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	// username is of type interface{}, so cast it to string
+	usernameStr := username.(string)
+
+	userID := c.Param("id")
+	if userID == "" {
+		utils.RespondWithError(c, http.StatusBadRequest, "user ID is required")
+		return
+	}
+
+	var req dto.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	// Convert string ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "invalid user ID format")
+		return
+	}
+
+	err = uc.UserService.ResetPassword(objectID, req.CurrentPassword, req.NewPassword, usernameStr)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{
+		"message": "Password updated successfully",
+	})
+}
+
+// ForgotPasswordHandler handles initiating the forgot password process
+func (uc *UserController) ForgotPasswordHandler(c *gin.Context) {
+	var req dto.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	err := uc.UserService.InitiateForgotPassword(req.Username)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{
+		"message": "Password reset link sent to email",
+	})
 }

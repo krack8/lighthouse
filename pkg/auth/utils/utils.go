@@ -32,3 +32,13 @@ func GenerateSecureToken(length int) string {
 	}
 	return hex.EncodeToString(bytes)
 }
+
+// Helper function to generate reset token
+func GenerateResetToken() string {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", b)
+}

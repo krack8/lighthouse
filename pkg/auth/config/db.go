@@ -75,10 +75,10 @@ func InitializeDefaultUser() {
 
 	if count == 0 {
 		defaultUser := models.User{
-			Username:     "admin@default.com",
+			Username:     os.Getenv("USER_EMAIL"),
 			FirstName:    "Admin",
 			LastName:     "User",
-			Password:     utils.HashPassword("admin123"), // Use a hashed password here
+			Password:     utils.HashPassword(os.Getenv("PASSWORD")), // Use a hashed password here
 			UserType:     "ADMIN",
 			Roles:        []models.Role{},
 			UserIsActive: true,
