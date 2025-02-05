@@ -114,16 +114,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   goToNextPage(userData: any) {
-    // if (userData?.userInfo?.user_is_active === false) {
-    //   if (userData?.userInfo?.user_type === 'NON_ADMIN') {
-    //     this.toastr.warn('Your account is deactivated. Please contact your admin', 'Activation Required');
-    //   } else {
-    //     this.toastr.warn('Your account is deactivated', 'Activation Required');
-    //   }
-    //   this.requester.clear();
-    //   this.router.navigate(['/auth/login']);
-    //   return;
-    // }
+    if (userData?.userInfo?.user_is_active === false) {
+      if (userData?.userInfo?.user_type === 'USER') {
+        this.toastr.warn('Your account is deactivated. Please contact your admin', 'Activation Required');
+      } else {
+        this.toastr.warn('Your account is deactivated', 'Activation Required');
+      }
+      this.requester.clear();
+      this.router.navigate(['/auth/login']);
+      return;
+    }
 
     this.router.navigate(['clusters']);
     return;

@@ -4,7 +4,7 @@ import { CdkClipboardModule } from '@cdk-ui/clipboard';
 import { IconModule } from '@visurel/iconify-angular';
 import icExpendeLess from '@iconify/icons-ic/expand-less';
 import icExpendeMore from '@iconify/icons-ic/expand-more';
-import icInfo from '@iconify/icons-fa-solid/info-circle';
+import icInfo from '@iconify/icons-ic/info';
 
 import { AceEditorModule } from '@klovercloud/ace-editor/ace-editor.module';
 import { CdkTooltipModule } from '@cdk-ui/tooltip';

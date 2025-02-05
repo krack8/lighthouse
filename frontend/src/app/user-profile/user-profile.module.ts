@@ -15,6 +15,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
+import { UserProfileService } from './user-profile.service';
 
 @NgModule({
   declarations: [UserProfileDetailsComponent],
@@ -34,6 +35,7 @@ import { MatMenuModule } from '@angular/material/menu';
     IconModule,
     FlexModule,
     MatMenuModule
-  ]
+  ],
+  providers: [UserProfileService]
 })
 export class UserProfileModule {}

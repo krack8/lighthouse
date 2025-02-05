@@ -57,7 +57,6 @@ export class UserRoleUpdateFormComponent implements OnInit {
   isSubmitting = false;
 
   ngOnInit(): void {
-    console.log(this.user);
     let roles = [];
     if (this.user?.roles && this.user?.roles.length) {
       roles = this.user?.roles.map((item: any) => item.id);

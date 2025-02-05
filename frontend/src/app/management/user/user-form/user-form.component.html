@@ -127,7 +127,11 @@
               <mat-icon [icIcon]="icClose"></mat-icon>
             </button>
           </div>
-          <mat-option *ngFor="let item of roleList | filter: searchRoleTerm" [value]="item?.id">
+          <mat-option
+            *ngFor="let item of roleList | filter: searchRoleTerm"
+            [value]="item?.id"
+            [disabled]="item?.created_by === systemRoleUsername"
+          >
             {{ item.name }}
             <mat-icon
               *ngIf="item?.description"

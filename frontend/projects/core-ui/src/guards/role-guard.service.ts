@@ -64,15 +64,8 @@ export class RoleGuardService implements CanActivate, CanActivateChild, CanLoad 
       return false;
     }
 
-    // TODO: optimize it when userProfile data fetch
-    // Checking User Is Verification
-    // Don't place it requester service.
-    if (requester?.userInfo?.is_verified !== true) {
-      return this.router.navigate(['/email-verification']);
-    }
-
     // Check Permission
-    return this._checkRolePermission(requester.userInfo?.user_type || '', route.data['permissions'] || [], state.url);
+    return this._checkRolePermission(requester?.userInfo?.user_type || '', route.data['permissions'] || [], state.url);
   }
 
   /**

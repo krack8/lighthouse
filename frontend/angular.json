@@ -67,8 +67,6 @@
               "pluralize",
               "@dagrejs/dagre",
 
-              "@iconify/icons-fa-solid/info-circle",
-
               "@iconify/icons-ic/twotone-filter-list",
               "@iconify/icons-ic/twotone-lock",
               "@iconify/icons-ic/twotone-greater-than",

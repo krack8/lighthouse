@@ -17,7 +17,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { K8sUpdateModule } from '@k8s/k8s-update/k8s-update.module';
 import { SharedModule } from '@shared-ui/shared.module';
 import { IconModule } from '@visurel/iconify-angular';
-import { OwlDateTimeModule } from 'ng-pick-datetime-ex';
 import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { K8sCertificatesDetailsComponent } from './k8s-certificates-details/k8s-certificates-details.component';
 import { K8sCertificatesComponent } from './k8s-certificates/k8s-certificates.component';
@@ -169,7 +168,6 @@ import { K8sStatefulsetPodListComponent } from './k8s-stateful-sets-details/k8s-
     IconModule,
     K8sUpdateModule,
     MatInputModule,
-    OwlDateTimeModule,
     ReactiveFormsModule,
     AceEditorModule,
     CdkClipboardModule,

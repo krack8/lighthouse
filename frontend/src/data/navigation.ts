@@ -28,9 +28,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     label: 'Clusters',
     route: '/clusters',
     icon: icGroupWork,
-    id: 'clusters',
-    envName: 'cluster',
-    permissionName: 'VIEW_CLUSTER'
+    id: 'clusters'
   },
   // {
   //   type: 'link',

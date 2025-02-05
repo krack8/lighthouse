@@ -2,7 +2,7 @@
   <div class="dropdown-header" fxLayout="row" fxLayoutAlign="space-between center">
     <div fxLayout="row" fxLayoutAlign="start center">
       <div class="user-image" fxLayout="row" fxLayoutAlign="center center">
-        <div *ngIf="!userData?.userInfo.image; else userImg">
+        <div *ngIf="!userData?.userInfo?.image; else userImg">
           <mat-icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -25,7 +25,7 @@
         <ng-template #userImg>
           <img
             class="ml-auto"
-            src="data:{{ userData?.userInfo.imageContentType }};base64,{{ userData?.userInfo.image }}"
+            src="data:{{ userData?.userInfo?.imageContentType }};base64,{{ userData?.userInfo?.image }}"
             alt="profile photo"
           />
         </ng-template>

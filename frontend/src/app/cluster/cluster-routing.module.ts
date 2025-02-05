@@ -17,7 +17,7 @@ const routes: Routes = [
     data: {
       title: 'Cluster',
       toolbarTitle: 'Cluster List',
-      permissions: ['VIEW_CLUSTER']
+      permissions: ['*']
     }
   },
   {

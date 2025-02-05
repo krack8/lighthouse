@@ -32,7 +32,7 @@ export class RequesterService {
       if (currentUser) {
         // ? Checking User Status
         if (currentUser?.userInfo?.user_is_active === false) {
-          if (currentUser?.userInfo?.user_type === 'NON_ADMIN') {
+          if (currentUser?.userInfo?.user_type === 'USER') {
             this.snackBar.open('Your account is deactivated. Please contact your admin', 'Close', {
               duration: 10000
             });

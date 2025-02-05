@@ -50,7 +50,7 @@ export class PermissionService {
 
   // Dep
   fetchUserPermissions(): Observable<string[]> {
-    return this._httpService.get('/v1//permissions/users').pipe(
+    return this._httpService.get('/v1/permissions/users').pipe(
       map(res => {
         const _permissions: string[] = ['*'];
         Object.entries(res).map(([_, value]) => {

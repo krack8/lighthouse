@@ -34,6 +34,8 @@ export class UserFormComponent implements OnInit {
   isRolesLoading!: boolean;
   searchRoleTerm: string = '';
 
+  readonly systemRoleUsername: string = "SYSTEM"; // For Role
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<UserFormComponent>,
@@ -46,8 +48,8 @@ export class UserFormComponent implements OnInit {
   ngOnInit() {
     this.userForm = this.fb.group(
       {
-        first_name: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s]+$/), SpaceValidator.noLeadingSpace]],
-        last_name: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s]+$/), SpaceValidator.noLeadingSpace]],
+        first_name: ['', [Validators.required, SpaceValidator.noLeadingSpace]],
+        last_name: ['', [Validators.required, SpaceValidator.noLeadingSpace]],
         user_type: ['ADMIN'],
         username: ['', [Validators.required, EmailValidator]],
         password: ['', [Validators.required, Validators.minLength(6), PasswordValidator]],
@@ -102,6 +104,7 @@ export class UserFormComponent implements OnInit {
     this.isSubmitting = true;
     if (this.data) {
       const formData = this.userForm.getRawValue();
+      
       this._userService.mcUpdateUser(this.data.id, formData).subscribe({
         next: _ => {
           this.toastr.success('User Updated.');
@@ -137,6 +140,12 @@ export class UserFormComponent implements OnInit {
       next: data => {
         this.roleList = data;
         this.isRolesLoading = false;
+        if (!this.data) {
+          const systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
+          if (systemRole.id) {
+            this.userForm.get("role_ids").setValue([systemRole.id])
+          }
+        }
       },
       error: err => {
         this.isRolesLoading = false;

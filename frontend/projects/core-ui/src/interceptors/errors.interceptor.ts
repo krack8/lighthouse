@@ -28,8 +28,8 @@ export class ErrorsInterceptor implements HttpInterceptor {
       }
       case status === 403: {
         const currentUser = this.requesterSvc.get();
-        if (currentUser?.userInfo?.user_type === 'NON_ADMIN') {
-          if (response?.error?.path !== '/api/v1/current-user/permissions') {
+        if (currentUser?.userInfo?.user_type === 'USER') {
+          if (response?.error?.path !== '/v1/permissions/users') {
             // TODO: Need to handle 403 error from api error
             // this.router.navigate(["/403"]);
             this.permissionSvc.fetchUserPermissions().subscribe();

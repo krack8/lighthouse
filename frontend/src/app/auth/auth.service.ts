@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '@core-ui/services/http.service';
 import { RequesterService } from '@core-ui/services/requester.service';
-import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import * as endpoints from './auth.endpoints';
 import * as interfaces from './auth.interface';
 
@@ -27,35 +27,13 @@ export class AuthService {
           map(data => {
             const user = {
               userInfo: data,
-              authorities: ['ROLE_' + data.userType],
+              authorities: ['ROLE_' + data.user_type],
               token,
               refreshToken
             };
+            console.log(JSON.stringify(data, null, '\t'));
             this.requester.save(user);
             return user;
-          }),
-          catchError(err => {
-            const user = {
-              userInfo: {
-                first_name: 'Md Sajal',
-                last_name: 'Mia',
-                username: 'admin@default.com',
-                created_at: '2024-12-22T09:55:07.796986426Z',
-                updated_at: '2024-12-22T09:55:07.796986426Z',
-                user_type: 'ADMIN',
-                roles: [],
-                clusterIdList: [],
-                user_is_active: true,
-                is_verified: true,
-                forgot_password_token: null,
-                phone: null
-              },
-              authorities: ['ROLE_ADMIN'],
-              token,
-              refreshToken
-            };
-            this.requester.save(user);
-            return of(user);
           })
         );
       })

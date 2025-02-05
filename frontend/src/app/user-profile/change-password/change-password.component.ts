@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RequesterService } from '@core-ui/services/requester.service';
@@ -18,6 +18,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import icClose from '@iconify/icons-ic/close';
+import { UserProfileService } from '../user-profile.service';
 
 @Component({
   selector: 'kc-change-password',
@@ -41,8 +42,6 @@ export class ChangePasswordComponent implements OnInit {
   icVisibility = icVisibility;
   icClose = icClose;
 
-  private _destroy$: Subject<void> = new Subject();
-
   resetPassForm: UntypedFormGroup;
   err = false;
   isSubmitting = false;
@@ -59,14 +58,13 @@ export class ChangePasswordComponent implements OnInit {
     private snackBar: MatSnackBar,
     private requesterService: RequesterService,
     private coreConfigService: CoreConfigService,
-    private dialogRef: MatDialogRef<ChangePasswordComponent>
+    private dialogRef: MatDialogRef<ChangePasswordComponent>,
+    private userProfileService: UserProfileService
   ) {}
 
   ngOnInit() {
     this.coreConfig = this.coreConfigService.generalInfoSnapshot;
-    this.requesterService.userData$.pipe(takeUntil(this._destroy$)).subscribe(data => {
-      this.userData = data;
-    });
+    this.userData = this.requesterService.get();
     this.resetPassForm = this.formBuilder.group(
       {
         password1: ['', [Validators.required, Validators.minLength(this.coreConfig?.passwordLength || 6), PasswordValidator]],
@@ -75,11 +73,6 @@ export class ChangePasswordComponent implements OnInit {
       },
       { validator: MustMatchValidator('password1', 'password2') }
     );
-  }
-
-  ngOnDestroy() {
-    this._destroy$.next();
-    this._destroy$.complete();
   }
 
   get password() {
@@ -98,28 +91,23 @@ export class ChangePasswordComponent implements OnInit {
       return;
     }
     this.isSubmitting = true;
-    const id = this.userData.userInfo.userId;
+    const id = this.userData?.userInfo?.id;
+
     const payload = {
-      oldPassword: this.password.value,
+      currentPassword: this.password.value,
       newPassword: this.password2.value
     };
 
-    // this.settingsService.resetPassword(id, payload).subscribe(
-    //   res => {
-    //     if (res.status === 'error') {
-    //       this.err = true;
-    //       this.password.setErrors([{ passwordMismatch: true }]);
-    //     } else {
-    //
-    //     }
-    // this.dialogRef.close(res)
-    //       this.snackBar.open(res.message, 'close', { duration: 5000 });
-    //     this.isSubmitting = false;
-    //   },
-    //   error => {
-    //     this.snackBar.open(error?.message, 'close', { duration: 5000 });
-    //     this.isSubmitting = false;
-    //   }
-    // );
+    this.userProfileService.resetPassword(id, payload).subscribe(
+      res => {
+        this.snackBar.open(res.message, 'close', { duration: 5000 });
+        this.isSubmitting = false;
+        this.dialogRef.close(res);
+      },
+      error => {
+        this.snackBar.open(error?.message, 'close', { duration: 5000 });
+        this.isSubmitting = false;
+      }
+    );
   }
 }

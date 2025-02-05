@@ -30,7 +30,7 @@ export class ToolbarUserDropdownComponent implements OnInit {
 
   ngOnInit() {
     this.userData = this.requester.get();
-    if (this.userData.userInfo.first_name || this.userData.userInfo.last_name) {
+    if (this.userData?.userInfo?.first_name || this.userData?.userInfo?.last_name) {
       this.fullName = `${this.userData.userInfo.first_name} ${this.userData.userInfo.last_name}`;
     } else {
       this.fullName = this.userData?.userInfo?.username?.split('@')?.[0];

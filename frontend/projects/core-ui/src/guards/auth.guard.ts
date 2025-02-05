@@ -34,18 +34,9 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   }
 
   protected checkAuthentication(stateUrl?: string): boolean {
-    const requester = this.requesterService.get();
-
     // Checking Authorization
     if (!this.requesterService.isAuthenticated()) {
       this.router.navigate(['/auth/login']);
-      return false;
-    }
-
-    // Checking User Is Verification
-    // ? Don't place it requester service.
-    if (requester?.userInfo?.is_verified !== true) {
-      this.router.navigate(['/email-verification']);
       return false;
     }
 
