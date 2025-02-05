@@ -1,18 +1,15 @@
 package utils
 
 import (
-	"encoding/json"
-	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
-// RespondWithError sends an error response.
-func RespondWithError(w http.ResponseWriter, code int, message string) {
-	RespondWithJSON(w, code, map[string]string{"error": message})
+// RespondWithJSON is a helper function to send JSON responses
+func RespondWithJSON(c *gin.Context, statusCode int, payload interface{}) {
+	c.JSON(statusCode, payload)
 }
 
-// RespondWithJSON sends a JSON response.
-func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(payload)
+// RespondWithError is a helper function to send error responses
+func RespondWithError(c *gin.Context, statusCode int, message string) {
+	c.JSON(statusCode, gin.H{"error": message})
 }

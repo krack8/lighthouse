@@ -47,6 +47,7 @@ message Task {
   string id = 1;
   string name = 2;
   string payload = 3;
+  string input = 4;
 }
 
 message Ack {

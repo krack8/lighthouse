@@ -56,11 +56,6 @@ type GetNamespaceListInputParams struct {
 	output   OutputNamespaceList
 }
 
-type GetNamespaceInputParams struct {
-	NamespaceName string
-	output        corev1.Namespace
-}
-
 func (p *GetNamespaceListInputParams) Find(c context.Context, namespaceClient v1.NamespaceInterface, pageSize int64) error {
 	log.Logger.Debugw("Entering Search mode....", "src", "namespace")
 	filteredNamespaces := []corev1.Namespace{}
@@ -200,6 +195,11 @@ func (namespace *namespaceService) GetNamespaceNameList(c context.Context, p Get
 		Status: "success",
 		Data:   p.output,
 	}, nil
+}
+
+type GetNamespaceInputParams struct {
+	NamespaceName string
+	output        corev1.Namespace
 }
 
 func (p *GetNamespaceInputParams) Process(c context.Context) error {
