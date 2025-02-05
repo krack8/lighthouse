@@ -58,3 +58,7 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 
 	return parsed, nil
 }
+
+func IsAgentAuthTokenValid() bool {
+	return true
+}

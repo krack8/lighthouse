@@ -67,7 +67,33 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			// This is the first message from the worker identifying itself.
 			groupName := payload.WorkerInfo.GroupName
 			authToken := payload.WorkerInfo.AuthToken
-			// Here you could verify the auth token.
+
+			//Verify the auth token if AUTH is ENABLED
+			//TODO: test the comment out code for agent auth
+			/*if cfg.IsAuth() {
+				if authToken != "" {
+					if services.IsAgentAuthTokenValid() == false {
+						log.Printf("Invalid Agent Token")
+						stream.Send(&pb.TaskStreamResponse{
+							Payload: &pb.TaskStreamResponse_Ack{
+								Ack: &pb.Ack{
+									Message: "Invalid Agent Token",
+								},
+							},
+						})
+					}
+				} else {
+					log.Printf("Worker auth token is required")
+					stream.Send(&pb.TaskStreamResponse{
+						Payload: &pb.TaskStreamResponse_Ack{
+							Ack: &pb.Ack{
+								Message: "Worker auth token is required",
+							},
+						},
+					})
+					return nil
+				}
+			}*/
 			log.Printf("New worker identified. group=%s, token=%s", groupName, authToken)
 
 			// Create the worker connection instance.
