@@ -83,10 +83,6 @@ export const appRoutes: Routes = [
     loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
   },
   {
-    path: 'k8s/terminal',
-    loadChildren: () => import('./k8s/k8s-terminal/k8s-terminal.module').then(m => m.K8sTerminalModule)
-  },
-  {
     path: '',
     component: LayoutComponent,
     children: childrenRoutes

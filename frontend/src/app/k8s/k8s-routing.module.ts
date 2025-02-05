@@ -58,10 +58,6 @@ const k8sRoutes: Routes = [
     data: {
       permissions: ['VIEW_K8S_CUSTOM_RESOURCE_DEFINATION']
     }
-  },
-  {
-    path: 'terminal',
-    loadChildren: () => import('./k8s-terminal/k8s-terminal.module').then(m => m.K8sTerminalModule)
   }
 ];
 
