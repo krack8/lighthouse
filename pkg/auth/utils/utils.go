@@ -9,10 +9,20 @@ import (
 )
 
 func HashPassword(password string) string {
+	// Check password length before hashing
+	if len(password) == 0 {
+		log.Printf("Error: Empty password")
+		return ""
+	}
+	if len(password) > 72 {
+		log.Printf("Error: Password length exceeds 72 bytes")
+		return ""
+	}
+
 	// Generate a bcrypt hash of the password with a default cost
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("Error : %v", err)
+		log.Printf("Error generating hash: %v", err)
 		return ""
 	}
 	return string(hash)

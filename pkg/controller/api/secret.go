@@ -141,6 +141,13 @@ func (ctrl *secretController) DeleteSecret(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.DeleteSecretInputParams)
 	input.SecretName = ctx.Param("name")
+	queryNamespace := ctx.Query("namespace")
+	if queryNamespace == "" {
+		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
+		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.SecretService().DeleteSecret)
 	logRequestedTaskController("secret", taskName)
 	inputTask, err := json.Marshal(input)
