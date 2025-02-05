@@ -1,0 +1,153 @@
+@use '@angular/material' as mat;
+.kc-style-dark {
+  @include mat.all-component-themes($kc-dark-theme);
+  $sidenav-background: #151f36;
+  $primary: #5bc4d6;
+  $secondary: #4164a9;
+  $info: #226add;
+  $warn: #ffbb33;
+  $warn-dark: #ff8800;
+  $success: #36c678;
+  $success-light: #c3eed7;
+  $grey: rgb(82, 81, 81);
+  $grey2: #495c7d;
+  $dark-light: #243c64;
+  $grey-dark: #212121;
+  $danger: #b1122a;
+  $slider: #52bacc;
+
+  // Color
+  --active-box-shadow-1: none;
+  --status-active: #caedf3;
+  --color-primary: #{$primary};
+  --color-secondary: #{$secondary};
+  --color-dark-light: #{$dark-light};
+  --color-info: #{$info};
+  --color-warn: #{$warn};
+  --color-success: #{$success};
+  --color-success-light: #{$success-light};
+  --color-danger: #{$danger};
+  --color-kc-step-number-active: white;
+  --color-kc-step-number: #c5ceda;
+  --color-tomato-red: #ff6347;
+
+  //temp
+  --box-container-bg: #243c64;
+  --box-container-bg-2: #243c64;
+  --create-new-app-btn-bg: #3c4a61;
+
+  --background-selected-repo: #1f365b;
+  --background-block-btn-details-box: #314262;
+  --background-resource-type: #314262;
+  --background-kc-step-number-active: #495c7d;
+  --background-info-name-box: #22375b;
+  --background-pipeline-step-box: #22375b;
+  --background-kc-step-number: #495c7d;
+  --background-kc-stepper: #1a2c4a;
+  --background: #1a2c4a;
+  --background-1: #22375b;
+  --background-2: #67769b;
+  --background-3: #243c64;
+  --background-4: #3c4c72;
+  --background-5: #151f36;
+  --background-active: #243c64;
+  --border-active: #{$secondary};
+  --border: #{$grey2};
+  --border-form-field: #1a2c4a;
+  --text-color: #c5ceda;
+  --label-color: #{$grey2};
+  --icon: #5c638b;
+  --background-close-btn: #3c4c72;
+  --commit-item-shimmer-1: var(--background);
+  --commit-item-shimmer-2: var(--background-3);
+  --white: #ffffff;
+  --brand: #4164a9;
+  --brand-lighter: #d2e1ff;
+  --brand-2: #52bacc;
+  --brand-2-lighter: #caedf3;
+  --grey: #bdbdbd;
+  --grey-lighter: #e8eefb;
+
+  // Foreground
+  --background-app-bar: #{map-get(map-get($kc-dark-theme, background), app-bar)};
+
+  // Background
+  --sidenav-background: #131d35;
+  --footer-background: var(--background-card);
+  --navigation-background: #0d152f;
+  // --toolbar-background: #0D152F;
+  --toolbar-background: #0a1b33;
+  --toolbar-border: #0d152f;
+  --background-base: #0d152f;
+
+  --container-bg: var(--background-5);
+  --input-bg: var(--background);
+  --icon: var(--text-color);
+  --icon-primary: var(--text-color);
+
+  // Colors primary
+  --background-card: #151f36;
+  --background-card-2: #334155;
+  --border-color: #495c7d;
+  --footer-color: var(--text-color);
+  --navigation-color: var(--text-color);
+  --text-color: #{$light-primary-text};
+  --toolbar-color: #{$light-primary-text};
+  --text-color-light: #{$dark-primary-text};
+  --step-bg: var(--background);
+  --step-active-bg: var(--background-active);
+  --custom-tab-active: #22375b;
+  --step-active-text: var(--text-color);
+  --step-active-number: var(--text-color);
+  --input-border: var(--border);
+  --btn-transparent-color: #e4eaf1;
+  --btn-transparent-background: #1a202e;
+  --text-color-1: #d7dce3;
+  --text-hint: rgba(255, 255, 255, 0.7);
+
+  // Toolbar
+  --foreground-divider: #{map-get(map-get($kc-dark-theme, foreground), divider)};
+
+  //Search
+  --search-background: #1a2c4a;
+
+  // Sidenav
+  --sidenav-color: var(--text-color);
+
+  // Sidenav Item
+  --sidenav-item-background-active: #{darken($sidenav-background, 2)};
+  --sidenav-item-color: var(--text-color);
+  --sidenav-item-color-active: #{$primary};
+  --sidenav-item-dropdown-background: #{darken($sidenav-background, 2)};
+  --sidenav-item-dropdown-background-hover: #{darken($sidenav-background, 3)};
+  --sidenav-item-icon-color: #494b74;
+  --sidenav-item-icon-color-active: var(--color-primary-500);
+  --sidenav-toolbar-background: #{$sidenav-background};
+
+  // Navigation
+  --text-hint-light: #{$dark-disabled-text};
+  --background-hover: #{map-get(map-get($kc-dark-theme, background), hover)};
+
+  // Secondary Toolbar
+  --text-secondary: #{$light-secondary-text};
+
+  // Footer
+  --text-secondary-light: #{$dark-secondary-text};
+  --secondary-toolbar-background: var(--background-card);
+
+  --dialog-border-color: #5c6bc0;
+
+  // Box
+  --box-background: #182641;
+
+  // Table Label
+  --background-table: var(--background-card);
+  --background-table-th: #314262;
+
+  // CDK Icon
+  --cdk-icon-bg: var(--border-active);
+  --cdk-icon-2-bg: #dfe7f5;
+  --cdk-icon-2-color: var(--border-active);
+
+  background: var(--background-base);
+}

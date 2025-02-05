@@ -1,0 +1,25 @@
+@import '../var';
+
+.status {
+  &__btn {
+    padding: 7px 18px;
+    border-radius: 18px;
+    font-weight: 500;
+    background: var(--gray);
+    color: #f9f9f9;
+  }
+
+  &--bg-succeeded,
+  &--bg-running {
+    background: var(--color-success) !important;
+  }
+  &--bg-pending {
+    background: var(--color-warn) !important;
+  }
+  &--bg-failed {
+    background: var(--color-danger) !important;
+  }
+  // &.unknown {
+  //   background: $grey!important;
+  // }
+}

@@ -1,0 +1,29 @@
+.progress-bar {
+  left: 0;
+  opacity: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  visibility: hidden;
+  z-index: 99999;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+::ng-deep {
+  .kc-style {
+    &-pink {
+      .mat-progress-bar.progress-bar {
+        .mat-progress-bar-fill:after {
+          background-color: var(--color-primary);
+        }
+        .mat-progress-bar-buffer {
+          background-color: var(--color-primary-50);
+        }
+      }
+    }
+  }
+}

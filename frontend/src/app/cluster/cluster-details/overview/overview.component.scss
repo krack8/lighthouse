@@ -1,0 +1,132 @@
+:host {
+  @apply text-sm;
+
+  h4 {
+    @apply text-sm;
+    line-height: 1.3rem;
+  }
+}
+
+.overview-container {
+  .overview-table {
+    border: 1px solid var(--color-border-200);
+    border-radius: 6px;
+    background: var(--color-bg-card);
+
+    table {
+      tr {
+        border-bottom: 1px solid var(--color-border-200);
+
+        &:last-of-type {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+}
+
+._base_card {
+  background: var(--background-kc-stepper);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: pre-line;
+  word-break: break-all;
+  line-height: 1.3rem;
+}
+
+.update-card {
+  background: var(--background-kc-stepper);
+  border: 1px solid var(--color-warn);
+  border-left: 5px solid var(--color-warn);
+  border-radius: 4px;
+  // white-space: pre-line;
+  // word-break: break-all;
+  // line-height: 1.3rem;
+}
+
+._box_card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--background-card-2);
+  padding: 1rem;
+}
+
+.gap-x-4 {
+  column-gap: 1rem;
+}
+
+._routing_btn {
+  background-color: #3b82f6;
+  color: #fff;
+  min-width: max-content;
+
+  &:hover {
+    background-color: #1d4ed8;
+  }
+}
+
+// Virtual Terminal
+._terminal {
+  &_container {
+    padding: 0.75rem;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    min-width: 540px;
+    font-size: 0.8rem;
+  }
+
+  &_device_info {
+    min-width: 78px;
+    color: var(--color-green-600);
+    margin-right: 0.5rem;
+    flex: none;
+  }
+}
+
+._bg-deep {
+  background: var(--background-base);
+}
+
+.required-text {
+  color: var(--color-warn);
+}
+
+.executed-text {
+  color: var(--color-success);
+}
+
+::ng-deep {
+  .helm-chart-accordion {
+    background: var(--background-kc-stepper);
+    display: block;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+
+    .mat-expansion-panel .mat-expansion-panel-header {
+      height: 55px !important;
+
+      &.mat-expanded,
+      &:hover {
+        background: var(--background-1);
+      }
+    }
+
+    .mat-expansion-panel-body {
+      background: var(--background-base);
+    }
+  }
+}
+
+._upgrade_btn {
+  background-color: var(--color-primary-600);
+  min-width: max-content;
+  font-weight: bold;
+
+  &:hover {
+    background-color: var(--color-primary-900);
+  }
+}

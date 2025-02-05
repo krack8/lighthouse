@@ -1,0 +1,22 @@
+FROM nginx:1.21
+
+ENV KLOVERCLOUD_API_ENDPOINT=''
+
+## Copy our default nginx config
+COPY nginx/default.conf /etc/nginx/conf.d/
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
+## Remove default nginx website
+RUN rm -rf /usr/share/nginx/html/*
+
+## From 'builder' stage copy over the artifacts in dist folder to default nginx public folder
+COPY dist/kc /usr/share/nginx/html
+
+RUN mkdir /app
+COPY run.sh /app/run.sh
+RUN chmod +x /app/run.sh
+RUN sed -i -e 's/\r$//' /app/run.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["bash", "/app/run.sh"]

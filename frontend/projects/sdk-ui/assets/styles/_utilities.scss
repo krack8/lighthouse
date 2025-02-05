@@ -1,0 +1,112 @@
+.card {
+  border-radius: 0.25rem;
+  // box-shadow: var(--elevation-z8);
+  background-color: var(--background-card);
+}
+
+.list-item {
+  border-radius: 0.25rem;
+  cursor: pointer;
+  height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  &:hover {
+    background-color: var(--background-hover);
+  }
+}
+
+.bg-pattern {
+  background:
+    linear-gradient(
+      135deg,
+      var(--background-base) 22px,
+      var(--background-hover) 22px,
+      var(--background-hover) 24px,
+      transparent 24px,
+      transparent 67px,
+      var(--background-hover) 67px,
+      var(--background-hover) 69px,
+      transparent 69px
+    ),
+    linear-gradient(
+        225deg,
+        var(--background-base) 22px,
+        var(--background-hover) 22px,
+        var(--background-hover) 24px,
+        transparent 24px,
+        transparent 67px,
+        var(--background-hover) 67px,
+        var(--background-hover) 69px,
+        transparent 69px
+      )
+      0 64px;
+  background-color: var(--background-base);
+  background-size: 64px 128px;
+}
+
+// Transitions
+
+.trans-ease-out {
+  transition: var(--trans-ease-out);
+}
+
+.trans-shadow {
+  transition: var(--trans-shadow);
+}
+
+// Typography
+
+.display-4 {
+  font: var(--font-display-4);
+}
+
+.display-3 {
+  font: var(--font-display-3);
+}
+
+.display-2 {
+  font: var(--font-display-2);
+}
+
+.display-1,
+h1 {
+  font: var(--font-display-1);
+}
+
+.headline,
+h2 {
+  font: var(--font-headline);
+}
+
+.title,
+h3 {
+  font: var(--font-title);
+}
+
+.subheading-2,
+h4 {
+  font: var(--font-subheading-2);
+}
+
+.subheading-1,
+h5 {
+  font: var(--font-subheading-1);
+}
+
+.body-2,
+h6 {
+  font: var(--font-body-2);
+}
+
+.body-1,
+p {
+  font: var(--font-body-1);
+}
+
+.caption {
+  font: var(--font-caption);
+}
+
+.text-hint {
+  color: var(--text-hint);
+}

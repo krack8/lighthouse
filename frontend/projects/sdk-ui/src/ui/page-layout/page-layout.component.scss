@@ -1,0 +1,50 @@
+.kc-page-layout {
+  display: block;
+}
+
+.kc-page-layout-simple {
+  .kc-page-layout-content {
+    padding-bottom: var(--padding-page);
+    padding-top: var(--padding-page);
+  }
+}
+
+.kc-page-layout-card {
+  padding-bottom: var(--padding);
+
+  .kc-page-layout-header {
+    margin-bottom: calc(var(--page-layout-toolbar-height) * -1);
+    padding-bottom: var(--page-layout-toolbar-height);
+  }
+
+  .kc-page-layout-content {
+    > * > .mat-tab-group .mat-tab-label,
+    > .mat-tab-group .mat-tab-label {
+      height: var(--page-layout-toolbar-height);
+
+      &.mat-tab-label-active {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.kc-page-layout-header {
+  align-items: center;
+  background: var(--color-primary-500);
+  box-sizing: content-box !important;
+  color: var(--color-primary-contrast-500);
+  display: flex;
+  flex-direction: row;
+  height: calc(var(--page-layout-header-height) - var(--page-layout-toolbar-height));
+  padding-left: var(--padding);
+  padding-right: var(--padding);
+  place-content: center flex-start;
+}
+
+.kc-page-layout-content {
+  box-sizing: border-box;
+  display: block;
+  padding-left: var(--padding-page);
+  padding-right: var(--padding-page);
+}

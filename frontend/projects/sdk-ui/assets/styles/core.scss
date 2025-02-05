@@ -1,0 +1,853 @@
+@use '@angular/material' as mat;
+@import './var';
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat.core($config);
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include mat.all-component-themes($kc-theme);
+
+// Partials
+@import './root';
+@import 'partials/_mixins.scss';
+@import 'partials/_horizontal.scss';
+@import 'partials/_vertical.scss';
+@import 'partials/_print.scss';
+@import 'partials/_overrides.scss';
+@import 'partials/_scrollbar.scss';
+@import 'partials/plugins/_angular-material.scss';
+@import 'partials/plugins/_apexcharts.scss';
+
+// Styles
+@import 'partials/styles/_style-dark.scss';
+@import 'partials/styles/_style-light.scss';
+@import 'partials/styles/_style-light-pink.scss';
+
+// Icon
+@import '_fonticon.scss';
+
+// Plus imports for other components in your app.
+/* Global Custom Components */
+@import 'components';
+/* Library/Plugin overrides */
+@import 'plugins';
+
+/* You can add global styles to this file, and also import other style files */
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  color: var(--text-color);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+div {
+  box-sizing: border-box;
+}
+
+$md-font-size-h4: 14px;
+$md-font-size-tab: 13px;
+$md-font-size-commit-p: 12px;
+$md-font-size-commit-small: 10px;
+
+%kc-card {
+  background-color: #ffffff;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  margin: 10px 0;
+}
+
+.text-primary {
+  color: var(--brand-2);
+}
+
+.text-success {
+  color: $success;
+}
+
+.text-error {
+  color: $error !important;
+}
+
+.text-grey {
+  color: $grey;
+}
+
+.text-dark {
+  color: $grey-dark;
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+.text-warn {
+  color: #ff5722;
+}
+
+// Universal Styles --->
+
+.txt-md {
+  font-size: 15px;
+}
+
+.txt-semi-md {
+  font-size: 13px;
+}
+
+.txt-semi-lg {
+  font-size: 17px;
+}
+
+.txt-semi-bold {
+  font-weight: 600;
+}
+
+.line-h-27 {
+  line-height: 27px;
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+  .txt-md {
+    font-size: 16px;
+  }
+
+  .txt-semi-md {
+    font-size: 14px;
+  }
+
+  .txt-semi-lg {
+    font-size: 18px;
+  }
+}
+
+// <--- Universal Styles
+.md-drppicker,
+.double {
+  width: 499px !important;
+}
+
+.sidenav {
+  box-shadow: 6px 0px 18px rgba(0, 0, 0, 0.06);
+}
+
+img.loader {
+  width: 50px;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+.mat-expansion-indicator {
+  &:after {
+    color: var(--text-color) !important;
+    border-color: unset !important;
+    content: 'Details';
+  }
+}
+
+.form-control {
+  @extend %kc-card;
+  width: auto;
+  padding: 13px 21px;
+
+  input {
+    width: 100%;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.form-error {
+  color: rgb(231, 85, 97);
+  font-size: 12px;
+}
+
+@keyframes moving-gradient {
+  0% {
+    background-position: -250px 0;
+  }
+
+  100% {
+    background-position: 250px 0;
+  }
+}
+
+@keyframes blinker {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.3;
+  }
+}
+
+.text-dots-on-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blink {
+  text-decoration: blink;
+  animation-name: blinker;
+  animation-duration: 0.6s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+  -webkit-animation-name: blinker;
+  -webkit-animation-duration: 0.6s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-animation-direction: alternate;
+}
+
+.grayscale {
+  -webkit-filter: grayscale(100%);
+  /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
+}
+
+.bucketExplorer {
+  mat-tab-header {
+    background: #fff !important;
+  }
+
+  .mat-tab-label {
+    min-width: 33%;
+    height: 55px;
+  }
+}
+
+mat-expansion-panel {
+  border-radius: 0px !important;
+
+  mat-expansion-panel-header {
+    &:hover {
+      background: rgba(65, 100, 169, 0.2) !important;
+    }
+  }
+}
+
+kc-application-details,
+kc-log-form,
+kc-vpc-monitoring {
+  .mat-form-field-underline {
+    display: none !important;
+  }
+}
+
+///////////////////////Media queries ////////////////////////
+@media screen and (max-width: 1500px) {
+  .subheading-2,
+  h4 {
+    font: unset !important;
+  }
+
+  kc-toolbar-notifications-dropdown {
+    .notification {
+      padding: 5px 20px !important;
+    }
+
+    .dropdown-header {
+      padding: 5px 20px !important;
+
+      .dropdown-heading {
+        font-size: 14px;
+      }
+
+      .dropdown-subheading {
+        font-size: 12px;
+      }
+    }
+
+    ic-icon {
+      font-size: 14px;
+    }
+
+    .notification-label {
+      font-size: 12px;
+    }
+
+    .notification-description {
+      font-size: 12px;
+    }
+
+    .dropdown-footer {
+      padding: 0px !important;
+    }
+  }
+
+  kc-toolbar-user {
+    .user-name {
+      font-weight: 400;
+    }
+
+    mat-icon {
+      height: 16px;
+      width: 16px;
+    }
+  }
+
+  kc-toolbar-user-dropdown {
+    .notification {
+      padding: 5px 20px !important;
+    }
+
+    mat-icon {
+      font-size: 17px !important;
+      height: 16px !important;
+      width: 17px !important;
+    }
+
+    .dropdown-header {
+      padding: 5px 20px !important;
+
+      .dropdown-heading {
+        font-size: 14px !important;
+      }
+    }
+
+    .notification-label,
+    span {
+      font-size: 12px !important;
+    }
+
+    .notification-description {
+      font-size: 10px !important;
+    }
+
+    .dropdown-footer {
+      mat-icon {
+        vertical-align: unset !important;
+      }
+
+      padding: 0px !important;
+    }
+
+    .dropdown-footer-select {
+      vertical-align: unset !important;
+    }
+  }
+
+  /*  kc-breadcrumbs {
+    a {
+      font-size: 12px !important;
+    }
+
+    ic-icon {
+      font-size: 16px !important;
+    }
+  }*/
+  .kc-application-list {
+    mat-icon {
+      font-size: 30px !important;
+    }
+
+    .body-2 {
+      font: unset !important;
+
+      span {
+        font-size: 14px !important;
+      }
+    }
+
+    .text-secondary {
+      .app-status {
+        font-size: 12px !important;
+      }
+    }
+
+    .footer-container {
+      div {
+        font-size: 11px;
+        padding: 2px 4px;
+      }
+    }
+  }
+
+  .mat-stroked-button {
+    min-width: unset !important;
+  }
+
+  button {
+    ic-icon {
+      font-size: 16px !important;
+    }
+  }
+
+  h1 {
+    font-weight: 400 !important;
+  }
+
+  .title {
+    font-size: 16px !important;
+  }
+
+  .log-header-table {
+    tr {
+      td {
+        font-size: 12px !important;
+      }
+    }
+  }
+
+  .stream {
+    h6 {
+      font-size: 12px !important;
+    }
+  }
+
+  .sidenav-items {
+    a,
+    .item-label {
+      font-size: 14px !important;
+    }
+
+    mat-icon {
+      font-size: 20px !important;
+      margin-top: 3px !important;
+    }
+
+    .item {
+      min-height: unset !important;
+    }
+  }
+
+  mat-expansion-panel-header {
+    font-size: 13px !important;
+  }
+
+  .mat-expansion-panel-body {
+    font-size: 13px !important;
+  }
+
+  h4 {
+    font-size: $md-font-size-h4;
+  }
+
+  .card-btn {
+    height: unset !important;
+  }
+
+  .mat-tab-label-content {
+    font-size: $md-font-size-tab;
+  }
+
+  .commit-item {
+    p {
+      font-size: $md-font-size-commit-p + 2;
+      font-weight: 500;
+    }
+
+    .git-commit-id {
+      font-size: $md-font-size-commit-small + 2 !important;
+      font-weight: 400 !important;
+      margin-top: 0 !important;
+    }
+
+    small {
+      font-size: $md-font-size-commit-small + 2;
+    }
+  }
+
+  .pipeline-container {
+    p {
+      font-size: $md-font-size-commit-small + 2 !important;
+    }
+  }
+
+  .pipeline-step-details-view-container {
+    .header-title {
+      font-weight: 500 !important;
+      font-size: 16px !important;
+      margin-bottom: 0px;
+      padding-bottom: 0px;
+    }
+
+    .body-container {
+      p,
+      a {
+        font-size: 13px !important;
+      }
+    }
+  }
+
+  .console-log-container {
+    width: 120px !important;
+
+    .header-container {
+      font-size: $md-font-size-commit-small + 4 !important;
+    }
+  }
+
+  .headline {
+    font-size: 16px !important;
+  }
+
+  .mat-form-field,
+  mat-select,
+  input {
+    font-size: 13px !important;
+  }
+
+  button {
+    font-size: 13px !important;
+  }
+
+  .cdk-overlay-pane {
+    mat-icon {
+      font-size: 16px !important;
+    }
+  }
+
+  .cdk-overlay-container {
+    mat-dialog-container {
+      .mat-dialog-title {
+        font-size: 14px !important;
+      }
+
+      mat-dialog-content {
+        .avatar {
+          height: 60px !important;
+          width: 60px !important;
+        }
+
+        h3 {
+          font-size: 16px !important;
+          font-weight: 400 !important;
+        }
+      }
+    }
+  }
+
+  .mat-cell,
+  .mat-footer-cell {
+    font-size: 13px;
+
+    mat-icon {
+      font-size: 19px !important;
+    }
+  }
+
+  .mat-menu-item {
+    line-height: 32px !important;
+    height: 32px !important;
+  }
+
+  .dirName {
+    h3 {
+      font-size: 14px !important;
+    }
+  }
+
+  kc-application-form {
+    mat-expansion-panel-header {
+      height: auto !important;
+      position: relative;
+
+      mat-panel-title {
+        p {
+          font-size: 14px !important;
+          font-weight: 500 !important;
+        }
+      }
+    }
+
+    .kc-application-type {
+      .card {
+        img {
+          width: 40px !important;
+          height: 40px !important;
+        }
+
+        .body-2 {
+          span {
+            font-size: 13px !important;
+          }
+        }
+      }
+    }
+
+    .block {
+      font-size: 14px !important;
+    }
+
+    .mat-vertical-stepper-header {
+      padding: 10px 24px !important;
+    }
+
+    .mat-checkbox-label {
+      font-size: 13px;
+    }
+  }
+
+  .kc-app-env-list {
+    .card {
+      .relative {
+        padding: 8px !important;
+      }
+    }
+  }
+
+  .resource-config {
+    h3 {
+      font-size: 13px !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  .kc-vpc-list {
+    .card {
+      p {
+        font-size: 13px !important;
+      }
+
+      .body-2 {
+        span {
+          font-size: 13px !important;
+        }
+      }
+
+      .vpc-status {
+        font-size: 12px !important;
+      }
+    }
+  }
+
+  .kc-vpc-form,
+  .kc-bucket-form {
+    .radio-label {
+      font-size: 16px !important;
+    }
+
+    .icon {
+      img {
+        width: 50px;
+        height: 50px;
+        margin-top: 20%;
+      }
+    }
+
+    .box {
+      .card {
+        .kc-cpu {
+          font-size: 32px;
+        }
+
+        .display-1 {
+          span {
+            font-size: 18px;
+          }
+        }
+
+        .body-2 {
+          span {
+            font-size: 13px;
+          }
+        }
+      }
+    }
+
+    .right {
+      img {
+        min-width: 120px !important;
+        max-width: 120px !important;
+        width: 120px !important;
+        margin: 0 auto;
+      }
+
+      .card {
+        .total {
+          font-size: 20px !important;
+        }
+      }
+    }
+
+    .price-table {
+      tr {
+        td {
+          padding: 10px 20px;
+        }
+      }
+
+      .display-1 {
+        font-size: 16px !important;
+      }
+    }
+  }
+}
+
+.mat-dialog-container {
+  background: var(--background-card) !important;
+  border: solid 1px var(--dialog-border-color);
+}
+
+.kc-style-dark {
+  .mat-table {
+    background: var(--sidenav-background);
+  }
+
+  mat-button-toggle-group {
+    .mat-button-toggle-button {
+      background: var(--background-kc-stepper);
+    }
+
+    .mat-button-toggle-checked {
+      .mat-button-toggle-button {
+        background: var(--background-info-name-box);
+      }
+    }
+  }
+}
+
+.bg-app-bar {
+  background: var(--toolbar-background) !important;
+}
+
+.spin-item {
+  animation-name: spin;
+  animation-duration: 5000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.h-min-full {
+  min-height: 85vh;
+}
+
+.txt-sm {
+  font-size: 12px;
+}
+
+.mt--10 {
+  margin-top: -10px;
+}
+
+/* KC Switch Button */
+.kc-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .kc-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 8px;
+    left: 8px;
+    right: 0;
+    bottom: 0;
+    border-radius: 34px;
+    background-color: #ccc;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+
+    &:before {
+      position: absolute;
+      content: '';
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      border-radius: 50%;
+      background-color: white;
+      transition: 0.4s;
+      -webkit-transition: 0.4s;
+    }
+  }
+
+  .failed {
+    background-color: darkred;
+  }
+
+  .kc-switch-inp:checked + .kc-switch-slider {
+    background-color: #52bacc;
+  }
+
+  .kc-switch-inp:focus + .kc-switch-slider {
+    box-shadow: 0 0 1px #2196f3;
+  }
+
+  .kc-switch-inp:checked + .kc-switch-slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+}
+
+//Changing Angular Material Typography
+$custom-typography: mat.define-typography-config(
+  $font-family: 'Open Sans, sans-serif'
+);
+@include mat.core($custom-typography);
+//Changing Angular Material Typography
+
+/* KC Switch Button */
+.kc-text-xs {
+  font-size: 10px;
+}
+
+.kc-scroll-overlay {
+  overflow: scroll;
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+
+  /* Firefox */
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+mat-paginator {
+  background: none !important;
+}
+
+.log-dialog-content {
+  max-height: calc(100vh - 105px) !important;
+}
+
+// Disabled Link
+.route-disabled {
+  pointer-events: none;
+  cursor: default;
+}

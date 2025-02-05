@@ -1,0 +1,36 @@
+.expansion-header {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.expansion-header :hover {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.header {
+  padding: 0% !important;
+}
+
+.mat-expansion-panel.mat-expanded .mat-expansion-panel-header {
+  background: none !important;
+}
+
+.mat-expansion-panel.mat-expanded .mat-expansion-panel-header :hover {
+  background: none !important;
+}
+
+.title {
+  color: #9cadc9 !important;
+  font-size: 13px !important;
+}
+
+.icon-up {
+  transform: rotate(180deg) !important;
+}
+
+.icon-down {
+  transform: rotate(0deg) !important;
+}

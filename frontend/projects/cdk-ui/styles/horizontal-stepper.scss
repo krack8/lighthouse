@@ -1,0 +1,183 @@
+@mixin visibleArrow($paddingLeft) {
+  padding-left: $paddingLeft;
+  border-color: transparent;
+
+  .#{$progress}__step {
+    &__arrow {
+      display: block;
+    }
+  }
+}
+
+@mixin visibleNumber() {
+  justify-content: left;
+
+  .#{$progress}__step {
+    &__text {
+      text-align: left;
+    }
+    &__number {
+      display: inline-block;
+    }
+  }
+}
+
+$progress: progress;
+
+.#{$progress} {
+  &__header {
+    h3 {
+      font-style: normal;
+      color: var(--text-color);
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  &__navbar {
+    min-width: max-content;
+    padding-bottom: 2px;
+
+    &__scroll {
+      overflow-x: auto;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    border-radius: 10px;
+    background: var(--background-kc-stepper);
+    border: 1px solid var(--border);
+    list-style: none;
+    overflow: hidden;
+    font-size: 0.875rem;
+    font-weight: 600;
+    counter-reset: li;
+  }
+
+  // Step
+  &__step {
+    $height: 5.153rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-align: left;
+    border-right: 1px solid var(--border);
+    height: $height;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 0.75rem;
+    background: inherit;
+    cursor: pointer;
+
+    &:last-child {
+      border-right: 0;
+    }
+
+    &__text {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+    }
+
+    // Count
+    &__number {
+      display: none;
+      &::before {
+        content: counter(li) ' ';
+        counter-increment: li;
+        margin-right: 15px;
+        background: var(--background-kc-step-number);
+        color: var(--color-kc-step-number);
+        border-radius: 50%;
+        height: 1.875rem;
+        line-height: 1.875rem;
+        text-align: center;
+        width: 1.875rem;
+        display: inline-block;
+      }
+    }
+
+    &__arrow {
+      width: $height;
+      height: 100%;
+      background: inherit;
+      position: absolute;
+      -webkit-clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+      -webkit-transform: rotate(225deg);
+      border-radius: 0 0 0 10px;
+      z-index: 2;
+      top: 50%;
+      left: 100%;
+      transform: rotate(224.5deg) translate(67px, -8px);
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    // Active
+    &--current {
+      background: var(--step-active-bg);
+      color: var(--step-active-text);
+      font-weight: 600 !important;
+
+      .#{$progress}__step {
+        &__number::before {
+          background: var(--background-kc-step-number-active);
+          color: var(--color-kc-step-number-active);
+        }
+      }
+    }
+  }
+
+  &__step--1 {
+    padding-left: 7%;
+    border-color: transparent;
+
+    @include visibleNumber();
+  }
+
+  // Media
+  @media (min-width: 576px) {
+    // Visible Number
+    &__step--2,
+    &__step--3 {
+      @include visibleNumber();
+    }
+  }
+
+  @media (min-width: 768px) {
+    // Visible Arrow
+    &__step--2 {
+      @include visibleArrow(7%);
+    }
+
+    // Visible Number
+    &__step--4,
+    &__step--5 {
+      @include visibleNumber();
+    }
+  }
+
+  @media (min-width: 1024px) {
+    // Visible Arrow
+    &__step--3 {
+      @include visibleArrow(7%);
+    }
+  }
+
+  @media (min-width: 1440px) {
+    &__step--3 {
+      padding-left: 6%;
+    }
+
+    // Visible Arrow
+    &__step--4,
+    &__step--5 {
+      @include visibleArrow(5%);
+    }
+  }
+}

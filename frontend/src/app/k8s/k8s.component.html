@@ -1,0 +1,557 @@
+<kc-page-layout>
+  <kc-page-layout-content kcContainer>
+    <!-- Breadcrumb -->
+    <nav class="pl-page mb-6" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center flex-wrap">
+        <li class="inline-flex items-center">
+          <a [routerLink]="['/clusters']" class="inline-flex items-center text-sm font-medium text-hint"> Clusters </a>
+        </li>
+        <li *ngIf="clusterData?.id">
+          <div class="flex items-center">
+            <svg
+              aria-hidden="true"
+              class="w-6 h-6 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <a [routerLink]="['../', 'overview']" class="ml-1 text-sm font-medium text-hint">{{ clusterData?.name }}</a>
+          </div>
+        </li>
+        <ng-template [ngIf]="namespaceQueryParam">
+          <li class="inline-flex items-center">
+            <svg
+              aria-hidden="true"
+              class="w-6 h-6 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <a [routerLink]="['./namespaces']" class="ml-1 inline-flex items-center text-sm font-medium text-hint"> Namespaces </a>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg
+                aria-hidden="true"
+                class="w-6 h-6 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <a [routerLink]="['./namespaces']" class="ml-1 text-sm font-medium text-hint">{{ namespaceQueryParam }}</a>
+            </div>
+          </li>
+        </ng-template>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'Namespaces'">
+          <ng-container class="flex items-center" *ngFor="let breadcrumb of breadcrumbs">
+            <li aria-current="page">
+              <div class="flex items-center">
+                <svg
+                  aria-hidden="true"
+                  class="w-6 h-6 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                <a
+                  *ngIf="breadcrumb?.params?.name"
+                  [routerLink]="['./namespaces', breadcrumb?.url[0]?.path]"
+                  [queryParams]="{
+                    kubeClusterId: breadcrumb?.queryParams.kubeClusterId,
+                    namespace: namespaceQueryParam
+                  }"
+                  routerLinkActive="router-link-active"
+                  class="ml-1 text-sm font-medium text-hint"
+                  >{{ breadcrumb?.label }}</a
+                >
+                <span *ngIf="!breadcrumb?.params?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                  breadcrumb?.label
+                }}</span>
+              </div>
+            </li>
+            <li aria-current="page" *ngIf="breadcrumb?.params?.name">
+              <div class="flex items-center">
+                <svg
+                  aria-hidden="true"
+                  class="w-6 h-6 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.params?.name }}</span>
+              </div>
+            </li>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'Nodes'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.name"
+                    [routerLink]="['./node-list']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span *ngIf="!breadcrumb?.queryParams?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.label
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'persistent-volumes'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.name"
+                    [routerLink]="['./persistent-volume']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span *ngIf="!breadcrumb?.queryParams?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.label
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'cluster-role'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.name"
+                    [routerLink]="['./cluster-role']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span *ngIf="!breadcrumb?.queryParams?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.label
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'cluster-role-binding'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.name"
+                    [routerLink]="['./cluster-role-binding']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span *ngIf="!breadcrumb?.queryParams?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.label
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'storage-class'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.name"
+                    [routerLink]="['./storage-class']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span *ngIf="!breadcrumb?.queryParams?.name" class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.label
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+
+        <div *ngIf="breadcrumbs[0]?.label === 'custom-resources-defination'">
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="flex items-center">
+              <li aria-current="page">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <a
+                    *ngIf="breadcrumb?.queryParams?.resource"
+                    [routerLink]="['./custom-resources-defination']"
+                    [queryParams]="{ kubeClusterId: breadcrumb?.queryParams.kubeClusterId }"
+                    routerLinkActive="router-link-active"
+                    class="ml-1 text-sm font-medium text-hint"
+                    >{{ breadcrumb?.label }}</a
+                  >
+                  <span
+                    *ngIf="!breadcrumb?.queryParams?.resource"
+                    class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400"
+                    >{{ breadcrumb?.label }}</span
+                  >
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.resource">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{
+                    breadcrumb?.queryParams?.resource
+                  }}</span>
+                </div>
+              </li>
+              <li aria-current="page" *ngIf="breadcrumb?.queryParams?.name">
+                <div class="flex items-center">
+                  <svg
+                    aria-hidden="true"
+                    class="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ breadcrumb?.queryParams?.name }}</span>
+                </div>
+              </li>
+            </div>
+          </ng-container>
+        </div>
+      </ol>
+    </nav>
+
+    <div *ngIf="!isLoading" class="card p-page">
+      <div class="flex dashboard-header">
+        <div class="w-full h-full">
+          <div class="w-full flex mb-6 sm:overflow-auto overflow-x-scroll">
+            <ul class="flex cluster-nav-tab mb-1">
+              <li *hasAnyAuthority="'VIEW_K8S_NODES'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['node-list']" routerLinkActive="current">Nodes</a>
+              </li>
+
+              <li *hasAnyAuthority="'VIEW_K8S_NAMESPACE'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['namespaces']" routerLinkActive="current">Namespaces</a>
+              </li>
+
+              <li *hasAnyAuthority="'VIEW_K8S_PERSISTENT_VOLUME'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['persistent-volume']" routerLinkActive="current">Persistent Volume</a>
+              </li>
+
+              <li *hasAnyAuthority="'VIEW_K8S_CLUSTER_ROLE'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['cluster-role']" routerLinkActive="current">Cluster Role</a>
+              </li>
+
+              <li *hasAnyAuthority="'VIEW_K8S_CLUSTER_ROLE_BINDING'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['cluster-role-binding']" routerLinkActive="current"
+                  >Cluster Role Binding</a
+                >
+              </li>
+              <li *hasAnyAuthority="'VIEW_K8S_STORAGE_CLASS'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['storage-class']" routerLinkActive="current">Storage Class</a>
+              </li>
+
+              <li *hasAnyAuthority="'VIEW_K8S_CUSTOM_RESOURCE_DEFINATION'" class="outline-none">
+                <a class="inline-block py-2 px-6" [routerLink]="['custom-resources-defination']" routerLinkActive="current"
+                  >Custom Resources</a
+                >
+              </li>
+              <li>
+                <button class="flex items-center more-btn" mat-menu-item [matMenuTriggerFor]="more">
+                  <span class="px-2">All Resources</span>
+                  <mat-icon style="font-weight: 100; font-size: large; margin-right: 0px" [icIcon]="icDown"></mat-icon>
+                </button>
+                <mat-menu class="more-menu" #more="matMenu">
+                  <div class="select_search_wrapper">
+                    <input
+                      (click)="$event.stopPropagation()"
+                      [ngModelOptions]="{ standalone: true }"
+                      [(ngModel)]="resourcesSearchTerm"
+                      aria-name="search"
+                      type="text"
+                      class="bg-transparent appearance-none border-0 rounded w-full leading-tight focus:outline-none focus:shadow-outline"
+                      autocomplete="off"
+                      placeholder="Search ..."
+                    />
+                  </div>
+
+                  <div *ngFor="let item of resourceRouteMap | keyvalue | filter: resourcesSearchTerm">
+                    <button
+                      *hasAnyAuthority="resourcePermissionMap.get(item.value)"
+                      (click)="navigateToResources(item.value)"
+                      mat-menu-item
+                    >
+                      <span class="invisible">_</span>{{ item.key }}
+                    </button>
+                  </div>
+                </mat-menu>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div *hasAnyAuthority="''">
+          <button
+            id="create-btn"
+            matTooltip="Apply Any Manifest"
+            matTooltipPosition="above"
+            mat-raised-button
+            color="primary"
+            type="button"
+            class="px-6 text-base mr-4"
+            (click)="onCreate()"
+          >
+            <div class="flex items-center">
+              <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="20px"></ic-icon>
+              <span>Create</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <router-outlet></router-outlet>
+    </div>
+    <div class="mt-5" *ngIf="isLoading">
+      <mat-progress-spinner strokeWidth="2" diameter="40" mode="indeterminate"></mat-progress-spinner>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>
+
+<!-- *hasAnyAuthority="'MANAGE_SECRET'"
+(click)="openForm()" -->

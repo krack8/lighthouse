@@ -1,0 +1,147 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center mt-8 mb-4">
+    <div class="flex">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }">
+        <h3 class="inline mr-2" style="color: var(--color-primary)">{{ title }}</h3>
+      </a>
+      <mat-icon [icIcon]="icRight" style="font-size: 22px; margin-top: 2px"></mat-icon>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_NAMESPACE_RESOURCE_QUOTA'" class="flex items-center">
+      <div class="px-2">
+        <button mat-raised-button class="float-right detaisl-edit-btn" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+
+      <div class="px-2">
+        <button mat-raised-button class="btn float-right detaisl-delete-btn" type="button" (click)="onDelete(data)">
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
+
+    <div class="page-root mt-4" *ngIf="data">
+      <div class="kube-card">
+        <h2 class="kube-card__title">Spec</h2>
+        <div class="kube-card__content">
+          <div class="flex flex-wrap -mx-2">
+            <div class="px-2 w-full sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Hard</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of data?.spec?.hard | keyvalue">
+                  <span class="kc-dataset-key"> {{ item.key }} </span> : {{ item.value }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Scope Selector</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of data?.spec?.scopeSelector?.matchExpressions">
+                  <div class="kc-dataset__name mb-2 px-2">Match Expressions</div>
+                  <h3 class="kc-dataset__value px-2" *ngFor="let obj of item | keyvalue">
+                    <span class="kc-dataset-key"> {{ obj.key }} </span> : {{ obj.value }}
+                  </h3>
+                </h3>
+                <h3 *ngIf="!data?.spec?.scopeSelector?.matchExpressions">-</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-root mt-4" *ngIf="data">
+      <div class="kube-card">
+        <h2 class="kube-card__title">Status</h2>
+        <div class="kube-card__content">
+          <div class="flex flex-wrap -mx-2">
+            <div class="px-2 w-full sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Hard</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of data?.status?.hard | keyvalue">
+                  <span class="kc-dataset-key"> {{ item.key }} </span> : {{ item.value }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Used</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of data?.status?.used | keyvalue">
+                  <span class="kc-dataset-key"> {{ item.key }} </span> : {{ item.value }}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="kube-card mt-3">
+        <h2 class="kube-card__title">Role Reference</h2>
+        <div class="kube-card__content">
+            <div class="kube-table__wrapper">
+              <div class="kube-table--responsive">
+                <table class="kube-table heading-diff">
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let obj of data?.roleRef | keyvalue">
+                      <td width="30%">{{ obj?.key }}</td>
+                      <td> {{ obj?.value }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="kube-card mt-3">
+        <h2 class="kube-card__title">Subjects</h2>
+        <div class="kube-card__content">
+            <div class="kube-table__wrapper">
+              <div class="kube-table--responsive">
+                <table class="kube-table heading-diff">
+                  <thead>
+                    <tr>
+                      <th>Kind</th>
+                      <th>Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let obj of data?.subjects">
+                      <td width="30%">{{ obj?.kind }}</td>
+                      <td> {{ obj?.name }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+      </div> -->
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

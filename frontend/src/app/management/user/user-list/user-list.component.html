@@ -1,0 +1,114 @@
+<kc-page-layout>
+  <kc-page-layout-content class="-mt-6" kcContainer>
+    <div class="card overflow-auto -mt-16 content">
+      <div class="px-6 h-16 border-b sticky left-0" fxLayout="row" fxLayoutAlign="start center">
+        <h2 class="title my-0 ltr:pr-4 rtl:pl-4 ltr:mr-4 rtl:ml-4 ltr:border-r rtl:border-l" fxFlex="none">
+          <span>Users</span>
+        </h2>
+
+        <div class="search mr-3">
+          <div class="input">
+            <button mat-icon-button>
+              <i class="kc-search"></i>
+            </button>
+            <input [(ngModel)]="searchUser" aria-name="search" type="text" autocomplete="off" placeholder="Search" />
+          </div>
+        </div>
+        <span fxFlex></span>
+        <span fxFlex></span>
+
+        <button
+          (click)="userForm()"
+          class="ml-4"
+          color="primary"
+          id="add-user"
+          fxFlex="none"
+          mat-mini-fab
+          matTooltip="Add user"
+          type="button"
+        >
+          <mat-icon [icIcon]="icAdd"></mat-icon>
+        </button>
+      </div>
+      <div class="m-6" *ngIf="isLoading">
+        <mat-progress-spinner mode="indeterminate" strokeWidth="2" diameter="40"></mat-progress-spinner>
+      </div>
+      <div class="kc-table__container">
+        <table mat-table matSort [dataSource]="users | filter: searchUser" class="kc-table ltMd:responsive" *ngIf="!isLoading">
+          <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+          <tr mat-row *matRowDef="let user; columns: tableColumns" [class.user-super-admin]="user?.username === user?.createdBy"></tr>
+
+          <ng-container matColumnDef="checkbox">
+            <th *matHeaderCellDef mat-header-cell></th>
+            <td *matCellDef="let row" class="w-4" mat-cell></td>
+          </ng-container>
+
+          <ng-container matColumnDef="username">
+            <th width="30%" mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let user">
+              <a class="name cursor-pointer hover:text-primary-400" [routerLink]="[user.id]">{{ user.username }}</a>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th width="20%" mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let user">
+              <span class="name">{{ user?.first_name || user?.last_name ? user.first_name + ' ' + user?.last_name : '-' }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th width="15%" mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let user">
+              <span class="name">{{ user?.user_type === 'ADMIN' ? 'ADMIN' : 'NONE ADMIN' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let user">
+              <span class="font-semibold" [ngClass]="user?.user_is_active ? 'text-green-600' : 'text-red-600'">{{
+                user?.user_is_active ? 'Active' : 'Inactive'
+              }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="created">
+            <th mat-header-cell *matHeaderCellDef class="text-center">Created</th>
+            <td mat-cell *matCellDef="let user" class="text-center">{{ user?.created_at | date }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="action">
+            <th width="10%" *matHeaderCellDef class="actions-cell text-right" mat-header-cell mat-sort-header></th>
+            <td mat-cell *matCellDef="let user" class="w-10 text-right">
+              <button
+                [id]="user?.username"
+                mat-icon-button
+                [matMenuTriggerFor]="menu"
+                [disabled]="currentUser?.userInfo?.username === user?.username || user?.created_by === 'SYSTEM'"
+              >
+                <mat-icon [icIcon]="icMoreHoriz"></mat-icon>
+              </button>
+              <mat-menu #menu="matMenu" xPosition="before">
+                <button mat-menu-item [routerLink]="[user.id]" [id]="user.username">
+                  <mat-icon [icIcon]="icInfo"></mat-icon>
+                  <span>View</span>
+                </button>
+                <button mat-menu-item (click)="userForm(user)" id="update-info-btn">
+                  <mat-icon [icIcon]="icEdit"></mat-icon>
+                  <span>Update Info</span>
+                </button>
+                <button mat-menu-item (click)="updatePassword(user)">
+                  <mat-icon [icIcon]="icEdit"></mat-icon>
+                  <span>Update Password</span>
+                </button>
+                <button mat-menu-item (click)="deleteUser(user)" id="delete-user-btn">
+                  <mat-icon [icIcon]="icDelete"></mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+        </table>
+      </div>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>

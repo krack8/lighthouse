@@ -1,0 +1,83 @@
+.cluster {
+  &-illustration {
+    padding: 1rem;
+    width: 100%;
+
+    svg {
+      max-width: 100%;
+      max-height: auto;
+    }
+  }
+
+  &-intro {
+    height: 85vh;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &-text {
+    position: relative;
+    width: 100%;
+    padding-left: 20px;
+
+    @media screen and (max-width: 900px) {
+      width: 100%;
+
+      h1 {
+        font-size: calc(3vh + 10px);
+      }
+
+      h3 {
+        font-size: calc(1vh + 10px);
+      }
+    }
+
+    h1,
+    h3 {
+      background-color: var(--background-base);
+      padding: 10px;
+    }
+
+    h1 {
+      position: relative;
+
+      &:before {
+        position: absolute;
+        content: ' ';
+        height: 100%;
+        width: 8px;
+        background: var(--color-primary);
+        left: -20px;
+        top: 0;
+        border-radius: 3px;
+      }
+    }
+
+    h3 {
+      position: relative;
+
+      &:before {
+        position: absolute;
+        content: ' ';
+        height: 100%;
+        width: 8px;
+        background: var(--color-primary);
+        left: -20px;
+        top: 0;
+        border-radius: 3px;
+      }
+    }
+  }
+
+  @screen md {
+    &-illustration {
+      max-width: 40%;
+    }
+
+    &-text {
+      max-width: 60%;
+      padding: 30px;
+    }
+  }
+}

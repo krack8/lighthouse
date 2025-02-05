@@ -4,3 +4,7 @@ node_modules
 coverage
 .env
 *.patch
+
+frontend/dist
+frontend/.angular/cache
+frontend/.sass-cache

@@ -1,0 +1,18 @@
+.cdk-overlay-pane {
+  animation: dialogAnimation 0.62s;
+}
+
+@keyframes dialogAnimation {
+  0% {
+    opacity: 0;
+    transform: scale(2.7);
+  }
+  100% {
+    opacity: 100;
+    transform: scale(1);
+  }
+}
+
+.custom-dialog-container {
+  animation: dialogAnimation 0.2s;
+}

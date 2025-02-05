@@ -1,0 +1,41 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center mt-8 mb-4">
+    <div class="flex">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }">
+        <h3 class="inline mr-2" style="color: var(--color-primary)">{{ title }}</h3>
+      </a>
+      <mat-icon [icIcon]="icRight" style="font-size: 22px; margin-top: 2px"></mat-icon>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_NAMESPACE_REPLICATION_CONTROLLER'" class="flex items-center">
+      <div class="px-2">
+        <button mat-raised-button class="float-right detaisl-edit-btn" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+
+      <div class="px-2">
+        <button mat-raised-button class="btn float-right details-delete-btn" type="button" (click)="onDelete(data)">
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

@@ -1,0 +1,73 @@
+<a
+  *ngIf="isLink(item) && !isFunction(item.route)"
+  [fragment]="item.fragment"
+  [routerLinkActiveOptions]="item.routerLinkActive || { exact: false }"
+  [routerLink]="item.route"
+  class="item"
+  fxLayout="row"
+  matRipple
+  routerLinkActive="active"
+  [id]="item.id"
+>
+  <mat-icon *ngIf="level === 0 && item.icon" [icIcon]="item.icon" class="item-icon" fxFlex="none"></mat-icon>
+  <span class="item-label" fxFlex="auto">{{ item.label }}</span>
+  <span
+    *ngIf="item.badge"
+    [style.background]="'var(' + item.badge.background + ')' | safeStyle"
+    [style.color]="'var(' + item.badge.color + ')' | safeStyle"
+    class="item-badge"
+    fxFlex="none"
+    >{{ item.badge.value }}</span
+  >
+</a>
+
+<div (click)="item.route()" *ngIf="isLink(item) && isFunction(item.route)" class="item" fxLayout="row" matRipple routerLinkActive="active">
+  <mat-icon *ngIf="level === 0 && item.icon" [icIcon]="item.icon" class="item-icon" fxFlex="none"></mat-icon>
+  <span class="item-label" fxFlex="auto">{{ item.label }}</span>
+  <span
+    *ngIf="item.badge"
+    [style.background]="'var(' + item.badge.background + ')' | safeStyle"
+    [style.color]="'var(' + item.badge.color + ')' | safeStyle"
+    class="item-badge"
+    fxFlex="none"
+    >{{ item.badge.value }}</span
+  >
+</div>
+
+<ng-container *ngIf="isDropdown(item)">
+  <div (click)="toggleOpen()" [class.active]="isOpen || isActive" [class.open]="isOpen" class="item" fxLayout="row" matRipple>
+    <mat-icon *ngIf="level === 0 && item.icon" [icIcon]="item.icon" class="item-icon" fxFlex="none"></mat-icon>
+    <span class="item-label" fxFlex="auto">{{ item.label }}</span>
+    <span
+      *ngIf="item.badge"
+      [style.background]="'var(' + item.badge.background + ')' | safeStyle"
+      [style.color]="'var(' + item.badge.color + ')' | safeStyle"
+      class="item-badge"
+      fxFlex="none"
+      >{{ item.badge.value }}</span
+    >
+    <mat-icon class="item-dropdown-icon" fxFlex="none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="1em"
+        height="1em"
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 24 24"
+        style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+      >
+        <path fill="currentColor" d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"></path>
+      </svg>
+    </mat-icon>
+  </div>
+  <div [@dropdown]="isOpen" class="item-dropdown">
+    <span *ngFor="let subItem of item.children">
+      <kc-sidenav-item [item]="subItem" [level]="level + 1"></kc-sidenav-item>
+    </span>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="isSubheading(item)">
+  <div class="subheading">{{ item.label }}</div>
+  <kc-sidenav-item *ngFor="let subItem of item.children" [item]="subItem" [level]="0"></kc-sidenav-item>
+</ng-container>

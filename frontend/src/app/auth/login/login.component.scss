@@ -1,0 +1,368 @@
+// Social
+$color-github: #000;
+$color-bitbucket: #2684ff;
+$color-gitlab: #fc6d27;
+$color-google: #db4437;
+
+.kc-style {
+  &-light :host {
+    --left-side-bg: linear-gradient(
+      180deg,
+      #4164a9 84.13%,
+      rgba(65, 100, 169, 0.729167) 107.75%,
+      rgba(119, 146, 200, 0.520833) 125.91%,
+      rgba(160, 181, 222, 0.34375) 141.35%,
+      rgba(180, 198, 232, 0.161458) 157.25%,
+      rgba(244, 246, 249, 0) 171.33%
+    );
+    --right-side-bg: #ffffff;
+    --form-bg: #ffffff;
+    // Illustrator Left
+    --left-1: linear-gradient(179.11deg, #4164a9 -123.45%, #4164a9 -13.75%, #5676b6 103.04%);
+    --left-2: linear-gradient(179.18deg, #4164a9 -57.84%, #4164a9 53.74%, #5676b6 172.51%);
+    --left-3: linear-gradient(179.56deg, #5bc4d6 -58.17%, #4164a9 11.85%, #5676b6 86.39%);
+    --left-4: linear-gradient(179.06deg, #4164a9 -8.52%, #ffffff 171.32%);
+    --left-5: var(--left-2);
+    --left-6: var(--left-2);
+    --left-7: var(--left-2);
+    // Illustrator Right
+    --right-1: linear-gradient(196deg, #fff 0%, #d2e1ff 100%);
+    --right-2: linear-gradient(196deg, #fff 0%, #caedf3 100%);
+    --right-3: var(--right-1);
+    --form-back-1: var(--right-1);
+    --form-back-2: var(--right-2);
+    --form-back-3: var(--right-2);
+    --btn-sso: rgba(0, 0, 0, 0.04);
+  }
+
+  &-dark :host {
+    --left-side-bg: linear-gradient(
+      180deg,
+      #182641 84.13%,
+      #293855 107.75%,
+      rgba(115, 128, 152, 0.520833) 125.91%,
+      rgba(115, 127, 149, 0.34375) 141.35%,
+      rgba(225, 227, 232, 0.161458) 157.25%,
+      rgba(255, 255, 255, 0) 171.33%
+    );
+    --right-side-bg: linear-gradient(201.13deg, #2c3d5e 20.98%, #182641 101.11%);
+    --form-bg: linear-gradient(280.19deg, #3d4d6d -5.42%, #182641 204.15%);
+
+    // Illustrator
+    --left-1: linear-gradient(183.92deg, #2c3d5e -5.39%, #182641 19.08%);
+    --left-2: linear-gradient(146deg, #2c3d5e 0%, #182641 100%);
+    --left-3: linear-gradient(146deg, #2c3d5e 0%, #182641 100%);
+    --left-4: linear-gradient(180deg, #2c3d5e 0%, #182641 100%);
+    --left-5: linear-gradient(214deg, #2c3d5e 0%, #182641 100%);
+    --left-6: linear-gradient(214deg, #2c3d5e 0%, #182641 100%);
+    --left-7: linear-gradient(174.03deg, #2c3d5e -3.58%, #182641 42.68%);
+
+    // Illustrator Right
+    --right-1: linear-gradient(230deg, #1e2f4e 0%, #334465 100%);
+    --right-2: linear-gradient(230deg, #1e2f4e 0%, #334465 100%);
+    --right-3: linear-gradient(214deg, #2c3d5e 0%, #182641 100%);
+    --form-back-1: linear-gradient(230deg, #1e2f4e 0%, #334465 100%);
+    --form-back-2: linear-gradient(214deg, #1e2f4e 0%, #334465 100%);
+    --form-back-3: linear-gradient(214deg, #2c3d5e 0%, #182641 100%);
+    --btn-sso: rgba(250, 250, 250, 0.04);
+  }
+}
+
+.create_link {
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: 0.2s linear;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.illustration-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  overflow: hidden;
+}
+
+.left-side {
+  &-bg {
+    background: var(--left-side-bg);
+    display: none !important;
+    position: relative;
+    z-index: 3;
+
+    [class^='login-left-'] {
+      z-index: 1;
+      position: absolute;
+    }
+
+    .login-left {
+      &-1 {
+        top: -3%;
+        left: 16%;
+        width: 31px;
+        height: 271px;
+        border-radius: 100px;
+        transform: rotate(150deg) translateY(50%);
+        background: var(--left-1);
+      }
+
+      &-2 {
+        top: 18%;
+        left: 16%;
+        width: 53px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(120deg);
+
+        background: var(--left-2);
+      }
+
+      &-3 {
+        top: 36%;
+        left: -20px;
+        width: 53px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(-30deg);
+        background: var(--left-3);
+      }
+
+      &-4 {
+        bottom: 0%;
+        right: 10%;
+        width: 53px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(-30deg) translateY(56%);
+        background: var(--left-4);
+      }
+
+      &-5 {
+        right: 5%;
+        bottom: 25%;
+        width: 54px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(-30deg);
+        background: var(--left-5);
+      }
+
+      &-6 {
+        top: 30%;
+        right: 12%;
+        width: 53px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(120deg);
+        background: var(--left-6);
+      }
+
+      &-7 {
+        top: -42px;
+        left: 53%;
+        width: 53px;
+        height: 138px;
+        border-radius: 100px;
+        transform: rotate(-30deg);
+        background: var(--left-7);
+      }
+    }
+  }
+}
+
+.ls-infographic {
+  width: 90%;
+  height: auto;
+  margin-bottom: 8vh;
+  z-index: 2;
+}
+
+// ---------- Right Start
+.right-side-bg {
+  position: relative;
+  z-index: 2 !important;
+  // overflow: hidden;
+  background: var(--right-side-bg);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center top;
+
+  [class^='login-right-'] {
+    position: absolute;
+    border-radius: 100px;
+  }
+
+  .login-right {
+    &-1 {
+      right: 20%;
+      top: 0;
+      width: 54px;
+      height: 138.315px;
+      transform: rotate(-45deg) translateY(-63%);
+      background: var(--right-1);
+    }
+
+    &-2 {
+      bottom: 35%;
+      right: 0;
+      width: 54px;
+      height: 138.315px;
+      transform: rotate(120deg);
+      background: var(--right-2);
+    }
+
+    &-3 {
+      right: 50%;
+      bottom: 0;
+      width: 54px;
+      height: 208.734px;
+      transform: rotate(120deg) translateY(-100%);
+      background: var(--right-3);
+    }
+  }
+}
+
+// Login Back
+.login-back {
+  &-1 {
+    top: 51px;
+    left: -43px;
+    width: 54px;
+    height: 172.94px;
+    transform: rotate(-60deg);
+    border-radius: 100px;
+    background: var(--form-back-1);
+  }
+
+  &-2 {
+    top: 122px;
+    left: -20px;
+    width: 29.131px;
+    height: 138.067px;
+    transform: rotate(-60deg);
+    border-radius: 100px;
+    background: var(--form-back-2);
+  }
+
+  &-3 {
+    left: -29px;
+    bottom: 0;
+    width: 54px;
+    height: 208.734px;
+    transform: rotate(-60deg);
+    border-radius: 100px;
+    background: var(--form-back-3);
+  }
+}
+
+// ---------- Right Start
+
+// ---------- Form Start
+.rs-form-box {
+  position: relative;
+  width: 90%;
+  margin: 30px 0px 30px 0px;
+  padding: 30px;
+  background: var(--form-bg);
+  border: 2px solid var(--border);
+  box-sizing: border-box;
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+
+  [class^='login-back-'] {
+    position: absolute;
+    z-index: -1;
+  }
+}
+
+// ---------- Form End
+
+.btn-auth {
+  height: 40px;
+  border-radius: 5px !important;
+
+  &-sso {
+    background: var(--btn-sso);
+    // border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.btn-auth-social {
+  height: 55px;
+  min-height: 40px !important;
+  border-radius: 5px !important;
+  background: #20304d;
+  border: 1px solid #5c638b;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+.btn-auth > span {
+  font-size: 18px;
+}
+
+.half-divider {
+  width: 45%;
+  border: 0.5px solid #d7d9e3;
+
+  span {
+    color: #d7d9e3;
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .btn-auth {
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .left-side-bg {
+    display: flex !important;
+  }
+}
+
+@media only screen and (min-width: 1280px) {
+  .rs-form-box {
+    width: 70%;
+    margin: 0px;
+  }
+
+  .ls-infographic {
+    width: 70%;
+  }
+}
+
+@media only screen and (min-width: 1600px) {
+  .rs-form-box {
+    width: 60%;
+    margin: 0px;
+    padding: 40px;
+  }
+
+  .ls-infographic {
+    width: 65%;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-color);
+  -webkit-box-shadow: 0 0 0px 1000px var(--background-1) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.password-visible-toggler {
+  color: var(--text-color);
+}

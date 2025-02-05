@@ -1,0 +1,59 @@
+.pod-title {
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.error-wrap {
+  background: var(--background-base);
+}
+
+.graph-info {
+  height: 150px;
+  margin-top: 100px;
+
+  h6 {
+    margin-bottom: 10px;
+  }
+}
+
+.info-name-box {
+  background: var(--background-info-name-box);
+  border: 1.5px solid var(--border);
+  box-sizing: border-box;
+  border-radius: 6px;
+  padding: 15px;
+  word-break: break-all;
+  white-space: nowrap;
+  width: 500px !important;
+}
+
+.icon_cdk {
+  border-radius: 6px;
+  fill: white;
+}
+
+.allocation-box {
+  background: var(--background-kc-stepper);
+  margin-right: 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 16px;
+  color: var(--text-color);
+  padding: 15px;
+  height: 150px;
+}
+
+.color-available {
+  color: var(--color-warn);
+  opacity: 0.7;
+}
+
+.color-used {
+  color: var(--color-success);
+}
+
+.base-color {
+  color: var(--text-color);
+  opacity: 0.2;
+}

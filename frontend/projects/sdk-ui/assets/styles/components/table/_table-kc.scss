@@ -1,0 +1,36 @@
+/*
+* KC Table used in over the project
+*/
+
+.kc-table {
+  width: 100%;
+
+  &__container {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1279px) {
+  .ltXl\:responsive {
+    width: 1279px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .kc-table\:responsive,
+  .ltLg\:responsive {
+    width: 1023px;
+  }
+}
+
+@media (max-width: 767px) {
+  .ltMd\:responsive {
+    width: 767px;
+  }
+}
+
+@media (max-width: 639px) {
+  .ltSm\:responsive {
+    width: 639px;
+  }
+}

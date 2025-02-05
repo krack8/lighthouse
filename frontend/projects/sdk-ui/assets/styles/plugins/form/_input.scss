@@ -1,0 +1,196 @@
+.custom-mat-form-field {
+  width: 100% !important;
+
+  .mat-form-field-flex {
+    padding: 22px 18px 0 18px !important;
+    background: var(--background-kc-stepper) !important;
+    margin-top: 0 !important;
+  }
+
+  .mat-form-field-infix {
+    position: unset !important;
+    border-top: 0 !important;
+    padding: 0 !important;
+    height: 42px !important;
+    width: 100%;
+
+    input {
+      margin-top: 0.4rem !important;
+      color: var(--text-color);
+    }
+
+    input[type='number'] {
+      margin-top: 2% !important;
+    }
+  }
+
+  .mat-form-field-label {
+    left: 18px !important;
+    padding-top: 18px !important;
+  }
+
+  .mat-form-field-empty {
+    padding-top: 9px !important;
+    top: 30% !important;
+
+    span,
+    mat-label {
+      background: var(--background) !important;
+      color: var(--text-color);
+    }
+  }
+
+  .mat-form-field-label-wrapper {
+    position: absolute !important;
+    top: 0 !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .mat-form-field-outline-gap {
+    border-top-color: unset !important;
+  }
+
+  mat-select {
+    margin-top: 2% !important;
+    .mat-select-value {
+      color: var(--text-color);
+    }
+  }
+
+  &.mat-form-field-appearance-outline .mat-form-field-prefix,
+  &.mat-form-field-appearance-outline .mat-form-field-suffix {
+    top: 1px;
+  }
+
+  // Prefix icon Heigh Fix
+  &.mat-form-field:not(.mat-form-field-appearance-legacy) .mat-form-field-prefix .mat-icon-button,
+  &.mat-form-field:not(.mat-form-field-appearance-legacy) .mat-form-field-suffix .mat-icon-button {
+    .mat-icon {
+      font-size: 16px;
+      height: 15px;
+    }
+
+    &.btn-eye {
+      width: 28px;
+      height: 21px;
+    }
+  }
+}
+
+.custom-mat-form-field-full-width {
+  width: 100% !important;
+
+  .mat-form-field-flex {
+    padding: 22px 18px 0 18px !important;
+    background: var(--background-kc-stepper) !important;
+    margin-top: 0 !important;
+  }
+
+  .mat-form-field-infix {
+    position: unset !important;
+    border-top: 0 !important;
+    padding: 0 !important;
+    height: 42px !important;
+
+    input {
+      margin-top: 0.4rem !important;
+      color: var(--text-color);
+    }
+
+    input[type='number'] {
+      margin-top: 2% !important;
+    }
+  }
+
+  .mat-form-field-label {
+    left: 18px !important;
+    padding-top: 18px !important;
+  }
+
+  .mat-form-field-empty {
+    padding-top: 9px !important;
+    top: 30% !important;
+
+    span,
+    mat-label {
+      background: var(--background) !important;
+      color: var(--text-color);
+    }
+  }
+
+  .mat-form-field-label-wrapper {
+    position: absolute !important;
+    top: 0 !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .mat-form-field-outline-gap {
+    border-top-color: unset !important;
+  }
+
+  mat-select {
+    margin-top: 2% !important;
+    .mat-select-value {
+      color: var(--text-color);
+    }
+  }
+}
+
+.custom-mat-form-field,
+.custom-mat-form-field-full-width {
+  // direct mat class css
+  &.mat-form-field-appearance-outline .mat-form-field-flex {
+    border-radius: 5px;
+  }
+
+  &.mat-form-field-appearance-outline .mat-form-field-outline {
+    color: var(--border);
+    font-weight: 600;
+    border-radius: 6px;
+    top: 0em !important;
+  }
+}
+
+// BT/Bootstrap style/ style 2
+.bt-form-field {
+  &.mat-form-field-appearance-outline {
+    .mat-form-field-infix {
+      padding: 17px 0;
+      border-top-width: 4px;
+    }
+    .mat-select-arrow-wrapper {
+      transform: translate(0);
+    }
+    .mat-form-field-outline-thick .mat-form-field-outline-start,
+    .mat-form-field-outline-thick .mat-form-field-outline-end,
+    .mat-form-field-outline-thick .mat-form-field-outline-gap {
+      border-width: 1px;
+    }
+  }
+
+  .mat-chip.mat-standard-chip {
+    background: var(--box-container-bg-2);
+  }
+
+  &.mat-form-field-appearance-outline {
+    .mat-form-field-label {
+      margin-top: 2px;
+    }
+  }
+}
+
+// ---------------------- Form View Mode ---------------------
+.form-view-mode {
+  .mat-form-field-infix {
+    input {
+      color: var(--text-color) !important;
+    }
+  }
+  mat-select {
+    .mat-select-value {
+      color: var(--text-color) !important;
+    }
+  }
+}

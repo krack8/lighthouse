@@ -1,0 +1,536 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center mt-8 mb-4">
+    <div class="flex">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }">
+        <h3 class="inline mr-2" style="color: var(--color-primary)">{{ title }}</h3>
+      </a>
+      <mat-icon [icIcon]="icRight" style="font-size: 22px; margin-top: 2px"></mat-icon>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" class="flex items-center">
+      <button
+        *hasAnyAuthority="'MANAGE_NAMESPACE_POD'"
+        class="flex justify-center items-center btn-color"
+        mat-menu-item
+        [matMenuTriggerFor]="containerOptions"
+      >
+        <mat-icon [icIcon]="icLogs"></mat-icon>
+
+        <span>View Logs </span>
+      </button>
+      <mat-menu class="view-containers" #containerOptions="matMenu">
+        <button (click)="viewLogs(container?.name)" mat-menu-item *ngFor="let container of data?.spec?.containers">
+          {{ container.name }}
+        </button>
+      </mat-menu>
+
+      <div *ngIf="!data?.metadata?.ownerReferences" class="px-2">
+        <button mat-raised-button class="float-right detaisl-edit-btn" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+
+      <div *ngIf="!data?.metadata?.ownerReferences" class="px-2">
+        <button mat-raised-button class="btn float-right details-delete-btn" type="button" (click)="onDelete(data)">
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+
+      <!-- GRAFANA DASHBOARD --- in developement -->
+      <!-- <div class="px-2">
+        <button mat-raised-button color="primary" class="btn danger float-right" type="button" (click)="open()">
+          <-- </button>
+      </div> -->
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <kc-metadata-template [data]="data?.metadata"></kc-metadata-template>
+
+    <div class="kube-card mt-3">
+      <h2 class="kube-card__title">Resource information</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Node</div>
+              <h3 class="kc-dataset__value">{{ data.spec.nodeName || '-' }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Status</div>
+              <h3 class="kc-dataset__value">
+                {{ filterPodsStatusMes }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 lg:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Ip</div>
+              <h3 class="kc-dataset__value">
+                {{ data?.status?.podIP || '-' }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 lg:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Restart</div>
+              <h3 class="kc-dataset__value">
+                {{
+                  data?.status?.containerStatuses?.length && data?.status?.containerStatuses[0]?.restartCount
+                    ? data?.status?.containerStatuses[0]?.restartCount
+                    : 0
+                }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Service Account</div>
+              <h3 class="kc-dataset__value">
+                <a
+                  class="details__link"
+                  [routerLink]="['../../service-accounts', data?.spec?.serviceAccountName]"
+                  [queryParams]="queryParams"
+                  >{{ data?.spec?.serviceAccountName }}</a
+                >
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kube-card mt-3">
+      <h2 class="kube-card__title">Spec</h2>
+      <div class="kube-card__content">
+        <div class="row" *ngIf="data?.spec">
+          <div class="kube-card__content">
+            <div class="flex flex-wrap -mx-2">
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">DNS Policy</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.dnsPolicy }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Restart Policy</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.restartPolicy }}</h3>
+                </div>
+              </div>
+
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Scheduler Name</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.schedulerName }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Service Account</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.serviceAccount || '-' }}</h3>
+                </div>
+              </div>
+
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Service Account Name</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.serviceAccountName || '-' }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Termination Grace Period Seconds</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.terminationGracePeriodSeconds }}</h3>
+                </div>
+              </div>
+
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Service Enable Links</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.enableServiceLinks }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Hostname</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.hostname }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Node Name</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.nodeName }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Sub Domain</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.subdomain }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Priority</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.priority }}</h3>
+                </div>
+              </div>
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Preeamption Policy</div>
+                  <h3 class="kc-dataset__value">{{ data?.spec?.preemptionPolicy }}</h3>
+                </div>
+              </div>
+
+              <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                <div class="kc-dataset">
+                  <div class="kc-dataset__name">Security Context</div>
+                  <kc-json-data-viewer-template [data]="data?.spec?.securityContext"></kc-json-data-viewer-template>
+                </div>
+              </div>
+              <div *ngIf="data?.spec?.volumes" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-2">
+                <div class="kc-dataset">
+                  <kc-expansion-data-viewer-template [label]="'Volumes'" [data]="data?.spec?.volumes"></kc-expansion-data-viewer-template>
+                </div>
+              </div>
+              <div *ngIf="data?.spec?.affinity" class="px-2 w-full sm:w-1/2 mt-2">
+                <div class="kc-dataset">
+                  <kc-expansion-data-viewer-template [label]="'Affinity'" [data]="data?.spec?.affinity"></kc-expansion-data-viewer-template>
+                </div>
+              </div>
+
+              <div class="w-full mt-12 mb-6">
+                <h3 class="px-2 mb-2">Containers</h3>
+                <div
+                  *ngFor="let container of data?.spec?.containers; let i = index"
+                  class="kube-card__content border-solid border-2 border-rose-500 mt-3 pb-4"
+                >
+                  <div *hasAnyAuthority="'VIEW_LOGS'" class="flex justify-normal items-center mt-2 ml-2">
+                    <div class="ml-4 mt-2">
+                      <button mat-raised-button color="primary" class="btn btn-primary" type="button" (click)="viewLogs(container?.name)">
+                        <span class="mr-2">View Logs</span>
+                        <mat-icon width="25" height="25" [icIcon]="icLogs"></mat-icon>
+                      </button>
+                    </div>
+
+                    <div class="ml-4 mt-4">
+                      <mat-icon
+                        *ngIf="data.status?.containerStatuses[i].ready === true"
+                        matTooltip="Ready"
+                        class="text-green-500"
+                        [icIcon]="icRunning"
+                      ></mat-icon>
+                      <mat-icon
+                        *ngIf="data.status?.containerStatuses[i].ready === false"
+                        class="text-red-700"
+                        [icIcon]="icStopped"
+                      ></mat-icon>
+                    </div>
+                  </div>
+
+                  <div *ngIf="container.name" class="flex flex-wrap mx-2">
+                    <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Name</div>
+                        <h3 class="kc-dataset__value">{{ container.name }}</h3>
+                      </div>
+                    </div>
+                    <div *ngIf="container.imagePullPolicy" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Image Pull Policy</div>
+                        <h3 class="kc-dataset__value">{{ container.imagePullPolicy }}</h3>
+                      </div>
+                    </div>
+
+                    <div *ngIf="container.image" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Image</div>
+                        <h3 class="kc-dataset__value">{{ container.image }}</h3>
+                      </div>
+                    </div>
+                    <div *ngIf="container.terminationMessagePath" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Termination Message Path</div>
+                        <h3 class="kc-dataset__value">{{ container.terminationMessagePath }}</h3>
+                      </div>
+                    </div>
+
+                    <div *ngIf="container.terminationMessagePolicy" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Termination Message Policy</div>
+                        <h3 class="kc-dataset__value">{{ container.terminationMessagePolicy }}</h3>
+                      </div>
+                    </div>
+
+                    <div *ngIf="container?.livenessProbe" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-2">
+                      <div class="kc-dataset">
+                        <kc-expansion-data-viewer-template
+                          [label]="'Liveness Probe'"
+                          [data]="container?.livenessProbe"
+                        ></kc-expansion-data-viewer-template>
+                      </div>
+                    </div>
+                    <div *ngIf="container?.readinessProbe" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-2">
+                      <div class="kc-dataset">
+                        <kc-expansion-data-viewer-template
+                          [label]="'Readiness Probe'"
+                          [data]="container?.readinessProbe"
+                        ></kc-expansion-data-viewer-template>
+                      </div>
+                    </div>
+                    <div *ngIf="container.args" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Argumnets</div>
+                        <h3 class="kc-dataset__value" *ngFor="let arg of container.args">
+                          {{ arg || '-' }}
+                        </h3>
+                      </div>
+                    </div>
+                    <div *ngIf="container.command" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
+                      <div class="kc-dataset">
+                        <div class="kc-dataset__name">Command</div>
+                        <h3 class="kc-dataset__value" *ngFor="let cmd of container.command">
+                          {{ cmd || '-' }}
+                        </h3>
+                      </div>
+                    </div>
+                    <div *ngIf="container?.volumeMounts" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-2">
+                      <div class="kc-dataset">
+                        <kc-expansion-data-viewer-template
+                          [label]="'Volume Mounts'"
+                          [data]="container?.volumeMounts"
+                        ></kc-expansion-data-viewer-template>
+                      </div>
+                    </div>
+                    <div *ngIf="container?.resources" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-2">
+                      <div class="kc-dataset">
+                        <kc-expansion-data-viewer-template
+                          [label]="'Resources'"
+                          [data]="container?.resources"
+                        ></kc-expansion-data-viewer-template>
+                      </div>
+                    </div>
+                  </div>
+
+                  <mat-accordion *ngIf="container.env" class="acc-table-accordion ltSm:responsive mt-6 mx-4">
+                    <mat-expansion-panel>
+                      <mat-expansion-panel-header class="info-table-row">
+                        <mat-panel-title><h4 class="expansion-panel-title">Environment Variables</h4> </mat-panel-title>
+                      </mat-expansion-panel-header>
+                      <div class="kube-card__content">
+                        <div class="row">
+                          <div class="kube-table__wrapper">
+                            <table class="kube-table heading-diff">
+                              <thead>
+                                <tr>
+                                  <th width="30%">Name</th>
+                                  <th width="40%">Value</th>
+                                  <th>ValueFrom</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr *ngFor="let env of container.env">
+                                  <td width="20%">
+                                    {{ env.name }}
+                                  </td>
+                                  <td width="30%">
+                                    {{ env.value }}
+                                  </td>
+                                  <td width="30%">
+                                    <kc-json-data-viewer-template [data]="env.valueFrom"></kc-json-data-viewer-template>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  </mat-accordion>
+
+                  <mat-accordion *ngIf="container.envFrom" class="acc-table-accordion ltSm:responsive mt-6 mx-4">
+                    <mat-expansion-panel>
+                      <mat-expansion-panel-header class="info-table-row">
+                        <mat-panel-title><h4>Environment Variables From</h4> </mat-panel-title>
+                      </mat-expansion-panel-header>
+                      <div class="kube-card__content">
+                        <div class="row">
+                          <div class="kube-table__wrapper">
+                            <table class="kube-table heading-diff">
+                              <thead>
+                                <tr>
+                                  <th width="30%">Name</th>
+                                  <th width="40%">Value</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr *ngFor="let env of container.envFrom">
+                                  <td width="20%">
+                                    <span *ngIf="env.secretRef">secretRef</span>
+                                    <span *ngIf="env.configMapRef">configMapRef</span>
+                                  </td>
+                                  <td width="30%">
+                                    {{ env.configMapRef?.name }}
+                                    {{ env.secretRef?.name }}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  </mat-accordion>
+
+                  <mat-accordion class="acc-table-accordion ltSm:responsive mt-6 mb-6 mx-4">
+                    <mat-expansion-panel>
+                      <mat-expansion-panel-header class="info-table-row">
+                        <mat-panel-title><h4 class="expansion-panel-title">Ports</h4> </mat-panel-title>
+                      </mat-expansion-panel-header>
+                      <div class="kube-card__content">
+                        <div class="row">
+                          <div class="kube-table__wrapper">
+                            <table class="kube-table heading-diff">
+                              <thead>
+                                <tr>
+                                  <th width="30%">Container Port</th>
+                                  <th width="40%">Name</th>
+                                  <th>Protocol</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr *ngFor="let port of container.ports">
+                                  <td width="20%">
+                                    {{ port.containerPort }}
+                                  </td>
+                                  <td width="30%">
+                                    {{ port.name }}
+                                  </td>
+                                  <td width="30%">
+                                    {{ port.protocol }}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  </mat-accordion>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kube-card mt-3">
+    <h2 class="kube-card__title">Tolerations</h2>
+    <div class="kube-card__content">
+      <div class="w-full mb-6">
+        <div class="kube-card__content">
+          <div class="row">
+            <div class="kube-table__wrapper" *ngIf="data?.spec?.tolerations; else emptyDataStatus">
+              <table class="kube-table heading-diff">
+                <thead>
+                  <tr>
+                    <th width="18%">Effect</th>
+                    <th width="25%">Key</th>
+                    <th width="25%">Operation</th>
+                    <th width="25%">TolerationSeconds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let toleration of data?.spec?.tolerations">
+                    <td *ngFor="let obj of toleration | keyvalue">{{ obj.value || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kube-card mt-3">
+    <h2 class="kube-card__title">Conditions</h2>
+    <div class="kube-card__content">
+      <div class="row">
+        <div class="kube-table__wrapper" *ngIf="data?.status?.conditions?.length; else emptyDataStatus">
+          <table class="kube-table heading-diff">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Last Probe time</th>
+                <th>Last transition time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let condition of data.status?.conditions">
+                <td [class.text-danger]="isConditionNegative(condition)">
+                  {{ condition.type }}
+                </td>
+                <td [class.text-danger]="isConditionNegative(condition)">
+                  {{ condition.status }}
+                </td>
+                <td [class.text-danger]="isConditionNegative(condition)">
+                  {{ condition.lastProbeTime ? (condition.lastProbeTime | date) : '-' }}
+                </td>
+                <td [class.text-danger]="isConditionNegative(condition)">
+                  {{ condition.lastTransitionTime | date }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <kc-k8s-events-template [objectName]="data?.metadata?.name"></kc-k8s-events-template>
+
+  <kc-nothing-found *ngIf="!data"></kc-nothing-found>
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+
+  <!-- Json Object iteration template -->
+  <ng-template #processItem let-item>
+    <h3 class="kc-dataset__value" *ngIf="!isObject(item.value)">
+      <div *ngIf="isInt(item.key)">
+        {{ item.value }}
+      </div>
+      <div *ngIf="!isInt(item.key)">
+        <span class="kc-dataset-key"> {{ item.key }}</span> : {{ item.value }}
+      </div>
+    </h3>
+
+    <div *ngIf="isObject(item.value)">
+      <div *ngIf="isInt(item.key)">
+        <!-- <h3 class="">-</h3> -->
+      </div>
+      <h3 *ngIf="!isInt(item.key)" class="kc-dataset__value kc-dataset-key mt-2">{{ item.key }}</h3>
+
+      <ng-container class="ml-2" *ngFor="let subitem of item.value | keyvalue">
+        <div class="ml-2 mt-2">
+          <ng-container *ngTemplateOutlet="processItem; context: { $implicit: subitem }"></ng-container>
+        </div>
+      </ng-container>
+    </div>
+  </ng-template>
+</ng-template>

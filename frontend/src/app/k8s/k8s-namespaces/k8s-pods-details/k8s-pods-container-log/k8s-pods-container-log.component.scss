@@ -1,0 +1,119 @@
+.log-container {
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 79%;
+  padding: 1%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+pre {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+::ng-deep {
+  .log-container::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .log-container::-webkit-scrollbar-track {
+    background: var(--grey);
+  }
+
+  .log-container::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  .log-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .container-selector {
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+      margin-bottom: 0px !important;
+      margin-left: 0px !important;
+    }
+    .mat-form-field-infix {
+      padding-top: 5px; /* Adjust the padding value as needed */
+      font-size: 14px;
+      width: 180px;
+      display: flex;
+    }
+    .mat-form-field-label {
+      font-size: 13px; /* Adjust the font size value as needed */
+    }
+  }
+
+  .line-selector {
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+      margin-bottom: 0px !important;
+    }
+    .mat-form-field-infix {
+      padding-top: 5px; /* Adjust the padding value as needed */
+      font-size: 13px;
+      width: 120px;
+    }
+    .mat-form-field-label {
+      font-size: 13px; /* Adjust the font size value as needed */
+    }
+  }
+}
+
+.terminal-spinner:after {
+  animation: changeContent 0.8s linear infinite;
+  display: block;
+  content: '⠋';
+  font-size: 20px;
+}
+
+@keyframes changeContent {
+  10% {
+    content: '⠙';
+  }
+  20% {
+    content: '⠹';
+  }
+  30% {
+    content: '⠸';
+  }
+  40% {
+    content: '⠼';
+  }
+  50% {
+    content: '⠴';
+  }
+  60% {
+    content: '⠦';
+  }
+  70% {
+    content: '⠧';
+  }
+  80% {
+    content: '⠇';
+  }
+  90% {
+    content: '⠏';
+  }
+}
+
+/* disable up and down arrow button for Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+// input[type=number] {
+//   -moz-appearance: textfield;
+// }

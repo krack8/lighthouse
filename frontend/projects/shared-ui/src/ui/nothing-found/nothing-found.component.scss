@@ -1,0 +1,27 @@
+.nothing-found-area {
+  padding-bottom: 50px;
+
+  svg {
+    margin-top: 2%;
+    margin-bottom: 40px;
+  }
+
+  path {
+    fill: var(--color-primary);
+  }
+}
+
+.kc-style {
+  &-light :host {
+    circle {
+      fill: #eceef2;
+      opacity: 0.45;
+    }
+  }
+  &-dark :host {
+    circle {
+      fill: #243c64;
+      opacity: 0.25;
+    }
+  }
+}

@@ -1,0 +1,166 @@
+$primary: #4164a9;
+$info: #b9d4ff;
+$warn: #ffbb33;
+$warn-dark: #ff8800;
+$success: #00c851;
+$success-dark: #007e33;
+$error: #ff4444;
+$error-dark: #cc0000;
+$grey: rgb(82, 81, 81);
+$grey-dark: #212121;
+
+.btn {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff !important;
+
+  &.btn-default {
+    background: var(--background-close-btn) !important;
+    color: var(--text-color) !important;
+  }
+
+  &.btn-primary {
+    background: var(--brand) !important;
+  }
+
+  &.btn-accent {
+    background: var(--color-primary) !important;
+  }
+
+  &.btn-danger {
+    background: var(--color-danger);
+    color: #ffffff;
+  }
+
+  &.btn-default-outline {
+    border: 2px solid var(--background-close-btn) !important;
+    color: var(--background-close-btn) !important;
+  }
+
+  &.btn-primary-outline {
+    border: 2px solid var(--brand) !important;
+    color: var(--brand) !important;
+  }
+
+  &.btn-accent-outline {
+    border: 2px solid var(--color-primary) !important;
+    color: var(--color-primary) !important;
+  }
+
+  &.btn-danger-outline {
+    border: 2px solid $error-dark !important;
+    color: $error-dark !important;
+  }
+
+  &.round {
+    border-radius: 27px !important;
+  }
+}
+
+%btn {
+  color: $grey-dark;
+  background-color: rgba(65, 100, 169, 0.07);
+  font-weight: 500;
+  border-radius: 2px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  line-height: 36px;
+  padding: 0px 12px;
+  display: flex;
+  height: 36px;
+}
+
+// Button
+.btn {
+  &-primary {
+    @extend %btn;
+    color: $primary;
+    background-color: #4164a925;
+  }
+
+  &-info {
+    @extend %btn;
+    color: var(--color-info);
+    background-color: #4285f425;
+  }
+
+  &-success {
+    @extend %btn;
+    color: $success;
+    background-color: #4164a914;
+  }
+
+  &-warn {
+    @extend %btn;
+    color: $warn;
+    background-color: #ffbb3325;
+  }
+
+  &-error {
+    @extend %btn;
+    color: $primary;
+    background-color: #4164a914;
+  }
+}
+
+// Kc Buttons
+.kc-btn {
+  width: 140px;
+  height: 35px;
+
+  // Sizes
+  &-sm {
+    height: 40px;
+  }
+  &-xs {
+    height: 35px;
+  }
+
+  // Button Colors
+  &-default {
+    background: #e0e0e0;
+    box-shadow:
+      0px 2px 2px rgba(0, 0, 0, 0.24),
+      0px 0px 2px rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    color: $grey;
+  }
+  &-outline {
+    border: 1px solid var(--text-color) !important;
+  }
+  &-outline.outline-secondary {
+    border: 1px solid var(--color-secondary) !important;
+  }
+  &-primary {
+    color: white !important;
+    background: var(--color-primary) !important;
+    box-shadow: 0px 4px 8px rgba(65, 100, 169, 0.3);
+    border-radius: 2px;
+  }
+  &-secondary {
+    color: white !important;
+    background: var(--color-secondary) !important;
+    box-shadow: 0px 4px 8px rgba(65, 100, 169, 0.3);
+    border-radius: 2px;
+  }
+  &-secondary > span {
+    color: white !important;
+  }
+  &-warning {
+    color: #f9f9f9 !important;
+    background: var(--color-danger) !important;
+    box-shadow: 0px 4px 8px rgba(255, 61, 0, 0.3) !important;
+    border-radius: 4px;
+  }
+
+  // View toggler button
+  &-view {
+    background: var(--box-container-bg) !important;
+    svg {
+      path {
+        fill: var(--text-color);
+      }
+    }
+  }
+}
