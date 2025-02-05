@@ -382,19 +382,14 @@ func (svc *deploymentService) GetDeploymentStats(c context.Context, p GetDeploym
 }
 
 type DeploymentPodOutput struct {
-	PodList   []corev1.Pod
-	Resource  string
-	Remaining int64
+	PodList []corev1.Pod
 }
 
 type GetDeploymentPodListInputParams struct {
 	NamespaceName  string
 	DeploymentName string
 	Replicaset     string
-	Limit          string
 	Labels         map[string]string
-	Search         string
-	Continue       string
 	output         DeploymentPodOutput
 }
 
@@ -414,14 +409,8 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 	if replicaSet.Labels[PodTemplateHash] != "" {
 		podClient := cfg.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 
-		limit := cfg.PageLimit
-		if p.Limit != "" {
-			limit, _ = strconv.ParseInt(p.Limit, 10, 64)
-		}
-		listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
-		if p.Labels == nil {
-			p.Labels = make(map[string]string)
-		}
+		listOptions := metav1.ListOptions{}
+		p.Labels = make(map[string]string)
 		p.Labels["pod-template-hash"] = replicaSet.Labels["pod-template-hash"]
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
 		if p.Labels != nil {
@@ -429,27 +418,21 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 				LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 			}
 		}
-		if p.Search != "" {
-			listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
-		}
 		podList, err := podClient.List(context.Background(), listOptions)
 		if err != nil {
 			log.Logger.Errorw("Failed to get pod list", "err", err.Error())
 			return err
 		}
-		p.output.PodList = podList.Items
-		for idx, _ := range p.output.PodList {
-			p.output.PodList[idx].ManagedFields = nil
+		p.output.PodList = []corev1.Pod{}
+		for idx, _ := range podList.Items {
+			podList.Items[idx].ManagedFields = nil
+			for _, owner := range podList.Items[idx].OwnerReferences {
+				if owner.UID == replicaSet.UID {
+					p.output.PodList = append(p.output.PodList, podList.Items[idx])
+					break // Pod can only have one controller
+				}
+			}
 		}
-		remaining := podList.RemainingItemCount
-
-		if remaining != nil {
-			p.output.Remaining = *remaining
-		} else {
-			p.output.Remaining = 0
-		}
-
-		p.output.Resource = podList.Continue
 	} else {
 		return errors.New("unable to fetch pod list")
 	}

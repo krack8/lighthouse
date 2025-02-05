@@ -240,9 +240,6 @@ func (ctrl *deploymentController) GetDeploymentPodList(ctx *gin.Context) {
 		return
 	}
 	input.Replicaset = queryReplicaSet
-	input.Continue = ctx.Query("continue")
-	input.Search = ctx.Query("q")
-	input.Limit = ctx.Query("limit")
 
 	queryLabel := ctx.Query("labels")
 	if queryLabel != "" {
