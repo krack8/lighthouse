@@ -296,12 +296,6 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 		return fmt.Errorf("failed to fetch user: %w", err)
 	}
 
-	// Verify old password
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
-	if err != nil {
-		return fmt.Errorf("incorrect old password")
-	}
-
 	if user.Username != requester {
 		err := db.UserCollection.FindOne(context.Background(), bson.M{"username": requester}).Decode(&req)
 		if err != nil {
@@ -314,6 +308,12 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 			return fmt.Errorf("unauthorized !! you don't have ADMIN permission")
 		}
 
+	} else {
+		// Verify old password
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+		if err != nil {
+			return fmt.Errorf("incorrect old password")
+		}
 	}
 
 	// Update password in database
