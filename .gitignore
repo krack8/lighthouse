@@ -2,5 +2,6 @@
 .vscode
 node_modules
 coverage
-.env
+*.env
+pkg/*.env
 *.patch
