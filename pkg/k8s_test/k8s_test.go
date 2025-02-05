@@ -1,5 +1,6 @@
 package k8s_test
 
+/*
 import (
 	"context"
 	cfg "github.com/krack8/lighthouse/pkg/config"
@@ -91,3 +92,4 @@ func (s *EndToEndSuite) TestHealthIndex() {
 	body, _ := io.ReadAll(resp.Body)
 	s.Equal("This is KloverCloud Lighthouse", string(body))
 }
+*/

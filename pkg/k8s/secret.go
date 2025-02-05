@@ -245,7 +245,7 @@ type DeleteSecretInputParams struct {
 
 func (p *DeleteSecretInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting secret of ....", p.NamespaceName)
-	secretClient := cfg.GetKubeClientSet().CoreV1().PersistentVolumes()
+	secretClient := cfg.GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
 	_, err := secretClient.Get(context.Background(), p.SecretName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get secret ", p.SecretName, "err", err.Error())
