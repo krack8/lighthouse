@@ -1,0 +1,70 @@
+kc-page-layout-content {
+  word-break: break-all;
+  white-space: pre-line;
+}
+
+.user_meta_container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.info-box {
+  background: var(--background);
+  border: 1.5px solid var(--border);
+  box-sizing: border-box;
+  border-radius: 6px;
+  white-space: pre-line;
+  word-break: break-all;
+}
+
+.info-name-box {
+  background: var(--background-kc-stepper);
+  border: 1.5px solid var(--border);
+  box-sizing: border-box;
+  border-radius: 6px;
+  padding: 15px;
+  white-space: pre-line;
+  word-break: break-all;
+}
+
+// Permission
+::ng-deep {
+  .user_role {
+    &_container {
+      background-color: var(--background-base);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    &_row {
+      // min-height: 70px;
+      border-bottom: 1px solid var(--border);
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+
+    &_item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+
+      &.active {
+        background-color: var(--background-5);
+      }
+    }
+
+    &_permission-toggler {
+      width: 40px;
+      margin-right: 8px;
+    }
+  }
+}

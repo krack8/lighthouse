@@ -1,0 +1,110 @@
+<kc-page-layout>
+  <kc-page-layout-content class="-mt-6" kcContainer>
+    <div class="flex items-center mt-6">
+      <div class="search">
+        <div class="input">
+          <button type="button" mat-icon-button class="ml-2">
+            <mat-icon [icIcon]="icSearch"></mat-icon>
+          </button>
+          <input
+            [(ngModel)]="searchAccess"
+            aria-name="search"
+            type="text"
+            autocomplete="off"
+            placeholder="Search"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <button [class.invisible]="!searchAccess" type="button" mat-icon-button (click)="searchAccess = ''">
+            <i class="kc-close"></i>
+          </button>
+        </div>
+      </div>
+      <a class="ml-auto rounded-full" routerLink="/manage/roles/create" color="primary" id="create-role" mat-flat-button>
+        <div class="flex items-center">
+          <mat-icon [icIcon]="icAdd" class="mr-2"></mat-icon>
+          <span>Create Role</span>
+        </div>
+      </a>
+    </div>
+    <div class="mt-8">
+      <div *ngIf="isLoading">
+        <mat-spinner strokeWidth="2" diameter="40" mode="indeterminate"></mat-spinner>
+        <p class="mt-4">Loading ...</p>
+      </div>
+      <div class="role-expansion_container">
+        <div *ngIf="!isLoading && roleList.length" class="role-expansion_row">
+          <mat-accordion class="role-accordion" multi>
+            <mat-expansion-panel class="role-expansion-panel-header" disabled>
+              <mat-expansion-panel-header class="mat-row">
+                <div class="table w-full">
+                  <div class="role-cell role-cell_name">Role Name</div>
+                  <div class="role-cell border-left role-cell_desc">Description</div>
+                  <div class="role-cell border-left role-cell_created">Created</div>
+                </div>
+              </mat-expansion-panel-header>
+            </mat-expansion-panel>
+            <mat-expansion-panel *ngFor="let role of roleList | filter: searchAccess; trackBy: trackById" class="role-expansion-panel">
+              <mat-expansion-panel-header class="mat-row">
+                <div class="table w-full">
+                  <div class="role-cell role-cell_name">
+                    <span class="font-semibold">{{ role?.name }}</span>
+                  </div>
+                  <div class="role-cell border-left border-right role-cell_desc">{{ role?.description || '-' }}</div>
+                  <div class="role-cell border-left border-right role-cell_created">
+                    {{ role?.created_at | date: 'medium' }}
+                  </div>
+                </div>
+              </mat-expansion-panel-header>
+              <div>
+                <div class="flex items-center pb-3">
+                  <h3 class="permission_container_title">Permission List</h3>
+                  <div class="flex items-center ml-4 lg:ml-auto">
+                    <a
+                      class="permission_btn"
+                      [routerLink]="['/manage/roles', role?.id, 'edit']"
+                      mat-flat-button
+                      color="accent"
+                      [id]="'update-' + role?.roleName"
+                    >
+                      <span class="flex items-center">
+                        <span>Update</span>
+                      </span>
+                    </a>
+                    <button
+                      [disabled]="role?.created_by === 'SYSTEM'"
+                      class="permission_btn ml-2 lg:ml-4"
+                      (click)="deleteRole(role)"
+                      color="warn"
+                      [id]="'delete-' + role?.roleName"
+                      mat-flat-button
+                    >
+                      <span class="flex items-center">
+                        <span>Delete</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div class="permission_box">
+                  <div class="permission_chips">
+                    <div
+                      *ngFor="let __permission of role?.permissions"
+                      class="permission_chip mt-2"
+                      [matTooltip]="__permission?.description"
+                      matTooltipPosition="above"
+                    >
+                      {{ __permission?.name | strReplace: '_' }}
+                      <mat-icon *ngIf="__permission?.description" [icIcon]="icInfo" class="_icon ml-2 text-blue-500" size="16px"></mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+        <div *ngIf="!isLoading && !roleList.length" class="p-4">
+          <h3>No roles found!</h3>
+        </div>
+      </div>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>

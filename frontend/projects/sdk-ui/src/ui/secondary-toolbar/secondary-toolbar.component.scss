@@ -1,0 +1,8 @@
+.secondary-toolbar {
+  height: var(--secondary-toolbar-height);
+  margin-top: calc(var(--secondary-toolbar-height) * -1);
+}
+
+.secondary-toolbar-placeholder {
+  height: var(--secondary-toolbar-height);
+}

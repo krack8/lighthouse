@@ -1,0 +1,105 @@
+.sidenav {
+  color: var(--sidenav-color);
+  height: 100%;
+  transition: var(--trans-ease-out);
+  width: var(--sidenav-width);
+
+  &.collapsed {
+    width: var(--sidenav-collapsed-width);
+
+    &:not(.open) {
+      .sidenav-toolbar {
+        .title {
+          opacity: 0;
+          padding-inline-start: var(--sidenav-item-padding);
+        }
+      }
+
+      ::ng-deep .sidenav-items {
+        .item-icon {
+          margin-inline-end: var(--sidenav-item-padding);
+        }
+
+        .subheading,
+        .item-badge,
+        .item-label {
+          opacity: 0;
+        }
+      }
+
+      .power_by {
+        flex-direction: column;
+        &_logo {
+          width: 20px;
+
+          &_text {
+            display: none;
+          }
+        }
+
+        &_content {
+          flex-direction: column;
+        }
+      }
+    }
+
+    ::ng-deep {
+      .subheading,
+      .item-badge,
+      .item-label {
+        transition: all 200ms var(--trans-ease-out-timing-function);
+      }
+    }
+
+    &.open {
+      width: var(--sidenav-width);
+    }
+  }
+}
+
+.sidenav-toolbar {
+  align-items: center;
+  background: var(--sidenav-toolbar-background);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  height: var(--toolbar-height);
+  padding: 0 var(--padding);
+  white-space: nowrap;
+  width: 100%;
+
+  .title {
+    transition:
+      padding var(--trans-ease-out-duration) var(--trans-ease-out-timing-function),
+      opacity var(--trans-ease-out-duration) var(--trans-ease-out-timing-function);
+  }
+}
+
+.sidenav-items {
+  padding-top: var(--padding-16);
+  padding-bottom: var(--padding-16);
+  overflow-y: scroll;
+}
+
+.power_by {
+  font-size: 13px;
+  padding: 10px 5px;
+  font-weight: 600;
+  border-top: 1px solid var(--background-base);
+  text-align: center;
+  gap: 0.5rem;
+  @apply mt-auto flex items-center justify-center;
+
+  &_logo {
+    margin-right: 0.25rem;
+    width: 14px;
+
+    &_text {
+      font-weight: 700;
+    }
+  }
+
+  &_content {
+    @apply flex items-center flex-wrap;
+  }
+}

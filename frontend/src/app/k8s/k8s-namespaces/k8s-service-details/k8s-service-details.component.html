@@ -1,0 +1,155 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center mt-8 mb-4">
+    <div class="flex">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }">
+        <h3 class="inline mr-2" style="color: var(--color-primary)">{{ title }}</h3>
+      </a>
+      <mat-icon [icIcon]="icRight" style="font-size: 22px; margin-top: 2px"></mat-icon>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_NAMESPACE_SERVICE'" class="flex items-center">
+      <div class="px-2">
+        <button mat-raised-button class="float-right detaisl-edit-btn" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+
+      <div class="px-2">
+        <button mat-raised-button class="btn float-right details-delete-btn" type="button" (click)="onDelete(data)">
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
+  </div>
+
+  <!-- SPECS -->
+
+  <div class="page-root mt-4" *ngIf="data">
+    <div class="kube-card">
+      <h2 class="kube-card__title">Spec</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Cluster IP</div>
+              <h3 class="kc-dataset__value">{{ data?.spec?.clusterIP }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Internal Traffic Policy</div>
+              <h3 class="kc-dataset__value">{{ data?.spec?.internalTrafficPolicy }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Cluster IPs</div>
+              <div *ngFor="let item of data?.spec?.clusterIPs">
+                <h3 class="kc-dataset__value">{{ item }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Ip Family Policy</div>
+              <h3 class="kc-dataset__value">{{ data?.spec?.ipFamilyPolicy }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">IP Families</div>
+              <div *ngFor="let item of data?.spec?.ipFamilies">
+                <h3 class="kc-dataset__value">{{ item }}</h3>
+                <br />
+              </div>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Session Affinity</div>
+              <h3 class="kc-dataset__value">{{ data?.spec?.sessionAffinity }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-4">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Type</div>
+              <h3 class="kc-dataset__value">{{ data?.spec?.type }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Selector</div>
+              <h3 class="kc-dataset__value" *ngFor="let item of data?.spec?.selector | keyvalue">
+                <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value || 'null' }}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <mat-accordion *ngIf="data?.spec?.ports" class="acc-table-accordion ltSm:responsive mt-6 mb-6">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header class="info-table-row">
+              <mat-panel-title><h4>Ports</h4> </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="kube-card__content">
+              <div class="row">
+                <div class="kube-table__wrapper">
+                  <table class="kube-table heading-diff">
+                    <thead>
+                      <tr>
+                        <th width="25%">Name</th>
+                        <th width="25%">Port</th>
+                        <th width="25%">Protocol</th>
+                        <th width="25%">Target Port</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let port of data?.spec?.ports">
+                        <td width="25%">
+                          {{ port.name }}
+                        </td>
+                        <td width="25%">
+                          {{ port.port }}
+                        </td>
+                        <td width="25%">
+                          {{ port.protocol }}
+                        </td>
+                        <td width="25%">
+                          {{ port.targetPort }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

@@ -1,0 +1,30 @@
+<div>
+  <ng-container *ngFor="let item of data | keyvalue; index as i">
+    <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item, index: i }"></ng-container>
+  </ng-container>
+</div>
+
+<ng-template #processItem let-item let-i="index">
+  <h3 class="kc-dataset-value" *ngIf="!isObject(item.value)">
+    <div *ngIf="isInt(item.key)">
+      {{ item.value }}
+    </div>
+    <div *ngIf="!isInt(item.key)">
+      <span class="kc-dataset-key"> {{ item.key }}</span> : {{ item.value }}
+    </div>
+  </h3>
+
+  <div class="mb-2" *ngIf="isObject(item.value)">
+    <div *ngIf="isInt(item.key)">
+      <!-- <h3 class="">-</h3> -->
+      <hr *ngIf="i !== 0" />
+    </div>
+    <h3 *ngIf="!isInt(item.key)" class="kc-dataset-key">{{ item.key }}</h3>
+
+    <ng-container class="ml-2" *ngFor="let subitem of item.value | keyvalue">
+      <div class="ml-2 mt-2">
+        <ng-container *ngTemplateOutlet="processItem; context: { $implicit: subitem }"></ng-container>
+      </div>
+    </ng-container>
+  </div>
+</ng-template>

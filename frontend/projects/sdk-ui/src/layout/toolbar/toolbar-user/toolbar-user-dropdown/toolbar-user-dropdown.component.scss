@@ -1,0 +1,131 @@
+.dropdown {
+  background: var(--background-card);
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  box-shadow: var(--elevation-z4);
+  max-width: 100vw;
+  overflow: hidden;
+  width: 350px;
+}
+
+.dropdown-header {
+  background: var(--color-primary-500);
+  box-shadow: var(--elevation-z2);
+  color: var(--color-primary-contrast-500);
+  padding: var(--padding-16) var(--padding-16) var(--padding-16) var(--padding-12);
+}
+
+.dropdown-heading-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999999px;
+  margin-right: var(--padding-12);
+  padding: var(--padding-8);
+
+  .mat-icon {
+    font-size: 32px;
+    height: 32px;
+    width: 32px;
+  }
+}
+
+.dropdown-heading {
+  font: var(--font-title);
+  margin-left: 10px;
+}
+
+.dropdown-content {
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.dropdown-footer {
+  background: var(--background-app-bar);
+  border-top: 1px solid var(--foreground-divider);
+  padding: var(--padding-8) var(--padding-12);
+
+  a {
+    width: 100%;
+    text-align: center;
+    color: var(--text-color);
+  }
+}
+
+.dropdown-footer-select {
+  padding-left: var(--padding-12);
+
+  .mat-icon:not(.dropdown-footer-select-caret) {
+    margin-right: var(--padding-8);
+    vertical-align: -7px;
+  }
+}
+
+.dropdown-footer-select-caret {
+  color: var(--text-hint);
+  font-size: 18px;
+  height: 18px;
+  vertical-align: -4px;
+  width: 18px;
+}
+
+.notification {
+  color: var(--text-color);
+  padding: var(--padding-16) var(--padding);
+  position: relative;
+  text-decoration: none;
+  transition: var(--trans-ease-out);
+  user-select: none;
+
+  &:hover {
+    background: var(--background-hover);
+
+    .notification-label {
+      color: var(--color-primary-500);
+    }
+  }
+
+  &.read {
+    opacity: 0.5;
+  }
+}
+
+.notification-icon {
+  margin-right: var(--padding);
+}
+
+.notification-label {
+  transition: inherit;
+}
+
+.notification-description {
+  color: var(--text-secondary);
+  font: var(--font-caption);
+}
+
+.notification-chevron {
+  color: var(--text-hint);
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.notification + .notification {
+  border-top: 1px solid var(--foreground-divider);
+}
+
+.text-style {
+  font-size: 14px;
+}
+
+.user-image {
+  background: rgba(231, 231, 231, 0.082);
+  border-radius: 99999999px;
+  height: 36px;
+  width: 36px;
+}
+
+.user-image {
+  img {
+    border-radius: 50%;
+  }
+}

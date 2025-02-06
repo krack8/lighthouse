@@ -1,0 +1,25 @@
+.kc-ace-editor {
+  width: 100%;
+  height: auto;
+
+  // Ace Editor Host
+  &-host {
+    display: flex;
+    min-height: 200px;
+    border: 1px solid var(--border);
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 4px;
+  }
+}
+
+// Ace styles override
+.ace_editor {
+  line-height: 20px !important;
+}
+
+.ace_editor,
+.ace_editor * {
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}

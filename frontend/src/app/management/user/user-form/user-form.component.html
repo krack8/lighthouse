@@ -1,0 +1,172 @@
+<div>
+  <div class="flex items-center">
+    <h3 class="text-xl">{{ data?.userId ? 'Update' : 'Create' }} User</h3>
+    <button class="ml-auto" mat-dialog-close><mat-icon [icIcon]="icClose"></mat-icon></button>
+  </div>
+  <form class="mt-8" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <div class="grid sm:grid-cols-2 gap-x-4 mt-2">
+        <mat-form-field class="custom-mat-form-field" appearance="outline">
+          <mat-label>First Name</mat-label>
+          <input type="text" formControlName="first_name" id="first-name" matInput placeholder="First Name" maxlength="30" required />
+          <mat-error *ngIf="userForm?.get('first_name')?.touched && userForm?.get('first_name')?.hasError('required')"
+            >First Name is required</mat-error
+          >
+          <mat-error *ngIf="userForm.get('first_name').hasError('pattern')"> Only letters are allowed in first name </mat-error>
+          <mat-error *ngIf="userForm.get('first_name').errors?.leadingSpace">First Name should not start with a space</mat-error>
+        </mat-form-field>
+        <mat-form-field class="custom-mat-form-field" appearance="outline">
+          <mat-label>Last Name</mat-label>
+          <input type="text" formControlName="last_name" id="last-name" matInput placeholder="Last Name" maxlength="30" required />
+          <mat-error *ngIf="userForm?.get('last_name')?.touched && userForm?.get('last_name')?.hasError('required')"
+            >Last Name is required</mat-error
+          >
+          <mat-error *ngIf="userForm.get('last_name').hasError('pattern')"> Only letters are allowed in last name </mat-error>
+          <mat-error *ngIf="userForm.get('last_name').errors?.leadingSpace">Last Name should not start with a space</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field class="custom-mat-form-field" appearance="outline" *ngIf="!data">
+        <mat-label>Email</mat-label>
+        <input type="text" matInput formControlName="username" id="email" placeholder="Email" required />
+        <mat-error *ngIf="userForm?.get('username')?.hasError('required') && userForm?.get('username')?.touched">
+          Email is <strong>required</strong>!
+        </mat-error>
+        <mat-error *ngIf="userForm?.get('username')?.hasError('email') && userForm?.get('username')?.touched">
+          Email is <strong>invalid</strong>!
+        </mat-error>
+        <mat-error
+          *ngIf="
+            !userForm?.get('username')?.hasError('email') &&
+            userForm?.get('username')?.hasError('domain') &&
+            userForm?.get('username')?.touched
+          "
+        >
+          {{ userForm?.get('username')?.errors?.domain }}
+        </mat-error>
+      </mat-form-field>
+
+      <div class="flex items-center mb-5">
+        <label class="mr-6">User Type: </label>
+        <mat-radio-group formControlName="user_type" class="flex items-center gap-6" (change)="userTypeChange($event)">
+          <mat-radio-button value="ADMIN">ADMIN</mat-radio-button>
+          <mat-radio-button value="USER">NONE ADMIN</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <mat-form-field *ngIf="userForm?.get('password')" class="custom-mat-form-field" appearance="outline">
+        <mat-label><span>Password</span></mat-label>
+        <input
+          [type]="passwordVisibilityHide ? 'password' : 'text'"
+          [formControlName]="'password'"
+          id="password"
+          matInput
+          autocomplete="off"
+          required
+        />
+        <mat-icon
+          class="ml-2 cursor-pointer"
+          matSuffix
+          [icIcon]="passwordVisibilityHide ? icVisibilityOff : icVisibility"
+          (click)="passwordVisibilityHide = !passwordVisibilityHide"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="passwordVisibilityHide"
+          size="18px"
+        ></mat-icon>
+        <mat-error *ngIf="userForm?.get('password')?.hasError('required') && userForm?.get('password')?.touched">
+          Password is required!
+        </mat-error>
+        <mat-error
+          *ngIf="
+            !userForm?.get('password')?.hasError('required') &&
+            (userForm?.get('password')?.hasError('minlength') ||
+              (userForm.get('password')?.hasError('passwordStrength') && userForm.get('password')?.touched))
+          "
+        >
+          Passwords must contain at least
+          {{ userForm?.get('password').errors?.minlength?.requiredLength }} characters, including uppercase, lowercase letters, numbers &
+          special characters (!&*&#64;^).
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="userForm?.get('passwordConfirm')" class="custom-mat-form-field" appearance="outline">
+        <mat-label><span>Password Confirmation</span></mat-label>
+        <input
+          [type]="passwordVisibilityHide ? 'password' : 'text'"
+          [formControlName]="'passwordConfirm'"
+          id="confirm-password"
+          matInput
+          autocomplete="off"
+          required
+        />
+        <mat-error
+          *ngIf="
+            !userForm?.get('password')?.hasError('pattern') &&
+            (userForm?.get('passwordConfirm')?.hasError || userForm?.get('passwordConfirm')?.hasError('required')) &&
+            userForm?.get('passwordConfirm')?.touched
+          "
+        >
+          Passwords need to match!
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="userForm?.get('role_ids')" class="custom-mat-form-field" appearance="outline">
+        <mat-label>Roles</mat-label>
+        <mat-select formControlName="role_ids" id="select-role-name" multiple>
+          <div class="select_search_wrapper">
+            <input
+              [ngModelOptions]="{ standalone: true }"
+              [(ngModel)]="searchRoleTerm"
+              aria-name="search"
+              type="text"
+              class="role_search w-full leading-tight focus:outline-none focus:shadow-outline"
+              autocomplete="off"
+              placeholder="Search ..."
+            />
+            <button type="button" color="warn" (click)="searchRoleTerm = ''" *ngIf="searchRoleTerm" mat-icon-button>
+              <mat-icon [icIcon]="icClose"></mat-icon>
+            </button>
+          </div>
+          <mat-option
+            *ngFor="let item of roleList | filter: searchRoleTerm"
+            [value]="item?.id"
+            [disabled]="item?.created_by === systemRoleUsername"
+          >
+            {{ item.name }}
+            <mat-icon
+              *ngIf="item?.description"
+              [icIcon]="icInfo"
+              class="role_info_icon ml-2 text-blue-500"
+              [matTooltip]="item?.description"
+              matTooltipPosition="above"
+            ></mat-icon>
+          </mat-option>
+        </mat-select>
+        <mat-hint *ngIf="!isRolesLoading && !roleList?.length" [align]="'end'" class="text-red-500">
+          No Roles Found!.
+          <a mat-dialog-close class="underline" routerLink="manage/roles/create">Create a Role Here</a>
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-slide-toggle *ngIf="data" formControlName="user_is_active" color="primary" id="user-active-toggle-button">
+        Active
+      </mat-slide-toggle>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="pb-6">
+      <button type="button" mat-stroked-button id="cancel-btn" mat-dialog-close>Cancel</button>
+      <button
+        [disabled]="userForm?.invalid || !userForm?.dirty"
+        [class.pointer-events-none]="isSubmitting"
+        type="submit"
+        color="primary"
+        [id]="data ? 'update' : 'create'"
+        mat-flat-button
+      >
+        <div class="flex items-center">
+          <mat-spinner class="mr-3" *ngIf="isSubmitting" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+          <span>{{ data ? 'Update' : 'Create' }}</span>
+        </div>
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

@@ -1,0 +1,34 @@
+<div class="flex items-center pb-5">
+  <h3 class="text-lg">{{ data.title }}</h3>
+  <button class="ml-auto" (click)="close()" mat-dialog-close>X</button>
+</div>
+
+<div>
+  <ng-container *ngFor="let item of data.data | keyvalue">
+    <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item }"></ng-container>
+  </ng-container>
+</div>
+
+<ng-template #processItem let-item>
+  <h3 class="kc-dataset-value" *ngIf="!isObject(item.value)">
+    <div *ngIf="isInt(item.key)">
+      {{ item.value }}
+    </div>
+    <div *ngIf="!isInt(item.key)">
+      <span class="kc-dataset-key"> {{ item.key }}</span> : {{ item.value }}
+    </div>
+  </h3>
+
+  <div *ngIf="isObject(item.value)">
+    <div *ngIf="isInt(item.key)">
+      <!-- <h3 class="">-</h3> -->
+    </div>
+    <h3 *ngIf="!isInt(item.key)" class="kc-dataset-key">{{ item.key }}</h3>
+
+    <ng-container class="ml-2" *ngFor="let subitem of item.value | keyvalue">
+      <div class="ml-2 mt-2">
+        <ng-container *ngTemplateOutlet="processItem; context: { $implicit: subitem }"></ng-container>
+      </div>
+    </ng-container>
+  </div>
+</ng-template>

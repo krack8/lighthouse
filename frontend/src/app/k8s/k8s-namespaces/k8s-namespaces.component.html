@@ -1,0 +1,135 @@
+<div class="w-full">
+  <div class="w-auto">
+    <mat-form-field class="_namespace_form_field" appearance="outline">
+      <mat-label>Namespace</mat-label>
+      <mat-select [value]="selectedNamespace" (selectionChange)="onChangeNamespace($event)">
+        <div class="select_search_wrapper">
+          <input
+            [ngModelOptions]="{ standalone: true }"
+            [(ngModel)]="searchNamespaceTerm"
+            aria-name="search"
+            type="text"
+            class="role_search bg-transparent appearance-none border-0 rounded w-full leading-tight focus:outline-none focus:shadow-outline"
+            autocomplete="off"
+            placeholder="Search ..."
+          />
+          <button type="button" color="warn" (click)="searchNamespaceTerm = ''" *ngIf="searchNamespaceTerm" mat-icon-button>
+            <mat-icon [icIcon]="icClose"></mat-icon>
+          </button>
+        </div>
+        <mat-option
+          *ngFor="let item of namespaces | filter: searchNamespaceTerm"
+          [matTooltip]="item.length > 35 ? item : null"
+          [matTooltipPosition]="'after'"
+          [value]="item.name"
+          >{{ item.name }}</mat-option
+        >
+        <mat-option *ngIf="isLoading"
+          ><mat-spinner class="mr-3" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner
+        ></mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="w-full flex items-center flex-wrap-reverse mb-6 -mt-4">
+    <div class="_nav_area mt-4">
+      <ul class="_nav">
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_DEPLOYMENT'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['deployments']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >Deployment</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_POD'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['pods']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >Pod</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_REPLICA_SET'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['replica-sets']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >ReplicaSet</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_STATEFUL_SET'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['stateful-sets']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >StatefulSet</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_DAEMON_SET'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['daemon-sets']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >DaemonSet</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_CONFIG_MAP'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['config-maps']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >ConfigMap</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_SECRET'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['secrets']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >Secret</a
+          >
+        </li>
+        <li *hasAnyAuthority="'VIEW_NAMESPACE_SERVICE'" class="outline-none">
+          <a
+            class="inline-block py-3"
+            [routerLink]="['service']"
+            routerLinkActive="_active-link"
+            [queryParams]="{ namespace: selectedNamespace }"
+            >Service</a
+          >
+        </li>
+        <li>
+          <button id="more-btn" class="flex items-center" mat-menu-item [matMenuTriggerFor]="more">
+            <span class="px-2">More</span>
+            <mat-icon style="font-weight: 100; font-size: large; margin-right: 0px" [icIcon]="icDown"></mat-icon>
+          </button>
+          <mat-menu class="more-menu" #more="matMenu">
+            <input
+              (click)="$event.stopPropagation()"
+              [ngModelOptions]="{ standalone: true }"
+              [(ngModel)]="resourcesSearchTerm"
+              aria-name="search"
+              type="text"
+              class="px-2 py-2 bg-transparent appearance-none border-0 rounded w-full leading-tight focus:outline-none focus:shadow-outline"
+              autocomplete="off"
+              placeholder="Search ..."
+            />
+            <div *ngFor="let item of resourceRouteMap | keyvalue | filter: resourcesSearchTerm">
+              <button *hasAnyAuthority="resourcePermissionMap.get(item.value)" (click)="navigateToResources(item.value)" mat-menu-item>
+                <span class="invisible">_</span>{{ item.key }}
+              </button>
+            </div>
+          </mat-menu>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <router-outlet></router-outlet>
+</div>

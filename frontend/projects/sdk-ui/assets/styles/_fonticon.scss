@@ -1,0 +1,351 @@
+$kcicon-font-family: 'klovercloud-icon' !default;
+$kcicon-font-path: '/assets/webfonts' !default;
+
+$icon-layer: '\e90d';
+$icon-canary: '\e90e';
+$icon-scaling: '\e90f';
+$icon-vpc: '\e910';
+$icon-cpu-2: '\e911';
+$icon-memory: '\e912';
+$icon-storage: '\e913';
+$icon-code: '\e915';
+$icon-external-url: '\e916';
+$icon-dev: '\e917';
+$icon-test: '\e918';
+$icon-qa: '\e919';
+$icon-pre-prod: '\e91a';
+$icon-prod: '\e91b';
+$icon-bar-chart: '\e91c';
+$icon-backup: '\e90c';
+$icon-success: '\e904';
+$icon-wrong: '\e907';
+$icon-explore: '\e905';
+$icon-chart: '\e909';
+$icon-camera: '\e90a';
+$icon-settings: '\e90b';
+$icon-upload: '\e902';
+$icon-close: '\e903';
+$icon-cpu: '\e901';
+$icon-package: '\e900';
+$icon-warn: '\e908';
+$icon-notification: '\e906';
+$icon-document: '\e926';
+$icon-folder: '\e92f';
+$icon-search: '\e986';
+$icon-enlarge2: '\e98b';
+$icon-minus: '\ea0b';
+$icon-circle-outline: '\ea56';
+$icon-git-organization: '\e914';
+$icon-git-repository: '\e91d';
+$icon-calender: '\e91e';
+$icon-clock: '\e91f';
+$icon-network-policy: '\e922';
+$icon-download: '\e934';
+
+@font-face {
+  font-family: '#{$kcicon-font-family}';
+  src: url('#{$kcicon-font-path}/#{$kcicon-font-family}.eot?i0enwr');
+  src:
+    url('#{$kcicon-font-path}/#{$kcicon-font-family}.eot?i0enwr#iefix') format('embedded-opentype'),
+    url('#{$kcicon-font-path}/#{$kcicon-font-family}.ttf?i0enwr') format('truetype'),
+    url('#{$kcicon-font-path}/#{$kcicon-font-family}.woff?i0enwr') format('woff'),
+    url('#{$kcicon-font-path}/#{$kcicon-font-family}.svg?i0enwr##{$kcicon-font-family}') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+i {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: '#{$kcicon-font-family}' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-success {
+  &:before {
+    content: $icon-success;
+  }
+}
+.icon-warn {
+  &:before {
+    content: $icon-warn;
+  }
+}
+.icon-error {
+  &:before {
+    content: $icon-wrong;
+  }
+}
+.kc-upload {
+  &:before {
+    content: $icon-upload;
+  }
+}
+.kc-close {
+  &:before {
+    content: $icon-close;
+  }
+}
+.kc-cpu {
+  &:before {
+    content: $icon-cpu;
+  }
+}
+.kc-package {
+  &:before {
+    content: $icon-package;
+  }
+}
+.icon-notification {
+  &:before {
+    content: $icon-notification;
+  }
+}
+.icon-document {
+  &:before {
+    content: $icon-document;
+  }
+}
+.icon-folder {
+  &:before {
+    content: $icon-folder;
+  }
+}
+.kc-search {
+  &:before {
+    content: $icon-search;
+  }
+}
+.kc-enlarge2 {
+  &:before {
+    content: $icon-enlarge2;
+  }
+}
+.kc-minus {
+  &:before {
+    content: $icon-minus;
+  }
+}
+
+.icon-layer {
+  &:before {
+    content: $icon-layer;
+  }
+}
+.icon-canary {
+  &:before {
+    content: $icon-canary;
+  }
+}
+.icon-scaling {
+  &:before {
+    content: $icon-scaling;
+  }
+}
+.icon-vpc {
+  &:before {
+    content: $icon-vpc;
+  }
+}
+.icon-cpu-2 {
+  &:before {
+    content: $icon-cpu-2;
+  }
+}
+.icon-memory {
+  &:before {
+    content: $icon-memory;
+  }
+}
+.icon-storage {
+  &:before {
+    content: $icon-storage;
+  }
+}
+.icon-code {
+  &:before {
+    content: $icon-code;
+  }
+}
+.icon-external-url {
+  &:before {
+    content: $icon-external-url;
+  }
+}
+
+.icon-dev,
+.ico-dev {
+  &:before {
+    content: $icon-dev;
+  }
+}
+.icon-test,
+.icon-tes {
+  &:before {
+    content: $icon-test;
+  }
+}
+.icon-staging,
+.icon-sta {
+  &:before {
+    content: $icon-layer;
+  }
+}
+.icon-qa,
+.icon-qua {
+  &:before {
+    content: $icon-qa;
+  }
+}
+.icon-pre-prod,
+.icon-pre {
+  &:before {
+    content: $icon-pre-prod;
+  }
+}
+.icon-prod,
+.icon-pro {
+  &:before {
+    content: $icon-prod;
+  }
+}
+.icon-bar-chart {
+  &:before {
+    content: $icon-bar-chart;
+  }
+}
+.icon-backup {
+  &:before {
+    content: $icon-backup;
+  }
+}
+.icon-success {
+  &:before {
+    content: $icon-success;
+  }
+}
+.icon-wrong {
+  &:before {
+    content: $icon-wrong;
+  }
+}
+.icon-explore {
+  &:before {
+    content: $icon-explore;
+  }
+}
+.icon-chart {
+  &:before {
+    content: $icon-chart;
+  }
+}
+.icon-camera {
+  &:before {
+    content: $icon-camera;
+  }
+}
+.icon-settings {
+  &:before {
+    content: $icon-settings;
+  }
+}
+.icon-upload {
+  &:before {
+    content: $icon-upload;
+  }
+}
+.icon-close {
+  &:before {
+    content: $icon-close;
+  }
+}
+.icon-cpu {
+  &:before {
+    content: $icon-cpu;
+  }
+}
+.icon-package {
+  &:before {
+    content: $icon-package;
+  }
+}
+.icon-warn {
+  &:before {
+    content: $icon-warn;
+  }
+}
+.icon-notification {
+  &:before {
+    content: $icon-notification;
+  }
+}
+.icon-document {
+  &:before {
+    content: $icon-document;
+  }
+}
+.icon-folder {
+  &:before {
+    content: $icon-folder;
+  }
+}
+.icon-search {
+  &:before {
+    content: $icon-search;
+  }
+}
+.icon-enlarge2 {
+  &:before {
+    content: $icon-enlarge2;
+  }
+}
+.icon-minus {
+  &:before {
+    content: $icon-minus;
+  }
+}
+.icon-circle-outline {
+  &:before {
+    content: $icon-circle-outline;
+  }
+}
+.icon-git-organization {
+  &:before {
+    content: $icon-git-organization;
+  }
+}
+.icon-git-repository {
+  &:before {
+    content: $icon-git-repository;
+  }
+}
+.icon-calender {
+  &:before {
+    content: $icon-calender;
+  }
+}
+.icon-clock {
+  &:before {
+    content: $icon-clock;
+  }
+}
+.icon-network-policy {
+  &:before {
+    content: $icon-network-policy;
+  }
+}
+.icon-download {
+  &:before {
+    content: $icon-download;
+    color: var(--text-color);
+  }
+}

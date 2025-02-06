@@ -1,0 +1,70 @@
+<kc-page-layout>
+  <kc-page-layout-content kcContainer>
+    <div *ngIf="isLoading">
+      <mat-progress-spinner strokeWidth="2" diameter="40" mode="indeterminate"></mat-progress-spinner>
+    </div>
+    <div class="card p-6" *ngIf="!isLoading">
+      <h2>{{ user?.username }}</h2>
+      <hr class="mt-2 mb-4" />
+      <div class="user_meta_container">
+        <div class="info-name-box">
+          <div>
+            <p class="block">Status:</p>
+            <p class="body-1 mt-1">
+              <span class="font-semibold" [ngClass]="user?.user_is_active ? 'text-green-600' : 'text-red-600'">{{
+                user?.user_is_active ? 'Active' : 'Inactive'
+              }}</span>
+            </p>
+          </div>
+        </div>
+        <div class="info-name-box" *ngIf="user?.user_type === 'ADMIN'">
+          <div>
+            <p class="block">Type:</p>
+            <p class="body-1 mt-1">
+              <span class="font-semibold" [ngClass]="user?.user_is_active ? 'text-green-600' : 'text-red-600'">{{ user?.user_type }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6" *ngIf="user?.user_type !== 'ADMIN'">
+        <div class="flex items-end pb-4">
+          <h3 class="text-xl font-medium">Roles</h3>
+          <button class="ml-auto" mat-flat-button color="accent" (click)="updateRole()">Update Roles</button>
+        </div>
+
+        <div class="user_role" *ngIf="user?.roles?.length">
+          <div class="user_role_container">
+            <div class="user_role_row">
+              <div class="user_role_item py-5">
+                <div class="user_role_permission-toggler"></div>
+                <div class="user_role_name font-semibold">Role name</div>
+                <div class="user_role_action ml-auto"></div>
+              </div>
+            </div>
+            <div class="user_role_body">
+              <div class="user_role_row" *ngFor="let item of user?.roles">
+                <kc-user-permission-item [role]="item"></kc-user-permission-item>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions block mt-6" fxLayout="row" fxLayoutAlign="end center" *ngIf="isLoaded">
+      <a
+        class="nxt-btn"
+        color="primary"
+        mat-raised-button
+        type="button"
+        [routerLink]="'/manage/users/'"
+        fxLayout="row"
+        fxLayoutAlign="center center"
+      >
+        <mat-icon [icIcon]="icArrowBack" class="mr-2" size="18px"></mat-icon>
+        <span>Back</span>
+      </a>
+    </div>
+  </kc-page-layout-content>
+</kc-page-layout>

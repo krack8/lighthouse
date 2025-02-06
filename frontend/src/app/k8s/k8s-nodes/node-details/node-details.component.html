@@ -1,0 +1,307 @@
+<div fxLayout="row" fxLayoutAlign="space-between center" mat-dialog-title>
+  <!-- Loader -->
+
+  <div class="flex items-center mt-10" *ngIf="isLoading">
+    <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+    <span class="ml-4">Loading...</span>
+  </div>
+
+  <!-- Data Render -->
+  <ng-template [ngIf]="!isLoading">
+    <div class="flex items-center mt-8 mb-2">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }"><mat-icon [icIcon]="icArrowBack"></mat-icon></a>
+      <h3 class="px-4 mb-2">{{ details?.metadata?.name }}</h3>
+    </div>
+
+    <div class="page-root" *ngIf="details">
+      <kc-metadata-template [data]="details.metadata"></kc-metadata-template>
+    </div>
+
+    <div class="page-root mt-4" *ngIf="metrics">
+      <div class="kube-card">
+        <h2 class="kube-card__title">Metrics</h2>
+        <div class="kube-card__content">
+          <div class="flex flex-wrap -mx-2">
+            <div class="px-2 w-full sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Window</div>
+                <h3 *ngIf="metrics?.metadata?.creationTimestamp; else noData" class="kc-dataset__value">
+                  {{ metrics?.window }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-4">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Usage</div>
+                <div *ngIf="metrics?.metadata?.creationTimestamp; else noData">
+                  <div *ngFor="let item of metrics?.usage | keyvalue">
+                    <h3 class="kc-dataset__value">
+                      <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-root mt-4" *ngIf="details">
+      <div class="kube-card">
+        <h2 class="kube-card__title">Spec</h2>
+        <div class="kube-card__content">
+          <div class="flex flex-wrap -mx-2">
+            <div class="px-2 w-full sm:w-1/2">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Pod CIDR</div>
+                <h3 *ngIf="details?.spec?.podCIDR; else noData" class="kc-dataset__value">
+                  {{ details?.spec?.podCIDR }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Pod CIDRs</div>
+                <div *ngIf="details?.spec?.podCIDR; else noData">
+                  <div *ngFor="let item of details?.spec?.podCIDRs">
+                    <h3 class="kc-dataset__value">{{ item }}</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Provider ID</div>
+                <h3 *ngIf="details?.spec?.providerID; else noData" class="kc-dataset__value">
+                  {{ details?.spec?.providerID }}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="details?.spec?.taints" class="kube-card mt-4">
+        <h2 class="kube-card__title">Taints</h2>
+        <div class="kube-card__content">
+          <div class="kube-table__wrapper">
+            <div class="kube-table--responsive">
+              <table class="kube-table heading-diff">
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Effect</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let taint of details?.spec?.taints">
+                    <td width="30%">{{ taint.key }}</td>
+                    <td width="20%">{{ taint.value }}</td>
+                    <td>{{ taint?.effect }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-root mt-4" *ngIf="details">
+      <div class="kube-card">
+        <h2 class="kube-card__title">Status</h2>
+        <div class="kube-card__content">
+          <div class="flex flex-wrap -mx-2">
+            <div class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Allocatable</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of details?.status?.allocatable | keyvalue">
+                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Capacity</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of details?.status?.capacity | keyvalue">
+                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <kc-expansion-data-viewer-template
+                  [label]="'Node Info'"
+                  [data]="details?.status?.nodeInfo"
+                ></kc-expansion-data-viewer-template>
+              </div>
+            </div>
+
+            <div *ngIf="details?.status?.volumesAttached" class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Volumes Attached</div>
+                <div *ngFor="let item of details?.status?.volumesAttached; let last = last">
+                  <div class="kc-dataset__value">
+                    <div class="w-full">
+                      <div class="kc-dataset mt-4">
+                        <h3 class="kc-dataset__value" *ngFor="let subItem of item | keyvalue">
+                          <span class="kc-dataset-key">{{ subItem.key }}: </span> {{ subItem.value || 'Null' }}
+                        </h3>
+                        <hr *ngIf="!last" class="mt-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="details?.status?.volumesInUse" class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name mt-4">Volumes In Use</div>
+                <div *ngFor="let item of details?.status?.volumesInUse; let last = last">
+                  <h3 class="kc-dataset__value mt-4">{{ item }}</h3>
+                  <hr *ngIf="!last" class="mt-4" />
+                </div>
+              </div>
+            </div>
+
+            <div class="px-2 w-full sm:w-1/2 mt-6">
+              <div class="kc-dataset">
+                <div class="kc-dataset__name">Daemon Endpoints</div>
+                <div class="kc-dataset__name px-2">Kubelet Endpoint</div>
+                <h3 class="kc-dataset__value" *ngFor="let item of details?.status?.daemonEndpoints.kubeletEndpoint | keyvalue">
+                  <span class="kc-dataset-key px-2">{{ item.key }}: </span> {{ item.value }}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <mat-accordion class="acc-table-accordion ltSm:responsive mt-6">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header class="info-table-row">
+              <mat-panel-title><h2 class="kube-card__title mt-6">Addresses</h2></mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="kube-card__content">
+              <div class="row">
+                <div class="kube-table__wrapper">
+                  <table class="kube-table heading-diff">
+                    <thead>
+                      <tr>
+                        <th width="30%">Address</th>
+                        <th width="40%">Type</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of details?.status?.addresses; let last = last">
+                        <td width="50%">
+                          <span> {{ item.address }} <br /> </span>
+                        </td>
+                        <td width="10%">
+                          {{ item.type }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <mat-accordion class="acc-table-accordion ltSm:responsive mt-6">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header class="info-table-row">
+              <mat-panel-title><h2 class="kube-card__title mt-6">Images</h2></mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="kube-card__content">
+              <div class="row">
+                <div class="kube-table__wrapper">
+                  <table class="kube-table heading-diff">
+                    <thead>
+                      <tr>
+                        <th width="30%">Name</th>
+                        <th width="40%">Size (Bytes)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let image of details?.status?.images">
+                        <td width="50%">
+                          <span *ngFor="let item of image.names"> {{ item }} <br /> </span>
+                        </td>
+                        <td width="10%">
+                          {{ image.sizeBytes }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <div class="mt-6">
+          <h2 class="kube-card__title">Conditions</h2>
+          <div class="kube-card__content">
+            <div class="row">
+              <div class="kube-table__wrapper">
+                <table class="kube-table heading-diff">
+                  <thead>
+                    <tr>
+                      <th width="13%">Type</th>
+                      <th width="10%">Status</th>
+                      <th>Last Update time</th>
+                      <th>Last transition time</th>
+                      <th>Reason</th>
+                      <th width="23%">Message</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let condition of details?.status?.conditions">
+                      <td [class.text-danger]="isConditionNegative(condition)">
+                        {{ condition.type }}
+                      </td>
+                      <td [class.text-danger]="isConditionNegative(condition)">
+                        {{ condition.status }}
+                      </td>
+                      <td [class.text-danger]="isConditionNegative(condition)">
+                        {{ condition.lastHeartbeatTime | date }}
+                      </td>
+                      <td [class.text-danger]="isConditionNegative(condition)">
+                        {{ condition.lastTransitionTime | date }}
+                      </td>
+                      <td [class.text-danger]="isConditionNegative(condition)">
+                        {{ condition.reason }}
+                      </td>
+                      <td [class.text-danger]="isConditionNegative(condition)" style="max-width: 480px">
+                        {{ condition.message }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Data -->
+    <kc-nothing-found *ngIf="!details"></kc-nothing-found>
+    <!-- Empty Content -->
+    <ng-template #emptyDataStatus>
+      <h6 class="color-text text-center">There is nothing to display.</h6>
+    </ng-template>
+    <ng-template #noData>
+      <h3 class="kc-dataset__value">-</h3>
+    </ng-template>
+  </ng-template>
+</div>

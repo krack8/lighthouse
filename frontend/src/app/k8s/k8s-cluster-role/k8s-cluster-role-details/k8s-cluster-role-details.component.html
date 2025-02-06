@@ -1,0 +1,122 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center mt-8 mb-4">
+    <div class="flex">
+      <a [routerLink]="'../'" [queryParams]="{ namespace: queryParams.namespace }"><mat-icon [icIcon]="icArrowBack"></mat-icon></a>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_K8S_CLUSTER_ROLE'" class="flex items-center">
+      <div class="px-2">
+        <button style="background: var(--color-dark-light)" mat-raised-button class="float-right" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+      <div class="px-2">
+        <button
+          style="background: rgba(255, 28, 28, 0.315)"
+          mat-raised-button
+          class="btn float-right"
+          type="button"
+          (click)="onDelete(data)"
+        >
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
+
+    <!-- <div class="kube-card mt-3">
+      <h2 class="kube-card__title">Rules</h2>
+      <div class="kube-card__content">
+        <div class="kube-table__wrapper">
+          <div class="kube-table--responsive">
+            <table class="kube-table heading-diff">
+              <thead>
+                <tr>
+                  <th>ApiGroups</th>
+                  <th>Resources</th>
+                  <th>verbs</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of data?.rules">
+                  <td>{{ item?.apiGroups[0] ==''? '-' : item?.apiGroups }}</td>
+                  <td>
+                    <span *ngFor="let obj of item?.resources">{{obj}}<br></span>
+                    <br>
+                    <span *ngIf="item?.resourceNames">
+                      <h3>Resource Names</h3>
+                      <span>{{item?.resourceNames}}</span>
+                    </span>
+                  </td>
+                  <td><span *ngFor="let obj of item?.verbs">{{obj}}<br></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+    <mat-accordion class="acc-table-accordion ltSm:responsive mt-6">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header class="info-table-row">
+          <mat-panel-title><h2 class="kube-card__title mt-6">Rules</h2></mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="kube-table__wrapper">
+          <div class="kube-table--responsive">
+            <table class="kube-table heading-diff">
+              <thead>
+                <tr>
+                  <th>ApiGroups</th>
+                  <th>Resources</th>
+                  <th>verbs</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of data?.rules">
+                  <td>{{ item?.apiGroups[0] == '' ? '-' : item?.apiGroups }}</td>
+                  <td>
+                    <span *ngFor="let obj of item?.resources">{{ obj }}<br /></span>
+                    <br />
+                    <span *ngIf="item?.resourceNames">
+                      <h3>Resource Names</h3>
+                      <span>{{ item?.resourceNames }}</span>
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngFor="let obj of item?.verbs">{{ obj }}<br /></span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div *ngIf="data?.aggregationRule" class="kube-card mt-6 mb-3">
+      <h2 class="kube-card__title">Aggregation Rule</h2>
+      <div class="kube-card__content">
+        <div class="px-2 w-full sm:w-1/2 mt-6">
+          <kc-json-data-viewer-template [data]="data?.aggregationRule"></kc-json-data-viewer-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

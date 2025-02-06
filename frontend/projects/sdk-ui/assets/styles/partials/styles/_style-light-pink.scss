@@ -1,0 +1,147 @@
+@use '@angular/material' as mat;
+.kc-style-pink {
+  @include mat.all-component-themes($kc-light-pink-theme);
+  $sidenav-background: white;
+  $primary: #ec008c;
+  // $info: #4285F4;
+  // $warn: #ffbb33;
+  // $warn-dark: #FF8800;
+  // $success: #36C678;
+  // $success-light: #D2E1FF;
+  // $grey: rgb(82, 81, 81);
+  // $grey-dark: #212121;
+  $secondary: #3db7e4;
+  // $danger: #B1122A;
+  // $slider: #4164A9;
+  // //Color
+  // --active-box-shadow-1: 5px 15px 40px rgba(211, 221, 239, 0.7);
+  // --status-active: #CAEDF3;
+  --color-primary: #{$primary};
+  --color-secondary: #{$secondary};
+  // --color-info: #{$info};
+  // --color-warn: #{$warn};
+  // --color-success: #{$success};
+  // --color-success-light: #{$success-light};
+  // --color-danger: #{$danger};
+  // --color-white: #ffffff;
+  --color-kc-step-number-active: var(--color-primary);
+  // --color-kc-step-number: white;
+  // --commit-item-shimmer-1: #F9FBFF;
+  // --commit-item-shimmer-2: #E9F0FF;
+  // --btn-transparent-color: #1a202e;
+  // --btn-transparent-background: #E4EAF1;
+  // --text-color-1: #3d4857;
+  // --color-tomato-red: #ff6347;
+  // //temp
+  --box-container-bg: #fef7fb;
+  --box-container-bg-2: #f2e6ed; // applicationList,
+  --create-new-app-btn-bg: #fde0f1;
+  // --background-selected-repo: #F4F7FC;
+  // --background-block-btn-details-box: #FFFFFF;
+  --background-resource-type: var(--color-primary);
+  // --background-kc-step-number-active: #D2E1FF;
+  --background-info-name-box: #fef7fb;
+  // --background-pipeline-step-box: #FFFFFF;
+  --background-kc-step-number: var(--color-primary);
+  --background-kc-stepper: #fef7fb;
+  // --background: #ffffff;
+  // --background-1: #F9FBFF;
+  // --background-2: #ffffff;
+  // --background-3: #ffffff;
+  --background-4: #fef7fb;
+  // --background-5: #ffffff;
+  --background-active: #fef7fb;
+  --border: #e2e2e2;
+  --border-active: #{$primary};
+  // --border-form-field: #D2E1FF;
+  --text-color: #2d2d2d;
+  // --label-color: #D2E1FF;
+  // --icon: #{$grey};
+  --background-close-btn: #fef7fb;
+  // --icon-primary: $primary;
+
+  // --white: #ffffff;
+  --brand: #{$primary};
+  // --brand-lighter: #D2E1FF;
+  // --brand-2: #52BACC;
+  // --brand-2-lighter: #CAEDF3;
+  // --grey: #BDBDBD;
+  // --grey-lighter: #E8EEFB;
+
+  // --navigation-background: var(--background-card);
+  // --sidenav-background: #{$sidenav-background};
+  // --step-bg: #F9FBFF;
+  --step-active-bg: var(--color-primary);
+  // --custom-tab-active: #E9F0FF;
+  // --step-active-text: #ffffff;
+  --step-active-number: var(--color-primary);
+  // --input-bg: var(--background-4);
+  // --input-border: var(--border);
+
+  // // Sidenav
+  --toolbar-background: var(--background-base);
+  // --toolbar-border: #efefef;
+  // --sidenav-color: var(--text-color);
+
+  // Sidenav Item
+  // --sidenav-item-background-active: #{darken($sidenav-background, 2)};
+  // --sidenav-item-color: var(--text-color);
+  --sidenav-item-color-active: #{$primary};
+  // --sidenav-item-dropdown-background: #{darken($sidenav-background, 2)};
+  // --sidenav-item-dropdown-background-hover: #{darken($sidenav-background, 3)};
+  // --sidenav-item-icon-color: #494B74;
+  // --sidenav-item-icon-color-active: var(--color-primary-500);
+  // --sidenav-toolbar-background: #{$sidenav-background};
+
+  // --dialog-border-color: transparent;
+
+  // --background-card: #e2e8f0;
+  // --background-card-2: #e2e8f0;
+  // Box
+  --box-background: #ede9f7;
+
+  // Table
+  // --background-table: #f9f6f6;
+  // --background-table-th: #EEEEEE;
+
+  // CDK Icon
+  // --cdk-icon-bg: var(--border-active);
+  // --cdk-icon-2-bg: var(--color-primary-50);
+  // --cdk-icon-2-color: var(--border-active);
+
+  // ? Var Override
+  --background-base: #fff4fa;
+  --toolbar-icon-color: var(--color-primary-500);
+
+  // primary
+  --color-primary-50: #fde0f1;
+  --color-primary-100: #f9b3dd;
+  --color-primary-200: #f680c6;
+  --color-primary-300: #f24daf;
+  --color-primary-400: #ef269d;
+  --color-primary-500: #ec008c;
+  --color-primary-600: #ea0084;
+  --color-primary-700: #e70079;
+  --color-primary-800: #e4006f;
+  --color-primary-900: #df005c;
+  --color-primary-A100: #ffffff;
+  --color-primary-A200: #ffd3e2;
+  --color-primary-A400: #ffa0c1;
+  --color-primary-A700: #ff86b0;
+  --color-primary-contrast-50: #000000;
+  --color-primary-contrast-100: #000000;
+  --color-primary-contrast-200: #000000;
+  --color-primary-contrast-300: #ffffff;
+  --color-primary-contrast-400: #ffffff;
+  --color-primary-contrast-500: #ffffff;
+  --color-primary-contrast-600: #ffffff;
+  --color-primary-contrast-700: #ffffff;
+  --color-primary-contrast-800: #ffffff;
+  --color-primary-contrast-900: #ffffff;
+  --color-primary-contrast-A100: #000000;
+  --color-primary-contrast-A200: #ffffff;
+  --color-primary-contrast-A400: #ffffff;
+  --color-primary-contrast-A700: #ffffff;
+
+  // background: var(--background-base);
+}

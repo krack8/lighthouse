@@ -1,0 +1,7 @@
+<mat-progress-bar
+  [class.visible]="loader.progress$ | async"
+  [value]="loader.progress$ | async"
+  class="progress-bar"
+  color="accent"
+  mode="determinate"
+></mat-progress-bar>

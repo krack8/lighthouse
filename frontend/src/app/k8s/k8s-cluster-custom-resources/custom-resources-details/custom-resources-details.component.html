@@ -1,0 +1,122 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="flex justify-between items-center">
+    <div class="flex items-center mt-8 mb-4">
+      <a
+        [routerLink]="'../'"
+        [queryParams]="{
+          resource: queryParams.resource,
+          group: queryParams.group,
+          version: queryParams.version,
+          versions: queryParams.versions,
+          kind: queryParams.kind
+        }"
+        ><mat-icon [icIcon]="icArrowBack"></mat-icon
+      ></a>
+      <h3 class="px-4 mb-2">{{ data?.metadata?.name }}</h3>
+    </div>
+
+    <div *hasAnyAuthority="'MANAGE_K8S_CUSTOM_RESOURCES'" class="flex items-center">
+      <div class="px-2">
+        <button style="background: var(--color-dark-light)" mat-raised-button class="float-right" type="button" (click)="onUpdate(data)">
+          <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+        </button>
+      </div>
+
+      <div class="px-2">
+        <button
+          style="background: rgba(255, 28, 28, 0.315)"
+          mat-raised-button
+          class="btn float-right"
+          type="button"
+          (click)="onDelete(data)"
+        >
+          <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root" *ngIf="data">
+    <div class="kube-card mb-3">
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Api Version</div>
+              <h3 class="kc-dataset__value">{{ data?.apiVersion }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Kind</div>
+              <h3 class="kc-dataset__value">{{ data?.kind }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
+
+    <div *ngIf="!isObjectEmpty(data?.spec)" class="kube-card mt-3">
+      <h2 class="kube-card__title">Spec</h2>
+      <div class="kube-card__content">
+        <div class="px-2 w-full sm:w-1/2 mt-6">
+          <div class="kc-dataset">
+            <ng-container *ngFor="let item of data?.spec | keyvalue">
+              <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item }"></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="data?.status" class="kube-card mt-3">
+      <h2 class="kube-card__title">Status</h2>
+      <div class="kube-card__content">
+        <div class="px-2 w-full sm:w-1/2 mt-6">
+          <div class="kc-dataset">
+            <ng-container *ngFor="let item of data?.status | keyvalue">
+              <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item }"></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #processItem let-item>
+      <h3 class="kc-dataset__value" *ngIf="!isObject(item.value)">
+        <div *ngIf="isInt(item.key)">
+          {{ item.value }}
+        </div>
+        <div *ngIf="!isInt(item.key)">
+          <span class="kc-dataset-key"> {{ item.key }}</span> : {{ item.value }}
+        </div>
+      </h3>
+
+      <div *ngIf="isObject(item.value)">
+        <div *ngIf="isInt(item.key)">
+          <!-- <h3 class="">-</h3> -->
+        </div>
+        <h3 *ngIf="!isInt(item.key)" class="kc-dataset__value kc-dataset-key">{{ item.key }}</h3>
+
+        <ng-container class="ml-2" *ngFor="let subitem of item.value | keyvalue">
+          <div class="ml-2 mt-2">
+            <ng-container *ngTemplateOutlet="processItem; context: { $implicit: subitem }"></ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

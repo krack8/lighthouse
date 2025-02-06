@@ -1,0 +1,124 @@
+<!-- Topbar -->
+<div class="flex items-center justify-between flex-wrap">
+  <div class="flex">
+    <button matTooltip="Refresh" class="ml-2" (click)="reloadList()">
+      <mat-icon class="text-xl refresh-icon" [icIcon]="icRefresh"></mat-icon>
+    </button>
+  </div>
+</div>
+<div class="flex items-center" *ngIf="loadingSpanner">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+<!-- Data List -->
+<ng-template [ngIf]="!loadingSpanner">
+  <div class="kube-table__wrapper" *ngIf="data?.length">
+    <table class="kube-table">
+      <thead>
+        <tr>
+          <th width="25%">Name</th>
+          <th width="20%" class="border-lef">Node</th>
+          <th width="18%" class="border-lef">Images</th>
+          <th width="8%" class="border-lef pe-1">Status</th>
+          <th width="8%" class="border-lef pe-1">Restart</th>
+          <th width="0%" class="border-lef">Running</th>
+          <th width="" class="text-center ps-1">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of data">
+          <td>
+            <a (click)="navigate(item?.metadata?.name, item?.metadata?.namespace)" class="details__link cursor-pointer">{{
+              item?.metadata?.name
+            }}</a>
+          </td>
+          <td>{{ item?.spec?.nodeName || '-' }}</td>
+          <td class="break-all">
+            <div *ngFor="let container of item?.spec?.containers">
+              {{ container?.image }}
+            </div>
+          </td>
+          <td class="pe-1">
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Running'"
+              matTooltip="Running"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/ic-active-deployment.gif"
+            />
+
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Succeeded'"
+              matTooltip="Succeeded"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/succeeded.svg"
+            />
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Failed'"
+              matTooltip="Failed"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/failed.svg"
+            />
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Pending'"
+              matTooltip="Pending"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/pending.svg"
+            />
+          </td>
+          <td class="ps-1">
+            <span *ngIf="item.status?.containerStatuses?.length">{{ item.status?.containerStatuses[0]?.restartCount || 0 }}</span>
+            <span *ngIf="!item.status?.containerStatuses">
+              <h3>-</h3>
+            </span>
+          </td>
+          <td>{{ containerRunning(item?.status?.containerStatuses) }} / {{ item?.status?.containerStatuses?.length }}</td>
+
+          <td class="text-center">
+            <button mat-icon-button [matMenuTriggerFor]="menu" class="k8s-menu-toggler">
+              <mat-icon [icIcon]="icMoreVert"></mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" xPosition="before" class="k8s-menu">
+              <button mat-menu-item [matMenuTriggerFor]="Labels"><mat-icon [icIcon]="icLabel"></mat-icon> Labels</button>
+
+              <mat-menu class="view-labels" #Labels="matMenu">
+                <div (click)="$event.stopPropagation()" class="p-2">
+                  <h3 class="mb-2">Labels</h3>
+
+                  <div class="kc-dataset">
+                    <h3 class="kc-dataset__value" *ngFor="let label of item?.metadata?.labels | keyvalue">
+                      <span class="kc-dataset-key">{{ label.key }}</span> : {{ label.value }}
+                    </h3>
+                    <h5 *ngIf="!item?.metadata?.labels">No labels found.</h5>
+                  </div>
+                </div>
+              </mat-menu>
+            </mat-menu>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="resourceToken.length !== 0" class="flex justify-center items-center">
+    <mat-progress-spinner
+      class="mx-6 mt-4"
+      *ngIf="loadMoreData"
+      strokeWidth="2"
+      diameter="40"
+      color="accent"
+      mode="indeterminate"
+    ></mat-progress-spinner>
+  </div>
+
+  <div *ngIf="!data?.length">
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </div>
+</ng-template>

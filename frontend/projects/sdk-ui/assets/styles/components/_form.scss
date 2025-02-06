@@ -1,0 +1,12 @@
+/* --------------- Form Input Group Card ------------------- */
+.input-group-card {
+  --input-group-card-padding-x: 13px;
+  --input-group-card-padding-y: 10px;
+  --input-group-card-border-size: 1.5px;
+  --input-group-card-border-color: var(--border);
+
+  border: var(--input-group-card-border-size) solid var(--input-group-card-border-color);
+  background: var(--background-1);
+  padding: var(--input-group-card-padding-y) var(--input-group-card-padding-x);
+  border-radius: 4px;
+}

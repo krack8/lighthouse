@@ -1,0 +1,60 @@
+<div
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+  [class.collapsed]="collapsed"
+  [class.open]="collapsed && (collapsedOpen$ | async)"
+  class="sidenav"
+  fxLayout="column"
+>
+  <div class="sidenav-toolbar" fxFlex="none" fxLayout="row" fxLayoutAlign="start center">
+    <img class="w-6 select-none" fxFlex="none" [src]="config.favicon || 'assets/images/ic_klovercloud_logo.png'" />
+    <h2 class="title pl-4 select-none" fxFlex="auto">{{ config.name || 'KloverCloud' }}</h2>
+    <button (click)="toggleCollapse()" class="w-8 h-8 -mr-2 leading-none" fxFlex="none" mat-icon-button type="button">
+      <mat-icon size="14px">
+        <svg
+          *ngIf="collapsed"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          width="14px"
+          height="14px"
+          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 24 24"
+          style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+        >
+          <path
+            fill="currentColor"
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z"
+          ></path>
+        </svg>
+        <svg
+          *ngIf="!collapsed"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          width="14px"
+          height="14px"
+          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 24 24"
+          style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+        >
+          <path
+            fill="currentColor"
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z"
+          ></path>
+          <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
+        </svg>
+      </mat-icon>
+    </button>
+  </div>
+
+  <div class="sidenav-items" fxFlex="auto">
+    <kc-sidenav-item *ngFor="let item of items$ | async; trackBy: trackByRoute" [item]="item" [level]="0"></kc-sidenav-item>
+  </div>
+
+  <div class="power_by" *ngIf="config?.logoUrl || config?.favicon || config?.name">
+    <span class="power_by_label">Powered By: </span>
+    <div class="power_by_content">
+      <img class="power_by_logo" src="assets/images/ic_klovercloud_logo.png" alt="" />
+      <span class="power_by_logo_text"> <span style="color: #5bc4d6">Klover</span><span style="color: #4164a9">Cloud</span> </span>
+    </div>
+  </div>
+</div>

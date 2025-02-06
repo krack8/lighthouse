@@ -1,0 +1,30 @@
+.vertical-layout {
+  --toolbar-width: 100%;
+
+  kc-secondary-toolbar {
+    .h-14 {
+      display: none;
+    }
+
+    .fixed {
+      background: none;
+      border-top: none;
+      box-shadow: none;
+      margin-bottom: calc(var(--padding-16) * -1);
+      padding-top: var(--padding-12);
+      position: relative;
+      top: 0;
+    }
+  }
+
+  &.content-container > .sidenav-container > .sidenav-content > .content {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &.has-fixed-footer {
+    &.scroll-disabled .content {
+      height: calc(100% - var(--toolbar-height) - var(--footer-height));
+    }
+  }
+}

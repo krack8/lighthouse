@@ -1,0 +1,36 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es2020",
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
+    "paths": {
+      "@cluster/*": ["src/app/cluster/*"],
+      "@billing/*": ["src/app/billing/*"],
+      "@management/*": ["src/app/management/*"],
+      "@settings/*": ["src/app/settings/*"],
+      "@k8s/*": ["src/app/k8s/*"],
+      "@helm-apps/*": ["src/app/helm-apps/*"],
+      "@env/*": ["src/environments/*"],
+      "@klovercloud/*": ["src/libs/*"],
+      "@cdk-ui/*": ["projects/cdk-ui/src/*"],
+      "@core-ui/*": ["projects/core-ui/src/*"],
+      "@sdk-ui/*": ["projects/sdk-ui/src/*"],
+      "@shared-ui/*": ["projects/shared-ui/src/*"]
+    }
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "strictInjectionParameters": true
+  }
+}

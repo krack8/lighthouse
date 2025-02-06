@@ -1,0 +1,26 @@
+<div class="user_role_item" [class.active]="showPermissions" (click)="togglePermission()">
+  <div class="user_role_permission-toggler">
+    <button mat-icon-button>
+      <mat-icon [icIcon]="showPermissions ? icArrowDropDown : icArrow"></mat-icon>
+    </button>
+  </div>
+  <div class="user_role_name">{{ role?.name }}</div>
+  <div class="user_role_action ml-auto">
+    <!-- <button mat-icon-button type="button">
+      <mat-icon>delete</mat-icon>
+    </button> -->
+  </div>
+</div>
+
+<div @fadeAnimation class="_permission_container" *ngIf="showPermissions">
+  <div class="_permission_content">
+    <h3 class="text-sm font-medium text-primary">All Permissions</h3>
+    <div class="prev-category" *ngIf="role?.permissions?.length > 0">
+      <div class="prev-category__permission">
+        <div *ngFor="let __permission of role?.permissions" class="permission-chip mt-2">
+          {{ __permission?.name | strReplace: '_' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

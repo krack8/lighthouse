@@ -1,0 +1,143 @@
+/*
+* Accordion Table used in mostly in the application details feature
+*/
+
+$acc-table-prefix: acc-table;
+
+.#{$acc-table-prefix} {
+  // Table
+  display: table;
+  width: 100%;
+  table-layout: auto;
+
+  .border-left {
+    position: relative;
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      height: 17px;
+      width: 1.5px;
+      background-color: var(--text-color);
+      border-radius: 2px;
+    }
+  }
+
+  &-row {
+    display: table-row;
+    vertical-align: middle;
+    width: 100%;
+  }
+
+  &-cell {
+    display: table-cell;
+    vertical-align: inherit;
+
+    &:not(:first-child) {
+      padding-left: 15px;
+    }
+  }
+
+  // Accordion
+  &-accordion {
+    display: block;
+
+    .mat-expansion-indicator {
+      position: absolute;
+      top: 11px;
+      right: 15px;
+    }
+
+    .mat-expansion-panel {
+      margin: 8px 0;
+      border-radius: 6px !important;
+      background: var(--background);
+
+      &-header {
+        height: 54px;
+
+        &[aria-disabled='true'] {
+          color: var(--text-color);
+        }
+      }
+
+      &:not(.#{$acc-table-prefix}-header) {
+        border: 1px solid var(--border);
+      }
+
+      // Table header
+      &.#{$acc-table-prefix}-header {
+        .mat-expansion-panel-header {
+          background: rgba(89, 132, 219, 0.103) !important;
+          &.mat-expanded,
+          &.mat-expanded:focus,
+          &.mat-expanded:hover {
+            background: transparent !important;
+          }
+        }
+      }
+    }
+
+    // Expended
+    .mat-expanded {
+      .mat-expansion-indicator {
+        top: 25px;
+      }
+    }
+
+    .mat-expansion-panel-header {
+      font-size: 13px;
+      line-height: 23px;
+      padding-right: 40px;
+      background: var(--background) !important;
+      &[aria-disabled='true'] {
+        cursor: default;
+      }
+
+      &.mat-expanded,
+      &.mat-expanded:focus,
+      &.mat-expanded:hover {
+        background: var(--background-1) !important;
+      }
+    }
+
+    .mat-expansion-panel-content {
+      border-top: 1px solid var(--border);
+    }
+
+    .mat-expansion-panel-body {
+      padding-top: 16px;
+    }
+  }
+
+  // None Accordion
+  &-static {
+    .#{$acc-table-prefix} {
+      &-body,
+      &-header {
+        margin: 8px 0;
+        border-radius: 6px;
+        padding: 12px 24px;
+      }
+      &-header {
+        background: var(--background-kc-stepper);
+      }
+      &-body {
+        background: var(--background);
+        line-height: 33px;
+      }
+    }
+
+    a.#{$acc-table-prefix}-body {
+      cursor: pointer;
+      display: block;
+      transition: border 0.3s linear;
+      &:hover {
+        border-color: var(--color-primary);
+      }
+    }
+  }
+}

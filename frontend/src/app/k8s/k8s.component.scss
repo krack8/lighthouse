@@ -1,0 +1,302 @@
+::ng-deep {
+  // Button
+  .k8s-menu {
+    // Menu Toggler Button
+    &-toggler {
+      $size: 30px;
+      height: $size;
+      width: $size;
+      line-height: 26px;
+
+      .mat-icon {
+        $iconSize: 24px !important;
+        height: $iconSize;
+        width: $iconSize;
+        font-size: $iconSize;
+      }
+    }
+
+    // Menu Item
+    .mat-menu-item {
+      min-width: 150px;
+
+      .mat-icon {
+        margin-right: 12px;
+        font-size: 22px;
+      }
+    }
+  }
+
+  /* -------------- Kube Table ---------------- */
+  .kube-table {
+    width: 100%;
+
+    .border-lef {
+      position: relative;
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        height: 17px;
+        width: 2px;
+        background-color: var(--text-color);
+        border-radius: 2px;
+      }
+    }
+
+    &__wrapper {
+      border-radius: 6px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 18px 16px;
+    }
+
+    th {
+      font-weight: 450;
+      font-size: 14px;
+    }
+
+    td {
+      font-size: 13px;
+    }
+
+    &__inner {
+      i {
+        font-size: 14px;
+      }
+
+      td {
+        text-align: center;
+        line-height: 13px;
+        padding: 10px 3px !important;
+        font-size: 12px;
+      }
+    }
+
+    thead {
+      tr {
+        background-color: var(--background-kc-stepper);
+      }
+
+      .kube-table__inner {
+        td {
+          border-right: 1px solid var(--border);
+
+          &:last-child {
+            border-right: 0;
+          }
+        }
+      }
+    }
+
+    tbody {
+      .kube-table__inner {
+        td {
+          border: 1px solid var(--border);
+        }
+      }
+
+      tr {
+        &:last-child {
+          border-bottom: 0;
+        }
+      }
+    }
+
+    @media (max-width: 1699px) {
+      width: 1699px;
+    }
+  }
+
+  .details__link {
+    font-weight: 500;
+    color: var(--color-primary);
+    font-size: 14px;
+    padding: 3px 10px;
+    margin: -3px -10px;
+    border-radius: 4px;
+    text-align: start;
+
+    &:hover {
+      background: var(--background-hover);
+    }
+  }
+
+  /* -------------- Dataset ---------------- */
+  .kc-dataset {
+    &__name {
+      font-size: 13px;
+      line-height: 13px;
+      letter-spacing: 0.3px;
+      color: #9cadc9;
+      margin-bottom: 10px;
+    }
+
+    &__value {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 26px;
+      letter-spacing: 0.3px;
+      color: var(--text-color);
+      word-break: break-word;
+    }
+
+    .kc-dataset-key {
+      color: var(--color-primary);
+    }
+  }
+
+  /* -------------- kube-Card ---------------- */
+  .kube-card {
+    border: 1px solid;
+    border-color: var(--border);
+    padding: 16px 16px;
+    border-radius: 6px;
+    background-color: var(--background);
+
+    &__title {
+      color: var(--text-color);
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 18px;
+      @apply mb-6;
+    }
+
+    @screen sm {
+      padding: 20px 23px;
+    }
+  }
+
+  ._custom-label {
+    h3 {
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 24px;
+    }
+
+    h6 {
+      font-size: 12px;
+      line-height: 12px;
+      color: var(--grey);
+      margin-top: 5px;
+    }
+  }
+
+  // Chart
+  .base-chart {
+    &__item {
+      background-color: var(--background);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 24px 16px;
+      cursor: pointer;
+
+      &:hover,
+      &.active {
+        border-color: var(--border-color);
+      }
+
+      h5 {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .cluster-nav-tab {
+    border-radius: 5px;
+    border: 1.5px solid var(--border);
+
+    li {
+      border-right: 1.5px solid var(--border);
+      white-space: nowrap;
+    }
+
+    li:first-of-type {
+      border-radius: 4px 0 0 4px;
+    }
+
+    li:last-of-type {
+      border-right: none;
+      border-radius: 0 4px 4px 0;
+    }
+
+    a {
+      &.current {
+        background: var(--background-kc-stepper);
+      }
+    }
+  }
+
+  .total_count {
+    margin-top: 7px;
+  }
+
+  ._k8s_search_form_field {
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+      margin-bottom: 11px !important;
+    }
+
+    .mat-form-field-infix {
+      padding-top: 5px;
+      /* Adjust the padding value as needed */
+      font-size: 13px;
+      width: 120px;
+    }
+
+    .mat-form-field-label {
+      font-size: 13px;
+      /* Adjust the font size value as needed */
+    }
+  }
+
+  .details-edit-btn {
+    background: rgb(102, 102, 102) !important;
+    color: white !important;
+  }
+
+  .details-delete-btn {
+    background-color: rgb(149, 42, 42) !important;
+  }
+}
+
+.select_search_wrapper {
+  padding: 0;
+
+  input {
+    padding: 10px 16px;
+  }
+}
+
+.more-btn {
+  height: 38px;
+}
+
+::ng-deep .cdk-overlay-pane .more-menu {
+  overflow-x: hidden;
+  max-height: 330px;
+}
+
+@media (max-width: 1540px) {
+  .dashboard-header {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  #create-btn {
+    float: right;
+    margin-bottom: 20px;
+  }
+}

@@ -1,0 +1,18 @@
+<div class="kc-toastr-container">
+  <div class="kc-toastr flex align-middle" [class.fadeOutBellow]="toast['dismiss']" *ngFor="let toast of toasts; let i = index">
+    <div class="kc-toastr-icon">
+      <img [src]="'/assets/images/toastr/' + toast.icon + '.svg'" alt="" />
+    </div>
+
+    <div class="kc-toastr-msg">
+      <p class="title">
+        <strong>{{ toast.title }}</strong>
+      </p>
+      <p>{{ toast.message }}</p>
+    </div>
+
+    <button mat-button (click)="onDismiss(i)">
+      <i class="kc-close kc-toastr-close"></i>
+    </button>
+  </div>
+</div>

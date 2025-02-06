@@ -1,0 +1,71 @@
+.grid-wrapper {
+  padding: 33px;
+  padding-top: 15px;
+
+  .grid-content {
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.04);
+    border-radius: 6px;
+
+    .create-new-app-btn {
+      background: var(--create-new-app-btn-bg);
+      border-radius: 27px;
+      color: var(--text-color);
+      font-weight: 500;
+      font-size: 14px;
+
+      &:active {
+        background: #4164a9;
+        color: white;
+        box-shadow: 0 4px 10px rgba(65, 100, 169, 0.24);
+      }
+    }
+
+    .create-new-app-btn-active {
+      background: #4164a9;
+      color: white;
+      box-shadow: 0 4px 10px rgba(65, 100, 169, 0.24);
+    }
+
+    .application-block-btn {
+      background: var(--background-kc-stepper);
+      border: 1px solid var(--border);
+      box-sizing: border-box;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .application-card {
+      height: 140px;
+
+      .top-container {
+        height: 95px;
+      }
+    }
+
+    .check-icon {
+      position: absolute;
+      left: 46%;
+      bottom: -13px;
+      visibility: hidden;
+      z-index: 2;
+    }
+
+    .selected {
+      background: var(--background);
+      border: 2px solid #4164a9;
+      box-shadow: var(--active-box-shadow-1);
+
+      .check-icon {
+        visibility: visible;
+      }
+    }
+  }
+}
+.box-card {
+  background: var(--background-kc-stepper);
+}
+
+.text-mod {
+  color: gray;
+  font-size: 12px;
+}

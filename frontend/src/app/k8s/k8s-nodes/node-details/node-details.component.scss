@@ -1,0 +1,74 @@
+.cancel-btn {
+  background-color: rgba(66, 144, 216, 0.178) !important;
+}
+
+.key {
+  color: white !important;
+}
+
+.available {
+  border: 1px solid #4164a9;
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  font-weight: normal;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  color: var(--text-color);
+
+  .circle {
+    font-size: 16px;
+    color: #e8eefb;
+  }
+
+  span {
+    font-weight: 600;
+  }
+}
+
+.vpc-overview-box {
+  width: 500px;
+  margin-bottom: 15px;
+  background: var(--background-kc-stepper);
+  border: 1.5px solid var(--border);
+  box-sizing: border-box;
+  box-shadow: 5px 0px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  //padding-right: 20px;
+
+  h2 {
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 0.3px;
+    color: var(--text-color);
+  }
+}
+
+.error-wrap {
+  background: var(--background-base);
+}
+
+.color-available {
+  color: var(--color-info);
+}
+
+.color-used {
+  color: var(--color-success);
+}
+
+.base-color {
+  color: var(--text-color);
+  opacity: 0.2;
+}
+
+.graph-info {
+  height: 150px;
+  margin-top: 100px;
+
+  h6 {
+    margin-bottom: 10px;
+    white-space: nowrap;
+  }
+}

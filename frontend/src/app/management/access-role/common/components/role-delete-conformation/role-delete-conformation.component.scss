@@ -1,0 +1,28 @@
+.modal-wrapper {
+  width: 100%;
+
+  img {
+    margin: 20px auto 40px;
+    max-width: 70px;
+    height: auto;
+  }
+
+  h3 {
+    color: var(--text-color);
+    text-align: center;
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .modal-btns {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+._text-warn {
+  color: var(--color-warn);
+  max-width: 410px;
+}

@@ -1,0 +1,1713 @@
+<kc-page-layout>
+  <kc-page-layout-content kcContainer>
+    <cdk-horizontal-stepper
+      header="On-Board K8s Cluster"
+      #stepper
+      [linear]="true"
+      (selectionChange)="onStepperChange($event)"
+      class="w-full"
+    >
+      <!-- Prerequsite Selector -->
+      <cdk-step>
+        <ng-template cdkStepLabel>
+          <div>Prerequisite</div>
+        </ng-template>
+
+        <kc-onboard-cluster-prerequisite></kc-onboard-cluster-prerequisite>
+
+        <div class="flex items-center justify-end py-4">
+          <button mat-raised-button color="primary" cdkStepperNext class="next-btn">Next</button>
+        </div>
+      </cdk-step>
+
+      <!-- Cluster Info -->
+      <cdk-step [stepControl]="clusterInfoFormGroup">
+        <ng-template cdkStepLabel
+          >Cluster <br />
+          Information</ng-template
+        >
+        <div class="mt-5" [formGroup]="clusterInfoFormGroup">
+          <h2 class="section__title mb-1">General Information</h2>
+          <div class="preview-box p-4 pt-3 rounded">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+              <mat-form-field appearance="outline" class="custom-mat-form-field">
+                <mat-label>
+                  <span>Cluster Name</span>
+                  <mat-icon
+                    class="info-icon"
+                    [icIcon]="icInfo"
+                    matTooltip="Provide a unique name to identify the cluster"
+                    matTooltipPosition="above"
+                  ></mat-icon>
+                </mat-label>
+                <input type="text" formControlName="clusterName" matInput required />
+                <mat-hint>Cluster name should be letter lowercase, number, hyphen, and name start with letter.</mat-hint>
+                <mat-error
+                  *ngIf="clusterInfoFormGroup.get('clusterName').touched && clusterInfoFormGroup.get('clusterName').hasError('required')"
+                >
+                  Cluster name is required!
+                </mat-error>
+                <mat-error
+                  *ngIf="
+                    clusterInfoFormGroup.get('clusterName').touched &&
+                    (clusterInfoFormGroup.get('clusterName').hasError('minlength') ||
+                      clusterInfoFormGroup.get('clusterName').hasError('pattern') ||
+                      clusterInfoFormGroup.get('clusterName').hasError('whitespace'))
+                  "
+                >
+                  Cluster name should be
+                  {{ clusterInfoFormGroup.get('clusterName')?.errors?.minlength?.requiredLength }} or more character, no whitespace, and no
+                  special characters except underscore (-)
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="custom-mat-form-field">
+                <mat-label>
+                  <span>Namespace</span>
+                  <mat-icon
+                    class="info-icon"
+                    [icIcon]="icInfo"
+                    matTooltip="This Kubernetes namespace will be used for deploying all necessary system components; the namespace will be created if it doesn't exist"
+                    matTooltipPosition="above"
+                  ></mat-icon>
+                </mat-label>
+                <input type="text" formControlName="namespace" matInput />
+                <mat-error
+                  *ngIf="
+                    clusterInfoFormGroup.get('namespace').touched &&
+                    (clusterInfoFormGroup.get('namespace').hasError('minlength') ||
+                      clusterInfoFormGroup.get('namespace').hasError('pattern') ||
+                      clusterInfoFormGroup.get('namespace').hasError('whitespace'))
+                  "
+                >
+                  Namespace should be
+                  {{ clusterInfoFormGroup.get('namespace')?.errors?.minlength?.requiredLength }} or more character, no whitespace, and no
+                  special characters except underscore (-)
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- 01. Ingress Information -->
+          <h2 class="section__title mt-6">Ingress Information</h2>
+          <div class="preview-box p-4 pt-3 rounded">
+            <h3 class="section__sub_title mb-1">Cluster Issuer Configuration</h3>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+              <mat-form-field appearance="outline" class="custom-mat-form-field">
+                <mat-label>
+                  <span>Cluster Issuer Name</span>
+                  <mat-icon
+                    class="info-icon"
+                    [icIcon]="icInfo"
+                    matTooltip="This cluster issuer name will be used by cert-manager to generate a certificate secret. The platform will use the secret to enable TLS  for external endpoints."
+                    matTooltipPosition="above"
+                  ></mat-icon>
+                </mat-label>
+                <input type="text" formControlName="clusterIssuerName" matInput />
+              </mat-form-field>
+            </div>
+            <!-- 01.01 Service Ingress Start -->
+            <h3 class="section__sub_title mb-1">
+              Service Ingress Configuration
+              <cdk-hint
+                size="16px"
+                hint="Ingress configuration for accessing required platform services; The platform will create Kubernetes Ingress and the domain will be configured by adding a subdomain along with the service wildcard domain."
+              ></cdk-hint>
+            </h3>
+            <div class="border p-4 rounded">
+              <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    <span>Domain Name (Wildcard Supported)</span>
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="This wildcard domain will be used to access the system services; the platform will create Kubernetes Ingress with subdomains under this domain."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="nginxIngressGatewayWildcardDomain" matInput required placeholder="xyz.com" />
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomain').touched &&
+                      clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomain').invalid
+                    "
+                  >
+                    Please provide a valid wildcard domain for service ingress! Example: xyz.com
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Ingress Controller Type
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="This Kubernetes ingress controller type will specify which type of controller will be used for handling incoming requests in the cluster."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <mat-select formControlName="nginxIngressControllerType">
+                    <mat-option value="NGINX">NGINX</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Ingress Class
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="This Kubernetes ingress class name will be used to handle the incoming requests to the cluster."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="nginxIngressClassName" matInput required />
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('nginxIngressClassName').touched && clusterInfoFormGroup.get('nginxIngressClassName').valid
+                    "
+                  >
+                    Please provide a ingress class!
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <h4 class="mb-1 text-sm">SSL Config</h4>
+              <div class="input-group-card p-4">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+                  <div class="checkbox">
+                    <mat-checkbox
+                      (change)="onServiceSslChange($event)"
+                      formControlName="nginxIngressGatewayWildcardDomainTlsEnabled"
+                      [checked]="true"
+                      color="primary"
+                      class="rounded-checkbox"
+                    >
+                      Enable SSL
+                      <cdk-hint
+                        size="16px"
+                        hint="By enabling SSL, you can provide a cert, key, and ca (if necessary) for the domain; the platform will create a Kubernetes secret that will be used as the TLS secret in Kubernetes Ingress"
+                      ></cdk-hint>
+                    </mat-checkbox>
+                  </div>
+                  <div class="checkbox" *ngIf="clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsAutoSSL')">
+                    <mat-checkbox
+                      formControlName="nginxIngressGatewayWildcardDomainTlsAutoSSL"
+                      [checked]="true"
+                      color="primary"
+                      class="rounded-checkbox"
+                    >
+                      Auto SSL
+                      <cdk-hint
+                        size="16px"
+                        hint="Enable Auto SSL if you want Kubernetes to automatically generate certificate secrets and add TLS support for the necessary Kubernetes Ingresses using the provided ClusterIssuer"
+                      ></cdk-hint>
+                    </mat-checkbox>
+                  </div>
+                  <div class="checkbox" *ngIf="clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsSecretEnabled')">
+                    <mat-checkbox
+                      (change)="onServiceSslCertificateChange($event)"
+                      formControlName="nginxIngressGatewayWildcardDomainTlsSecretEnabled"
+                      [checked]="true"
+                      color="primary"
+                      class="rounded-checkbox"
+                    >
+                      Provide Certificate Secret
+                      <cdk-hint
+                        size="16px"
+                        hint="Enable it if you already have a Kubernetes secret inside the namespace that contains the cert, key, and ca (if any) for the given domain."
+                      ></cdk-hint>
+                    </mat-checkbox>
+                  </div>
+                </div>
+                <div
+                  *ngIf="
+                    clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsEnabled').value === true &&
+                    clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsAutoSSL')?.value !== true
+                  "
+                  class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-4"
+                >
+                  <ng-container *ngIf="clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsSecretEnabled')?.value === false">
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label
+                        >Cert
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide a certificate for the given wildcard domain."
+                          matTooltipPosition="above"
+                        ></mat-icon
+                      ></mat-label>
+                      <textarea formControlName="nginxIngressGatewayWildcardDomainTlsCert" matInput required rows="2"></textarea>
+                      <mat-error
+                        *ngIf="
+                          clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsCert').touched &&
+                          clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsCert').hasError('required')
+                        "
+                      >
+                        Cert Is Required!
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label
+                        >Key
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the certificate key for the given wildcard domain."
+                          matTooltipPosition="above"
+                        ></mat-icon
+                      ></mat-label>
+                      <textarea formControlName="nginxIngressGatewayWildcardDomainTlsKey" matInput required rows="2"></textarea>
+                      <mat-error
+                        *ngIf="
+                          clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsKey').touched &&
+                          clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsKey').hasError('required')
+                        "
+                      >
+                        Key Is Required!
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label
+                        >CA
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the custom certificate authority (if needed) for the given wildcard domain."
+                          matTooltipPosition="above"
+                        ></mat-icon
+                      ></mat-label>
+                      <textarea formControlName="nginxIngressGatewayWildcardDomainTlsCa" matInput rows="2"></textarea>
+                    </mat-form-field>
+                    <div class="checkbox col-span-4">
+                      <mat-checkbox
+                        formControlName="nginxIngressGatewayWildcardDomainTlsSecretReflectionEnabled"
+                        [checked]="true"
+                        color="primary"
+                        class="rounded-checkbox"
+                      >
+                        Apply secret to all namespace
+                        <cdk-hint
+                          size="16px"
+                          hint="If selected, the newly created Kubernetes secret will be copied to all the existing and new namespaces and will be used as the TLS secret in Kubernetes Ingress."
+                        ></cdk-hint>
+                      </mat-checkbox>
+                    </div>
+                  </ng-container>
+
+                  <mat-form-field
+                    appearance="outline"
+                    class="custom-mat-form-field"
+                    *ngIf="clusterInfoFormGroup.get('nginxIngressGatewayWildcardDomainTlsSecret')"
+                  >
+                    <mat-label
+                      >Secret Name
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the name of the Kubernetes secret containing cert, key, and ca which will be used as the tls secret in Kubernetes Ingress"
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <textarea formControlName="nginxIngressGatewayWildcardDomainTlsSecret" matInput rows="2"></textarea>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+            <!-- 01.01 Service Ingress End -->
+
+            <!-- 01.02 Application Ingress -->
+            <h3 class="section__sub_title mb-1 mt-6">
+              Application Ingress Configuration
+              <cdk-hint
+                size="16px"
+                hint="Ingress configuration for accessing user application; While deploying the user’s application through the platform, the URL will be generated by adding a subdomain along with the application wildcard domain."
+              ></cdk-hint>
+            </h3>
+
+            <div class="border p-4 rounded">
+              <div class="checkbox">
+                <mat-checkbox
+                  (change)="onAppIngressChange($event)"
+                  formControlName="useSameIngressGatewayConfigForApplication"
+                  [checked]="true"
+                  color="primary"
+                  class="rounded-checkbox"
+                >
+                  Use the same service ingress configuration for the application
+                  <cdk-hint
+                    size="16px"
+                    hint="If selected, all the provided configurations for service ingress will be applied for accessing user created applications as well; Unselect it for using different configurations."
+                  ></cdk-hint>
+                </mat-checkbox>
+              </div>
+
+              <ng-container *ngIf="clusterInfoFormGroup.get('useSameIngressGatewayConfigForApplication').value === false">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Domain Name (Wildcard Supported)
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="his wildcard domain will be used to access the system services; the platform will create Kubernetes Ingress with subdomains under this domain."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="applicationIngressGatewayWildcardDomain" matInput required placeholder="xyz.com" />
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomain').touched &&
+                        clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomain').invalid
+                      "
+                    >
+                      Please provide a valid wildcard domain for application ingress! Example: xyz.com
+                    </mat-error>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Ingress Controller Type
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="This Kubernetes ingress controller type will specify which type of controller will be used for handling incoming requests in the cluster."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <mat-select formControlName="nginxIngressControllerTypeForApplication">
+                      <mat-option value="NGINX">NGINX</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Ingress Class
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="This Kubernetes ingress class name will be used to handle the incoming requests to the cluster."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="nginxIngressClassNameForApplication" matInput required />
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('nginxIngressClassNameForApplication').touched &&
+                        clusterInfoFormGroup.get('nginxIngressClassNameForApplication').valid
+                      "
+                    >
+                      Please provide a ingress class!
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+                <h4 class="mb-1 text-sm">SSL Config</h4>
+                <div class="input-group-card p-4">
+                  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+                    <div class="checkbox">
+                      <mat-checkbox
+                        (change)="onAppSslChange($event.checked)"
+                        formControlName="applicationIngressGatewayWildcardDomainTlsEnabled"
+                        color="primary"
+                        class="rounded-checkbox"
+                      >
+                        Enable SSL
+                        <cdk-hint
+                          size="16px"
+                          hint="By enabling SSL, you can provide a cert, key, and ca (if necessary) for the domain; the platform will create a Kubernetes secret that will be used as the TLS secret in Kubernetes Ingress."
+                        ></cdk-hint>
+                      </mat-checkbox>
+                    </div>
+                    <!-- <div
+                      class="checkbox"
+                      *ngIf="clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsAutoSSL')"
+                    >
+                      <mat-checkbox
+                        formControlName="applicationIngressGatewayWildcardDomainTlsAutoSSL"
+                        [checked]="true"
+                        color="primary"
+                        class="rounded-checkbox"
+                      >
+                        Auto SSL
+                        <cdk-hint
+                          size="16px"
+                          hint="Enable Auto SSL if you want Kubernetes to automatically generate certificate secrets and add TLS support for the necessary Kubernetes Ingresses using the provided ClusterIssuer."
+                        ></cdk-hint>
+                      </mat-checkbox>
+                    </div> -->
+                    <div class="checkbox" *ngIf="clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsSecretEnabled')">
+                      <mat-checkbox
+                        (change)="onAppSslCertificateChange($event)"
+                        formControlName="applicationIngressGatewayWildcardDomainTlsSecretEnabled"
+                        color="primary"
+                        class="rounded-checkbox"
+                      >
+                        Provide Certificate Secret
+                        <cdk-hint
+                          size="16px"
+                          hint="Enable it if you already have a Kubernetes secret inside the namespace that contains the cert, key, and ca (if any) for the given domain."
+                        ></cdk-hint>
+                      </mat-checkbox>
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="
+                      clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsEnabled').value === true &&
+                      clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsAutoSSL')?.value !== true
+                    "
+                    class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-4"
+                  >
+                    <ng-container
+                      *ngIf="clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsSecretEnabled')?.value === false"
+                    >
+                      <mat-form-field appearance="outline" class="custom-mat-form-field">
+                        <mat-label>
+                          Cert
+                          <mat-icon
+                            class="info-icon"
+                            [icIcon]="icInfo"
+                            matTooltip="Provide a certificate for the given wildcard domain."
+                            matTooltipPosition="above"
+                          ></mat-icon>
+                        </mat-label>
+                        <textarea formControlName="applicationIngressGatewayWildcardDomainTlsCert" matInput required rows="2"></textarea>
+                        <mat-error
+                          *ngIf="
+                            clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsCert').touched &&
+                            clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsCert').hasError('required')
+                          "
+                        >
+                          Cert Is Required!
+                        </mat-error>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="custom-mat-form-field">
+                        <mat-label>
+                          Key
+                          <mat-icon
+                            class="info-icon"
+                            [icIcon]="icInfo"
+                            matTooltip="Provide the certificate key for the given wildcard domain."
+                            matTooltipPosition="above"
+                          ></mat-icon>
+                        </mat-label>
+                        <textarea formControlName="applicationIngressGatewayWildcardDomainTlsKey" matInput required rows="2"></textarea>
+                        <mat-error
+                          *ngIf="
+                            clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsKey').touched &&
+                            clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsKey').hasError('required')
+                          "
+                        >
+                          Key Is Required!
+                        </mat-error>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="custom-mat-form-field">
+                        <mat-label>
+                          CA
+                          <mat-icon
+                            class="info-icon"
+                            [icIcon]="icInfo"
+                            matTooltip="Provide the custom certificate authority (if needed) for the given wildcard domain."
+                            matTooltipPosition="above"
+                          ></mat-icon>
+                        </mat-label>
+                        <textarea formControlName="applicationIngressGatewayWildcardDomainTlsCa" matInput rows="2"></textarea>
+                      </mat-form-field>
+                      <div class="checkbox col-span-4">
+                        <mat-checkbox
+                          formControlName="applicationIngressGatewayWildcardDomainTlsSecretReflectionEnabled"
+                          color="primary"
+                          class="rounded-checkbox"
+                        >
+                          Apply secret to all namespace
+                          <cdk-hint
+                            size="16px"
+                            hint="If selected, the newly created Kubernetes secret will be copied to all the existing and new namespaces and will be used as the TLS secret in Kubernetes Ingress"
+                          ></cdk-hint>
+                        </mat-checkbox>
+                      </div>
+                    </ng-container>
+
+                    <mat-form-field
+                      appearance="outline"
+                      class="custom-mat-form-field"
+                      *ngIf="clusterInfoFormGroup.get('applicationIngressGatewayWildcardDomainTlsSecret')"
+                    >
+                      <mat-label>
+                        Secret Name
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the name of the Kubernetes secret containing cert, key, and ca which will be used as the tls secret in Kubernetes Ingress."
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <textarea formControlName="applicationIngressGatewayWildcardDomainTlsSecret" matInput rows="2"></textarea>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- 02. Storage Information -->
+          <h2 class="section__title mt-6">Storage Information</h2>
+          <div class="preview-box px-4 pt-4 rounded grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+            <mat-form-field appearance="outline" class="custom-mat-form-field">
+              <mat-label>
+                Storage Class (Read Write Once)
+                <mat-icon
+                  class="info-icon"
+                  [icIcon]="icInfo"
+                  matTooltip=" Kubernetes storage class access mode for PersistentVolumes (PVs) that allows a volume to be mounted as read-write by only one node at a time; required to mount volumes for user applications and system components"
+                  matTooltipPosition="above"
+                ></mat-icon>
+              </mat-label>
+              <input type="text" formControlName="volumeStorageClassReadWriteOnce" matInput required />
+              <mat-error
+                *ngIf="
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteOnce').touched &&
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteOnce').invalid
+                "
+                >{{
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteOnce').hasError('pattern')
+                    ? 'Special Characters are not allowed!'
+                    : 'Storage Class (Read Write Once) is required!'
+                }}</mat-error
+              >
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="custom-mat-form-field">
+              <mat-label>
+                Storage Class (Read Write Many)
+                <mat-icon
+                  class="info-icon"
+                  [icIcon]="icInfo"
+                  matTooltip="Kubernetes storage class access mode for volumes that allows PersistentVolumes (PVs) to be mounted as read-write by multiple nodes simultaneously; required to mount volumes for user applications and system components."
+                  matTooltipPosition="above"
+                ></mat-icon>
+              </mat-label>
+              <input type="text" formControlName="volumeStorageClassReadWriteMany" matInput required />
+              <mat-error
+                *ngIf="
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteMany').touched &&
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteMany').invalid
+                "
+                >{{
+                  clusterInfoFormGroup.get('volumeStorageClassReadWriteMany').hasError('pattern')
+                    ? 'Special Characters are not allowed!'
+                    : 'Storage Class (Read Write Many) is required!'
+                }}</mat-error
+              >
+            </mat-form-field>
+          </div>
+
+          <!-- 03. Additional Information -->
+          <div>
+            <h2 class="section__addi_title mt-6 mb-1">Additional Information</h2>
+            <!-- 03.01 Volume Snapshot Information -->
+            <h2 class="section__title mt-5">Volume Snapshot Information</h2>
+            <div class="input-group-card">
+              <div class="checkbox">
+                <mat-checkbox
+                  (change)="onAddiVolumeSnapshotChange($event)"
+                  [(ngModel)]="enableVolumeSnapshot"
+                  [ngModelOptions]="{ standalone: true }"
+                  color="primary"
+                  class="rounded-checkbox"
+                >
+                  Volume Snapshot Configuration
+                  <cdk-hint
+                    size="16px"
+                    hint="Kubernetes snapshot class will be used for managing snapshots of PersistentVolumes (PVs), enabling backups, restores, and data cloning;  this section is required only if the user prefers to take backups of application volumes."
+                  ></cdk-hint>
+                </mat-checkbox>
+              </div>
+
+              <div *ngIf="enableVolumeSnapshot" class="rounded grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Snapshot Class (Read Write Once)
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Kubernetes snapshot class for managing snapshots of PersistentVolumes (PVs) with access mode read-write once."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="snapshotClassName" matInput required />
+                  <mat-error *ngIf="!clusterInfoFormGroup.get('snapshotClassName').valid">{{
+                    clusterInfoFormGroup.get('snapshotClassName').hasError('pattern')
+                      ? '*Special Characters are not allowed!'
+                      : '*Snapshot Class (Read Write Once) is required!'
+                  }}</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Snapshot Class (Read Write Many)
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Kubernetes snapshot class for managing snapshots of PersistentVolumes (PVs) with access mode read-write many"
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="snapshotClassRWMName" matInput required />
+                  <mat-error *ngIf="!clusterInfoFormGroup.get('snapshotClassRWMName').valid">{{
+                    clusterInfoFormGroup.get('snapshotClassRWMName').hasError('pattern')
+                      ? '*Special Characters are not allowed!'
+                      : '*Snapshot Class (Read Write Many) is required!'
+                  }}</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            <!-- 03.02 Monitoring Information -->
+            <h2 class="section__title mt-5">Monitoring Information</h2>
+            <div class="border p-4 rounded">
+              <!-- 03.02.01 Prometheus Server Configuration -->
+              <div class="input-group-card">
+                <div class="checkbox">
+                  <mat-checkbox
+                    (change)="onAddiPrometheusChange($event)"
+                    [(ngModel)]="enablePrometheus"
+                    [ngModelOptions]="{ standalone: true }"
+                    color="primary"
+                    class="rounded-checkbox"
+                  >
+                    Prometheus Server Configuration
+                    <cdk-hint
+                      size="16px"
+                      hint="This section is required by the platform to collect application data and provide the metrics inside the application section"
+                    ></cdk-hint>
+                  </mat-checkbox>
+                </div>
+
+                <div *ngIf="enablePrometheus" class="rounded grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      URL
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the URL of existing Prometheus for application metrics."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="prometheusURL" matInput required placeholder="https://prometheus.xyz.com" />
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('prometheusURL').touched && clusterInfoFormGroup.get('prometheusURL').hasError('required')
+                      "
+                      >Prometheus URL is required!</mat-error
+                    >
+                    <mat-error
+                      *ngIf="clusterInfoFormGroup.get('prometheusURL').touched && clusterInfoFormGroup.get('prometheusURL').hasError('url')"
+                      >Please provide valid Prometheus url!</mat-error
+                    >
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Username
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the username of the provided Prometheus server."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="prometheusUsername" matInput autocomplete="false" />
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('prometheusUsername').touched &&
+                        clusterInfoFormGroup.get('prometheusUsername').hasError('required')
+                      "
+                      >Prometheus username is required!</mat-error
+                    >
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Password
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the password of the provided Prometheus server."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input
+                      [type]="showPrometheusPassword ? 'text' : 'password'"
+                      formControlName="prometheusPassword"
+                      matInput
+                      autocomplete="false"
+                    />
+                    <button
+                      class="btn-eye"
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      (click)="showPrometheusPassword = !showPrometheusPassword"
+                    >
+                      <mat-icon [icIcon]="showPrometheusPassword ? icVisibilityOff : icVisibility"></mat-icon>
+                    </button>
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('prometheusPassword').touched &&
+                        clusterInfoFormGroup.get('prometheusPassword').hasError('required')
+                      "
+                      >Prometheus password is required!</mat-error
+                    >
+                  </mat-form-field>
+                </div>
+              </div>
+              <!-- 03.02.02 Graphana Configuration -->
+              <div class="input-group-card mt-4">
+                <div class="checkbox">
+                  <mat-checkbox
+                    (change)="onAddiGrafanaChange($event)"
+                    [(ngModel)]="enableGrafana"
+                    [ngModelOptions]="{ standalone: true }"
+                    color="primary"
+                    class="rounded-checkbox"
+                  >
+                    Grafana Configuration
+                    <cdk-hint size="16px" hint="This section is required by the platform to access Grafana"></cdk-hint>
+                  </mat-checkbox>
+                </div>
+
+                <div *ngIf="enableGrafana" class="rounded grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      URL
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="This section is required by the platform to access Grafana"
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="grafanaURL" matInput required placeholder="https://grafana.xyz.com" />
+                    <mat-error
+                      *ngIf="clusterInfoFormGroup.get('grafanaURL').touched && clusterInfoFormGroup.get('grafanaURL').hasError('required')"
+                      >Grafana URL is required!</mat-error
+                    >
+                    <mat-error
+                      *ngIf="clusterInfoFormGroup.get('grafanaURL').touched && clusterInfoFormGroup.get('grafanaURL').hasError('url')"
+                      >Please provide valid Grafana url!</mat-error
+                    >
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Username
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the username of the provided Grafana"
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input type="text" formControlName="grafanaUsername" matInput />
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('grafanaUsername').touched &&
+                        clusterInfoFormGroup.get('grafanaUsername').hasError('required')
+                      "
+                      >Grafana username is required!</mat-error
+                    >
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>
+                      Password
+                      <mat-icon
+                        class="info-icon"
+                        [icIcon]="icInfo"
+                        matTooltip="Provide the password of the provided Grafana."
+                        matTooltipPosition="above"
+                      ></mat-icon>
+                    </mat-label>
+                    <input [type]="showGrafanaPassword ? 'text' : 'password'" formControlName="grafanaPassword" matInput />
+                    <button class="btn-eye" type="button" mat-icon-button matSuffix (click)="showGrafanaPassword = !showGrafanaPassword">
+                      <mat-icon [icIcon]="showGrafanaPassword ? icVisibilityOff : icVisibility"></mat-icon>
+                    </button>
+                    <mat-error
+                      *ngIf="
+                        clusterInfoFormGroup.get('grafanaPassword').touched &&
+                        clusterInfoFormGroup.get('grafanaPassword').hasError('required')
+                      "
+                      >Grafana password is required!</mat-error
+                    >
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+            <!-- 03.03 Loki Information -->
+            <h2 class="section__title mt-5">Log Information</h2>
+            <div class="input-group-card">
+              <div class="checkbox">
+                <mat-checkbox
+                  (change)="onAddiLokiChange($event)"
+                  [(ngModel)]="enableLoki"
+                  [ngModelOptions]="{ standalone: true }"
+                  color="primary"
+                  class="rounded-checkbox"
+                >
+                  Loki Server Configuration
+                  <cdk-hint
+                    size="16px"
+                    hint="This section is required by the platform to collect application logs and visualize the logs inside the application section"
+                  ></cdk-hint>
+                </mat-checkbox>
+              </div>
+
+              <div *ngIf="enableLoki" class="rounded grid sm:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-x-4 mt-3">
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    URL
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the URL of the existing Loki for collecting application logs"
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="lokiURL" matInput placeholder="https://loki.xyz.com" />
+                  <mat-error *ngIf="clusterInfoFormGroup.get('lokiURL').touched && clusterInfoFormGroup.get('lokiURL').hasError('required')"
+                    >Loki URL is required!</mat-error
+                  >
+                  <mat-error *ngIf="clusterInfoFormGroup.get('lokiURL').touched && clusterInfoFormGroup.get('lokiURL').hasError('url')"
+                    >Please provide valid Loki url!</mat-error
+                  >
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Username
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the username of the provided Loki server."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="lokiUsername" matInput autocomplete="false" />
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('lokiUsername').touched && clusterInfoFormGroup.get('lokiUsername').hasError('required')
+                    "
+                  >
+                    Loki username is required
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Password
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the password of the provided Loki server."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input [type]="showLokiPassword ? 'text' : 'password'" formControlName="lokiPassword" matInput autocomplete="false" />
+                  <button class="btn-eye" type="button" mat-icon-button matSuffix (click)="showLokiPassword = !showLokiPassword">
+                    <mat-icon [icIcon]="showLokiPassword ? icVisibilityOff : icVisibility"></mat-icon>
+                  </button>
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('lokiPassword').touched && clusterInfoFormGroup.get('lokiPassword').hasError('required')
+                    "
+                    >Prometheus password is required!</mat-error
+                  >
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Tenant ID
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the tenant ID if the Loki server is multitenant"
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="lokiOrgId" matInput autocomplete="false" />
+                  <mat-error
+                    *ngIf="clusterInfoFormGroup.get('lokiOrgId').touched && clusterInfoFormGroup.get('lokiOrgId').hasError('required')"
+                    >Loki Tenant ID is required</mat-error
+                  >
+                </mat-form-field>
+              </div>
+            </div>
+            <!-- 03.04 ArgoCD Configuration -->
+            <h2 class="section__title mt-5">ArgoCD Information</h2>
+            <div class="input-group-card">
+              <div class="checkbox">
+                <mat-checkbox
+                  (change)="onAddiArgoChange($event)"
+                  [(ngModel)]="enableArgo"
+                  [ngModelOptions]="{ standalone: true }"
+                  color="primary"
+                  class="rounded-checkbox"
+                >
+                  ArgoCD Configuration
+                  <cdk-hint
+                    size="16px"
+                    hint="This section is required by the platform for enabling the ‘Helm Apps’ feature; The platform uses argocd to deploy and manage helm-based applications in the cluster."
+                  ></cdk-hint>
+                </mat-checkbox>
+              </div>
+
+              <div *ngIf="enableArgo" class="rounded grid sm:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-x-4 mt-3">
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    URL
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the URL of the ArgoCD."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="argocdURL" matInput placeholder="https://argocd.xyz.com" />
+                  <mat-error
+                    *ngIf="clusterInfoFormGroup.get('argocdURL').touched && clusterInfoFormGroup.get('argocdURL').hasError('required')"
+                    >ArgoCD URL is required!</mat-error
+                  >
+                  <mat-error *ngIf="clusterInfoFormGroup.get('argocdURL').touched && clusterInfoFormGroup.get('argocdURL').hasError('url')"
+                    >Please provide valid ArgoCD url!</mat-error
+                  >
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Port
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the port of the provided ArgoCD."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="number" formControlName="argocdPort" matInput min="0" placeholder="80" />
+                  <mat-error
+                    *ngIf="clusterInfoFormGroup.get('argocdPort').touched && clusterInfoFormGroup.get('argocdPort').hasError('required')"
+                    >ArgoCD port is required!</mat-error
+                  >
+                  <mat-error
+                    *ngIf="clusterInfoFormGroup.get('argocdPort').touched && clusterInfoFormGroup.get('argocdPort').hasError('port')"
+                    >Please provide valid ArgoCD port!</mat-error
+                  >
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Username
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the username of the provided ArgoCD."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input type="text" formControlName="argocdUsername" matInput autocomplete="false" />
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('argocdUsername').touched && clusterInfoFormGroup.get('argocdUsername').hasError('required')
+                    "
+                  >
+                    ArgoCD username is required
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="custom-mat-form-field">
+                  <mat-label>
+                    Password
+                    <mat-icon
+                      class="info-icon"
+                      [icIcon]="icInfo"
+                      matTooltip="Provide the password of the provided ArgoCD."
+                      matTooltipPosition="above"
+                    ></mat-icon>
+                  </mat-label>
+                  <input [type]="showArgoPassword ? 'text' : 'password'" formControlName="argocdPassword" matInput autocomplete="false" />
+                  <button class="btn-eye" type="button" mat-icon-button matSuffix (click)="showArgoPassword = !showArgoPassword">
+                    <mat-icon [icIcon]="showArgoPassword ? icVisibilityOff : icVisibility"></mat-icon>
+                  </button>
+                  <mat-error
+                    *ngIf="
+                      clusterInfoFormGroup.get('argocdPassword').touched && clusterInfoFormGroup.get('argocdPassword').hasError('required')
+                    "
+                    >ArgoCD password is required!</mat-error
+                  >
+                </mat-form-field>
+              </div>
+            </div>
+            <!-- 03.05 Service Mesh Configuration -->
+            <h2 class="section__title mt-5">
+              Service Mesh Information
+              <cdk-hint
+                size="16px"
+                hint="This section is required by the platform to manage and utilize the service mesh features for the application."
+              ></cdk-hint>
+            </h2>
+            <div class="input-group-card p-4">
+              <div class="checkbox">
+                <mat-checkbox
+                  (change)="onAddiServiceMeshChange($event)"
+                  formControlName="serviceMeshEnabled"
+                  color="primary"
+                  class="rounded-checkbox"
+                >
+                  Enable Service Mesh
+                  <cdk-hint size="16px" hint="If selected, you need to provide the service mesh configurations."></cdk-hint>
+                </mat-checkbox>
+              </div>
+              <ng-container *ngIf="clusterInfoFormGroup.get('serviceMeshEnabled').value === true">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                  <mat-form-field appearance="outline" class="custom-mat-form-field">
+                    <mat-label>Implementation Tool Type</mat-label>
+                    <mat-select [(ngModel)]="serviceMeshToolType" [ngModelOptions]="{ standalone: true }">
+                      <mat-option value="ISTIO">ISTIO</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <h3 class="section__sub_title mb-1">
+                  Istio Configuration
+                  <cdk-hint
+                    size="16px"
+                    hint="Ingress configuration for accessing required platform services; The platform will create Kubernetes Ingress and the domain will be configured by adding a subdomain along with the service wildcard domain."
+                  ></cdk-hint>
+                </h3>
+                <div class="border p-4 rounded mt-2">
+                  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label>
+                        Gateway Domain Name (Wildcard Supported)
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="This wildcard domain will be used to access the user applications utilizing the Istio gateway."
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <input type="text" formControlName="serviceMeshGatewayWildcardDomain" matInput placeholder="mesh.xyz.com" />
+                      <mat-error
+                        *ngIf="
+                          clusterInfoFormGroup.get('serviceMeshGatewayWildcardDomain').touched &&
+                          clusterInfoFormGroup.get('serviceMeshGatewayWildcardDomain').invalid
+                        "
+                        >Please provide a valid wildcard domain for service mesh gateway! Example: mesh.xyz.com</mat-error
+                      >
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label>
+                        Gateway Name
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the default Istio gateway name of the existing Istio system that will be used in the virtual services for accessing the applications externally."
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <input type="text" formControlName="istioGatewayName" matInput required />
+                      <mat-error
+                        *ngIf="
+                          clusterInfoFormGroup.get('istioGatewayName').touched &&
+                          clusterInfoFormGroup.get('istioGatewayName').hasError('required')
+                        "
+                        >Gateway Name is required!</mat-error
+                      >
+                    </mat-form-field>
+                  </div>
+                  <div class="checkbox">
+                    <mat-checkbox
+                      (change)="onServiceMeshSslChange($event)"
+                      [(ngModel)]="serviceMeshSslEnabled"
+                      [ngModelOptions]="{ standalone: true }"
+                      color="primary"
+                      class="rounded-checkbox"
+                    >
+                      Enable SSL
+                      <cdk-hint
+                        size="16px"
+                        hint="By enabling SSL, you can provide an existing Kubernetes secret containing cert, key, and CA (if any) for the Istio gateway domain"
+                      ></cdk-hint>
+                    </mat-checkbox>
+                  </div>
+                  <div class="grid sm:grid-cols-3 gap-x-4 mt-2" *ngIf="clusterInfoFormGroup.get('serviceMeshGatewayWildcardDomainTls')">
+                    <mat-form-field appearance="outline" class="custom-mat-form-field sm:col-span-2">
+                      <mat-label>
+                        Secret Name
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the name of Kubernetes secret containing cert, key, and CA"
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <textarea formControlName="serviceMeshGatewayWildcardDomainTls" matInput rows="2"></textarea>
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <h3 class="section__sub_title mb-1 mt-6">
+                  Kiali Information
+                  <cdk-hint
+                    size="16px"
+                    hint=" This section is required by the platform to access Kiali (An observability tool for Istio service meshes. It provides a web-based UI that visualizes the service mesh's structure, showing how services are connected and interact)."
+                  ></cdk-hint>
+                </h3>
+                <div class="border px-4 py-2 rounded">
+                  <div class="checkbox">
+                    <mat-checkbox
+                      (change)="onAddiKialiChange($event)"
+                      [(ngModel)]="enableKiali"
+                      [ngModelOptions]="{ standalone: true }"
+                      color="primary"
+                      class="rounded-checkbox"
+                    >
+                      Kiali Configuration
+                    </mat-checkbox>
+                  </div>
+                  <div *ngIf="enableKiali" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 mt-3">
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label>
+                        URL
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the name of Kubernetes secret containing cert, key, and CA"
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <input type="text" formControlName="kialiURL" matInput placeholder="https://kiali.xyz.com" required />
+                      <mat-error
+                        *ngIf="clusterInfoFormGroup.get('kialiURL').touched && clusterInfoFormGroup.get('kialiURL').hasError('required')"
+                        >Kiali Url is required!</mat-error
+                      >
+                      <mat-error
+                        *ngIf="clusterInfoFormGroup.get('kialiURL').touched && clusterInfoFormGroup.get('kialiURL').hasError('url')"
+                        >Please provide valid Kiali url!</mat-error
+                      >
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="custom-mat-form-field">
+                      <mat-label>
+                        Token
+                        <mat-icon
+                          class="info-icon"
+                          [icIcon]="icInfo"
+                          matTooltip="Provide the token of the existing Kiali."
+                          matTooltipPosition="above"
+                        ></mat-icon>
+                      </mat-label>
+                      <input [type]="showKialiToken ? 'text' : 'password'" formControlName="kialiToken" matInput autocomplete="false" />
+                      <button class="btn-eye" type="button" mat-icon-button matSuffix (click)="showKialiToken = !showKialiToken">
+                        <mat-icon [icIcon]="showKialiToken ? icVisibilityOff : icVisibility"></mat-icon>
+                      </button>
+                      <mat-error
+                        *ngIf="
+                          clusterInfoFormGroup.get('kialiToken').touched && clusterInfoFormGroup.get('kialiToken').hasError('required')
+                        "
+                        >Kiali token is required!</mat-error
+                      >
+                    </mat-form-field>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Button -->
+        <div class="flex items-center justify-end gap-4 py-4">
+          <button mat-stroked-button color="primary" cdkStepperPrevious class="prev-btn">Previous</button>
+          <button mat-raised-button color="primary" cdkStepperNext class="next-btn" [disabled]="clusterInfoFormGroup?.invalid">Next</button>
+        </div>
+      </cdk-step>
+
+      <!-- Conformation Preview -->
+      <cdk-step>
+        <ng-template cdkStepLabel>
+          <div>
+            Confirm <br />
+            Creation
+          </div>
+        </ng-template>
+        <div>
+          <h4 class="confirm__title mt-4">General Infomration</h4>
+          <div class="preview-box p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+            <div class="info-box">
+              <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+              <div>
+                <p class="info-box__label">Cluster Name</p>
+                <p class="info-box__value">{{ clusterInfoFormGroup?.value?.clusterName || '-' }}</p>
+              </div>
+            </div>
+            <div class="info-box">
+              <img class="info-box__img" src="assets/img/icons/ico-vpc-custom.svg" alt="" class="mr-4" width="35px" />
+              <div>
+                <p class="info-box__label">Namespace</p>
+                <p class="info-box__value">{{ clusterInfoFormGroup?.value?.namespace || 'klovercloud' }}</p>
+              </div>
+            </div>
+          </div>
+          <h4 class="confirm__title mt-4">Ingress Information</h4>
+          <div class="preview-box p-4">
+            <h5 class="mb-2">Service Ingress Configuration</h5>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+              <div class="info-box">
+                <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                <div>
+                  <p class="info-box__label">Domain Name (Wildcard Supported)</p>
+                  <p class="info-box__value">
+                    {{ clusterInfoFormGroup?.value?.nginxIngressGatewayWildcardDomain || '-' }}
+                  </p>
+                </div>
+              </div>
+              <div class="info-box">
+                <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                <div>
+                  <p class="info-box__label">Ingress Controller Type</p>
+                  <p class="info-box__value">{{ clusterInfoFormGroup?.value?.nginxIngressControllerType || '-' }}</p>
+                </div>
+              </div>
+              <div class="info-box">
+                <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                <div>
+                  <p class="info-box__label">Ingress Class</p>
+                  <p class="info-box__value">{{ clusterInfoFormGroup?.value?.nginxIngressClassName || '-' }}</p>
+                </div>
+              </div>
+            </div>
+            <h5 class="mb-2 mt-6">Application Ingress Configuration</h5>
+            <div class="border p-4">
+              <ng-container
+                *ngIf="
+                  clusterInfoFormGroup.get('useSameIngressGatewayConfigForApplication').value === true;
+                  else customApplicationIngressConf
+                "
+              >
+                Application Ingress use same "Service Ingress Configuration" for the application.
+              </ng-container>
+              <ng-template #customApplicationIngressConf>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                  <div class="info-box">
+                    <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                    <div>
+                      <p class="info-box__label">Domain Name (Wildcard Supported)</p>
+                      <p class="info-box__value">
+                        {{ clusterInfoFormGroup?.value?.applicationIngressGatewayWildcardDomain || '-' }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="info-box">
+                    <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                    <div>
+                      <p class="info-box__label">Ingress Controller Type</p>
+                      <p class="info-box__value">
+                        {{ clusterInfoFormGroup?.value?.nginxIngressControllerTypeForApplication || '-' }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="info-box">
+                    <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                    <div>
+                      <p class="info-box__label">Ingress Class</p>
+                      <p class="info-box__value">
+                        {{ clusterInfoFormGroup?.value?.applicationIngressGatewayWildcardDomainTlsEnabled || '-' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+          <h4 class="confirm__title mt-4">Storage Information</h4>
+          <div class="preview-box p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+            <div class="info-box">
+              <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+              <div>
+                <p class="info-box__label">Storage Class (Read Write Once)</p>
+                <p class="info-box__value">{{ clusterInfoFormGroup?.value?.volumeStorageClassReadWriteOnce || '-' }}</p>
+              </div>
+            </div>
+            <div class="info-box">
+              <img class="info-box__img" src="assets/img/icons/ico-vpc-custom.svg" alt="" class="mr-4" width="35px" />
+              <div>
+                <p class="info-box__label">Storage Class (Read Write Many)</p>
+                <p class="info-box__value">{{ clusterInfoFormGroup?.value?.volumeStorageClassReadWriteMany || '-' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <h2 class="section__addi_title mt-6 mb-1">Additional Information</h2>
+
+          <!-- Volume Snapshot Information -->
+          <h4 class="confirm__title mt-4 mb-1">Volume Snapshot Information</h4>
+          <div class="preview-box p-4 rounded">
+            <h4 class="confirm__sub_title">
+              Volume Snapshot Configuration
+              <svg *ngIf="!enableVolumeSnapshot" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="enableVolumeSnapshot" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!enableVolumeSnapshot; else volumeSnapshotConf">
+              Note: This cluster volume snapshot will be disable.
+            </p>
+            <ng-template #volumeSnapshotConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Snapshot Class (Read Write Once)</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.snapshotClassName || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Snapshot Class (Read Write Many)</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.snapshotClassRWMName || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Monitoring Information -->
+          <h4 class="confirm__title mt-4 mb-1">Monitoring Information</h4>
+          <div class="preview-box p-4 rounded">
+            <h4 class="confirm__sub_title">
+              Prometheus Server Configuration
+              <svg *ngIf="!enablePrometheus" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="enablePrometheus" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!enablePrometheus; else prometheusConf">
+              Note: You will miss the metrics on the application feature.
+            </p>
+            <ng-template #prometheusConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">URL</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.prometheusURL || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Username</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.prometheusUsername || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Password</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.prometheusPassword ? '********' : '-' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+
+            <!-- Grafana Configuration -->
+            <h4 class="confirm__sub_title mt-4">
+              Grafana Configuration
+              <svg *ngIf="!enableGrafana" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="enableGrafana" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!enableGrafana; else grafanaConf">Note: You will miss grafana tools.</p>
+            <ng-template #grafanaConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">URL</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.grafanaURL || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Username</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.grafanaUsername || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Password</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.grafanaPassword ? '********' : '-' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Log Information -->
+          <h4 class="confirm__title mt-4 mb-1">Log Information</h4>
+          <div class="preview-box p-4 rounded">
+            <h4 class="confirm__sub_title">
+              Loki Configuration
+              <svg *ngIf="!enableLoki" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="enableLoki" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!enableLoki; else lokiConf">
+              Note: You will miss application logs and visualize logs on the application feature.
+            </p>
+            <ng-template #lokiConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">URL</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.lokiURL || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Username</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.lokiUsername || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Password</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.lokiPassword ? '********' : '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Tenant ID</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.lokiOrgId || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- ArgoCD Information -->
+          <h4 class="confirm__title mt-4 mb-1">ArgoCD Information</h4>
+          <div class="preview-box p-4 rounded">
+            <h4 class="confirm__sub_title">
+              ArgoCD Configuration
+              <svg *ngIf="!enableArgo" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="enableArgo" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!enableArgo; else argoCdConf">
+              Note: You will miss "Helm Apps" (helm-based applications) feature.
+            </p>
+            <ng-template #argoCdConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">URL</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.argocdURL || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Port</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.argocdPort || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Username</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.argocdUsername || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Password</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.argocdPassword ? '********' : '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Service Mesh Information -->
+          <h4 class="confirm__title mt-4 mb-1">Service Mesh Information</h4>
+          <div class="preview-box p-4 rounded">
+            <h4 class="confirm__sub_title">
+              Service Mesh Configuration
+              <svg *ngIf="!clusterInfoFormGroup?.value?.serviceMeshEnabled" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#D32F2F"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                />
+              </svg>
+              <svg *ngIf="clusterInfoFormGroup?.value?.serviceMeshEnabled" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                <path
+                  fill="#36c678"
+                  d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                />
+              </svg>
+            </h4>
+            <p class="text-red-200 flex items-center" *ngIf="!clusterInfoFormGroup?.value?.serviceMeshEnabled; else serviceMeshConf">
+              Note: You will miss traffic management feature of application.
+            </p>
+            <ng-template #serviceMeshConf>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Service Mesh Type</p>
+                    <p class="info-box__value">
+                      {{ serviceMeshToolType }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Gateway Domain Name (Wildcard Supported)</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup?.value?.serviceMeshGatewayWildcardDomain || '-' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="info-box">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">Gateway Name</p>
+                    <p class="info-box__value">{{ clusterInfoFormGroup?.value?.istioGatewayName || '-' }}</p>
+                  </div>
+                </div>
+                <div class="info-box" *ngIf="serviceMeshSslEnabled">
+                  <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                  <div>
+                    <p class="info-box__label">SSL Secret Name</p>
+                    <p class="info-box__value">
+                      {{ clusterInfoFormGroup.value?.serviceMeshGatewayWildcardDomainTls ? '***************************' : '-' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border p-4 rounded mt-4">
+                <h5 class="flex items-center mb-1">
+                  Kiali Configuration
+                  <svg *ngIf="!enableKiali" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                    <path
+                      fill="#D32F2F"
+                      d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                    />
+                  </svg>
+                  <svg *ngIf="enableKiali" class="ml-2" height="14" width="14" viewBox="0 0 512 512">
+                    <path
+                      fill="#36c678"
+                      d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L369 209z"
+                    />
+                  </svg>
+                </h5>
+                <p class="text-red-200 flex items-center" *ngIf="!enableKiali; else kialiConf">
+                  Note: You will miss a web-based UI that visualizes the service mesh's structure, showing how services are connected and
+                  interact.
+                </p>
+                <ng-template #kialiConf>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+                    <div class="info-box">
+                      <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                      <div>
+                        <p class="info-box__label">URL</p>
+                        <p class="info-box__value">
+                          {{ clusterInfoFormGroup.value?.kialiURL || '-' }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="info-box">
+                      <img class="info-box__img" src="assets/img/icons/ico-name-custom.svg" alt="" class="mr-4" width="35px" />
+                      <div>
+                        <p class="info-box__label">Token</p>
+                        <p class="info-box__value">
+                          {{ clusterInfoFormGroup.value?.kialiURL ? '***************************' : '-' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-4 w-full mt-6">
+          <button mat-stroked-button color="primary" cdkStepperPrevious class="prev-btn">Previous</button>
+          <button class="submit-btn" color="primary" mat-raised-button (click)="createCluster()">
+            <span *ngIf="!isSubmitting">Create Cluster</span>
+            <mat-progress-bar *ngIf="isSubmitting" mode="indeterminate" color="accent" class="max-w-20"></mat-progress-bar>
+          </button>
+        </div>
+      </cdk-step>
+    </cdk-horizontal-stepper>
+  </kc-page-layout-content>
+</kc-page-layout>

@@ -1,0 +1,70 @@
+<div class="mb-4 mt-4">
+  <mat-accordion class="acc-table-accordion ltSm:responsive">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <h2 class="kube-card__title mt-6">Metadata</h2>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div *ngIf="data?.name" class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Name</div>
+              <h3 class="kc-dataset__value">{{ data?.name }}</h3>
+            </div>
+          </div>
+          <div *ngIf="data?.namespace" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Namespace</div>
+              <h3 class="kc-dataset__value">{{ data?.namespace }}</h3>
+            </div>
+          </div>
+          <div *ngIf="data?.creationTimestamp" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Create</div>
+              <h3 class="kc-dataset__value">
+                {{ data?.creationTimestamp | date }}
+              </h3>
+            </div>
+          </div>
+          <div *ngIf="data?.creationTimestamp" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 lg:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Age</div>
+              <h3 class="kc-dataset__value">
+                {{ data?.creationTimestamp | ago }}
+              </h3>
+            </div>
+          </div>
+          <div *ngIf="data?.uid" class="px-2 w-full mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">UID</div>
+              <h3 class="kc-dataset__value">{{ data?.uid }}</h3>
+            </div>
+          </div>
+          <div *ngIf="data?.labels" class="px-2 sm:w-1/2">
+            <div class="kc-dataset">
+              <kc-expansion-data-viewer-template [label]="'Labels'" [data]="data?.labels"></kc-expansion-data-viewer-template>
+            </div>
+          </div>
+
+          <div *ngIf="data?.annotations" class="px-2 sm:w-1/2">
+            <div class="kc-dataset">
+              <kc-expansion-data-viewer-template [label]="'Annotations'" [data]="data?.annotations"></kc-expansion-data-viewer-template>
+            </div>
+          </div>
+
+          <div *ngIf="data?.ownerReferences" class="px-2 sm:w-1/2">
+            <div class="kc-dataset">
+              <kc-expansion-data-viewer-template
+                [label]="'Owner References'"
+                [data]="data?.ownerReferences"
+              ></kc-expansion-data-viewer-template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
