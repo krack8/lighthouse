@@ -19,13 +19,6 @@
   }
 }
 
-::ng-deep {
-  .role-name-mat-form-field,
-  .role-desc-mat-form-field {
-    max-width: 500px;
-  }
-}
-
 ._role-expansion {
   &_container {
     background-color: var(--background-card);
@@ -229,7 +222,9 @@
   border-radius: 6px;
   padding: 15px;
 }
-.mat-expansion-panel-header .mat-checkbox {
-  display: flex;
-  align-items: center;
+
+
+.actions {
+  position: sticky;
+  bottom: 20px;
 }

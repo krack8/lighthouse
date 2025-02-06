@@ -9,15 +9,15 @@
         <mat-horizontal-stepper #stepper [linear]="false" class="w-full role-stepper">
           <mat-step [stepControl]="roleForm" style="pointer-events: none" @fadeInUp>
             <form [formGroup]="roleForm">
-              <div class="flex flex-col">
-                <mat-form-field appearance="outline" class="custom-mat-form-field role-name-mat-form-field mt-2">
+              <div class="grid sm:grid-cols-2 xxl:grid-cols-3 gap-4">
+                <mat-form-field appearance="outline" class="custom-mat-form-field role-name-mat-form-field">
                   <mat-label>Role Name</mat-label>
                   <input formControlName="name" id="role-name" matInput required />
                   <mat-error *ngIf="roleForm?.get('name')?.touched && roleForm.get('name')?.hasError('required')" class="form-error"
                     >Role Name is required</mat-error
                   >
                 </mat-form-field>
-                <mat-form-field class="custom-mat-form-field role-desc-mat-form-field mt-2" appearance="outline">
+                <mat-form-field class="custom-mat-form-field role-desc-mat-form-field" appearance="outline">
                   <mat-label>Description</mat-label>
                   <textarea cols="1" formControlName="description" id="description" matInput></textarea>
                 </mat-form-field>
