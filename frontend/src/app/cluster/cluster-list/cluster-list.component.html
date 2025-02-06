@@ -21,10 +21,7 @@
                         {{ cluster?.name }}
                       </div>
                     </div>
-                    <div class="inner-block flex items-center p-3 ml-auto xl:col-start-5">
-                      <span>On-boarded cluster</span>
-                    </div>
-                    <div class="flex items-center justify-center p-3 inner-block" [ngClass]="cluster?.currentState | lowercase">
+                    <div class="flex items-center justify-center p-3 inner-block xl:col-start-6" [ngClass]="cluster?.currentState | lowercase">
                       {{ cluster?.is_active ? 'Active' : 'Pending...' }}
                     </div>
                   </div>
