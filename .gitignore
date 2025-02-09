@@ -5,3 +5,7 @@ coverage
 *.env
 pkg/*.env
 *.patch
+
+frontend/dist
+frontend/.angular/cache
+frontend/.sass-cache

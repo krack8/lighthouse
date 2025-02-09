@@ -1,0 +1,54 @@
+$clipboard: cdk-clipboard;
+
+.#{$clipboard} {
+  display: inline-flex;
+  cursor: pointer;
+  width: auto;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  vertical-align: bottom;
+
+  &__icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    min-width: 1.5rem;
+
+    &__color {
+      fill: var(--text-color);
+    }
+    &__bg {
+      transition: fill 0.1.5s ease-in;
+    }
+  }
+
+  // &:hover {
+  //   .#{$clipboard}__icon {
+  //     &__bg {
+  //       fill: var(--color-primary-300);
+  //     }
+  //   }
+  // }
+}
+
+.kc-style {
+  &-dark {
+    .#{$clipboard} {
+      &__icon {
+        &__bg {
+          fill: #24395e;
+        }
+      }
+    }
+  }
+  &-light {
+    .#{$clipboard} {
+      &__icon {
+        &__bg {
+          fill: var(--color-primary-100);
+        }
+      }
+    }
+  }
+}

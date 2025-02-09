@@ -1,0 +1,45 @@
+.kc-style {
+  &-dark {
+    .region_svg {
+      $_color: #c5ceda;
+
+      path {
+        fill: $_color;
+      }
+
+      circle {
+        stroke: $_color;
+      }
+    }
+
+    .node_svg {
+      $_color: #e4eaf1;
+
+      path {
+        stroke: $_color;
+      }
+    }
+  }
+
+  &-light {
+    .region_svg {
+      $_color: #06090e;
+
+      path {
+        fill: $_color;
+      }
+
+      circle {
+        stroke: $_color;
+      }
+    }
+
+    .node_svg {
+      $_color: #06090e;
+
+      path {
+        stroke: $_color;
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+.page-container {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.sidenav {
+  background: var(--sidenav-background);
+
+  ::ng-deep .mat-drawer-inner-container {
+    overflow: hidden;
+  }
+}
+
+.content {
+  min-height: calc(100% - var(--toolbar-height) - var(--navigation-height));
+  position: relative;
+  width: 100%;
+}
+
+.has-footer .content {
+  min-height: calc(100% - var(--toolbar-height) - var(--navigation-height) - var(--footer-height));
+}
+
+.scroll-disabled {
+  .content {
+    height: calc(100% - var(--toolbar-height) - var(--navigation-height));
+    min-height: unset;
+  }
+
+  &.has-fixed-footer .content,
+  &.has-footer .content {
+    height: calc(100% - var(--toolbar-height) - var(--navigation-height) - var(--footer-height));
+    min-height: unset;
+  }
+}
+
+.scroll-disabled {
+  overflow: hidden;
+
+  .content {
+    overflow: hidden;
+  }
+}
+
+.is-mobile {
+  .toolbar {
+    position: fixed;
+    width: 100%;
+  }
+
+  .content {
+    // background-color: var(--background-card);
+    margin-top: var(--toolbar-height);
+  }
+}
+
+.sidenav-container {
+  background: var(--background-base);
+  height: 100%;
+}
+
+.sidenav-content {
+  overflow-y: auto;
+  overflow-y: overlay;
+}
+
+.toolbar-fixed {
+  .toolbar {
+    position: fixed;
+    width: var(--toolbar-width);
+    z-index: 50;
+  }
+
+  .content {
+    margin-top: calc(var(--toolbar-height) + var(--navigation-height));
+  }
+}
+
+.has-fixed-footer {
+  .footer {
+    box-shadow: var(--footer-elevation);
+    position: fixed;
+  }
+
+  .content {
+    margin-bottom: var(--footer-height);
+    min-height: calc(100% - var(--toolbar-height) - var(--navigation-height) - var(--footer-height));
+  }
+
+  &.scroll-disabled .content {
+    height: calc(100% - var(--toolbar-height) - var(--navigation-height) - var(--footer-height));
+  }
+}

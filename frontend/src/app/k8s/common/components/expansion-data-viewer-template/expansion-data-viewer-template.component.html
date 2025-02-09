@@ -1,0 +1,11 @@
+<mat-accordion>
+  <mat-expansion-panel class="expansion-header" hideToggle>
+    <mat-expansion-panel-header (click)="togglePanel()" class="p-0">
+      <mat-panel-title class="title">
+        {{ label }} <mat-icon class="text-xl {{ isOpen ? 'icon-down' : 'icon-up' }}" [icIcon]="icMoveUp"></mat-icon>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <kc-json-data-viewer-template [data]="data"></kc-json-data-viewer-template>
+    <p *ngIf="noData">No data found.</p>
+  </mat-expansion-panel>
+</mat-accordion>

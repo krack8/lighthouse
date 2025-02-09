@@ -1,0 +1,63 @@
+ul {
+  list-style-type: circle !important;
+}
+
+pre {
+  padding-top: 15px;
+  background-color: var(--background);
+  white-space: pre-wrap;
+}
+
+._upgrade_btn {
+  background-color: var(--color-primary-600);
+  color: #fff;
+  border-radius: 50px;
+  min-width: max-content;
+  padding: 0px 30px;
+  font-weight: bold;
+  margin: 0px 15px;
+
+  &:hover {
+    background-color: var(--color-primary-900);
+  }
+}
+
+.release-note {
+  padding: 40px;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  margin-top: 20px;
+  height: 50vh;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+._cancel_btn {
+  border-radius: 50px;
+  min-width: max-content;
+  padding: 0px 40px;
+  font-weight: bold;
+  margin: 0px 15px;
+
+  &:hover {
+    background-color: var(--color-danger);
+  }
+}
+
+.text-red {
+  color: red;
+}
+
+.text-green {
+  color: var(--color-success);
+}
+
+.text-warn {
+  color: rgb(214, 214, 43);
+}
+
+.release-status {
+  display: flex;
+  justify-content: flex-end;
+}

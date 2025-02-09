@@ -1,0 +1,147 @@
+:host {
+  background: var(--toolbar-background);
+  box-sizing: border-box;
+  color: var(--text-color);
+  display: block;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.options {
+  display: flex;
+  justify-content: space-between;
+
+  .search {
+    vertical-align: middle;
+  }
+}
+
+.toolbar {
+  height: var(--toolbar-height);
+
+  &__btn {
+    @apply ml-2;
+  }
+}
+
+._user__btn {
+  @apply ml-4;
+
+  position: relative;
+}
+
+.mat-icon {
+  color: var(--toolbar-icon-color);
+}
+
+a {
+  color: var(--toolbar-color);
+  text-decoration: none;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.search {
+  background: var(--background);
+  border-radius: 100px;
+  padding: 10px 20px;
+  margin: 0 30px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-right: 30px;
+
+  i {
+    color: var(--grey);
+    margin-right: 8px;
+  }
+
+  input {
+    &:focus {
+      outline: none;
+    }
+
+    min-width: 200px;
+  }
+}
+
+.create-btn {
+  padding: 0 24px 0 18px;
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0px 4px 10px rgba(65, 100, 169, 0.24);
+  border-radius: 50px;
+}
+
+.browser-detection {
+  position: absolute !important;
+  top: 10px;
+  left: 35%;
+  border: 0.5px solid #b1122a;
+  border-left: 5px solid #b1122a;
+  border-radius: 5px;
+  padding: 10px;
+  background: #80132b;
+  /* Old browsers */
+  background: -moz-linear-gradient(-45deg, #80132b 0%, #0d152f 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(-45deg, #80132b 0%, #0d152f 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(135deg, #80132b 0%, #0d152f 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80132b', endColorstr='#0d152f', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
+  opacity: 0.7;
+  color: white;
+
+  .close-notification {
+    mat-icon {
+      color: white;
+      font-size: 18px;
+    }
+  }
+}
+
+@screen sm {
+  .toolbar {
+    &__btn {
+      @apply ml-4;
+    }
+  }
+
+  ._user__btn {
+    &::before {
+      content: '';
+    }
+
+    @apply pl-2;
+  }
+}
+
+@screen md {
+  .toolbar {
+    &__btn {
+      @apply ml-6;
+    }
+  }
+
+  ._user__btn {
+    @apply ml-4 pl-4;
+  }
+}
+
+@screen lg {
+  .toolbar {
+    &__btn {
+      @apply ml-8;
+    }
+  }
+
+  ._user__btn {
+    @apply pl-8 ml-8;
+  }
+}
