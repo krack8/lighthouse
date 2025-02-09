@@ -20,12 +20,21 @@ type NamespaceServiceInterface interface {
 	DeleteNamespace(c context.Context, p DeleteNamespaceInputParams) (interface{}, error)
 }
 
-type namespaceService struct{}
+type namespaceService struct {
+}
 
 var nss namespaceService
 
 func NamespaceService() *namespaceService {
 	return &nss
+}
+
+func (p *GetNamespaceInputParams) setClient() {
+	p.Client = cfg.GetKubeClientSet().CoreV1().Namespaces()
+}
+
+func getNamespaceClient() v1.NamespaceInterface {
+	return cfg.GetKubeClientSet().CoreV1().Namespaces()
 }
 
 func (p *GetNamespaceListInputParams) removeNamespaceListFields() interface{} {
@@ -198,16 +207,23 @@ func (namespace *namespaceService) GetNamespaceNameList(c context.Context, p Get
 }
 
 type GetNamespaceInputParams struct {
+	Client        v1.NamespaceInterface
 	NamespaceName string
 	output        corev1.Namespace
 }
 
+func (p *GetNamespaceInputParams) GetClient() v1.NamespaceInterface {
+	if p.Client != nil {
+		return p.Client
+	}
+	return getNamespaceClient()
+}
+
 func (p *GetNamespaceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching namespace details of ....", p.NamespaceName)
-	namespacesClient := cfg.GetKubeClientSet().CoreV1().Namespaces()
-	output, err := namespacesClient.Get(context.Background(), p.NamespaceName, metav1.GetOptions{})
+	output, err := p.GetClient().Get(context.Background(), p.NamespaceName, metav1.GetOptions{})
 	if err != nil {
-		log.Logger.Errorw("Failed to get namespace ", p.NamespaceName, "err", err.Error())
+		log.Logger.Errorw("Failed to get namespace "+p.NamespaceName, "err", err.Error())
 		return err
 	}
 	output.ManagedFields = nil
@@ -274,8 +290,8 @@ type DeleteNamespaceInputParams struct {
 
 func (p *DeleteNamespaceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("Deleting Namespace ....", "value", p.NamespaceName)
-	namespacesClient := cfg.GetKubeClientSet().CoreV1().Namespaces()
-	err := namespacesClient.Delete(context.Background(), p.NamespaceName, metav1.DeleteOptions{})
+	namespaceClient := cfg.GetKubeClientSet().CoreV1().Namespaces()
+	err := namespaceClient.Delete(context.Background(), p.NamespaceName, metav1.DeleteOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to delete namespace "+p.NamespaceName, "err", err.Error())
 		return err
