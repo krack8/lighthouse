@@ -14,11 +14,6 @@ import (
 	"testing"
 )
 
-type NoopLogger struct{}
-
-func (l NoopLogger) Debugw(msg string, keysAndValues ...interface{}) {}
-func (l NoopLogger) Errorw(msg string, keysAndValues ...interface{}) {}
-
 type NamespaceTestSuite struct {
 	suite.Suite
 	clientSet *fake.Clientset

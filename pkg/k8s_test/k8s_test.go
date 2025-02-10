@@ -1,21 +1,5 @@
 package k8s_test
 
-//
-//import (
-//	"context"
-//	_cfg "github.com/krack8/lighthouse/pkg/config"
-//	"github.com/krack8/lighthouse/pkg/k8s"
-//	"github.com/stretchr/testify/suite"
-//	"io"
-//	v1 "k8s.io/api/core/v1"
-//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-//	"k8s.io/client-go/kubernetes/fake"
-//	"net/http"
-//	"testing"
-//)
-//
-//var IsTesting = false
-//
 //func TestListNamespaces(t *testing.T) {
 //	// Mock the Kubernetes client using a fake client
 //	clientset := fake.NewClientset()
