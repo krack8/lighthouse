@@ -1,0 +1,454 @@
+<div class="prerequisite-content mt-5">
+  <p class="font-medium">
+    Before you start on-boarding your kubernetes cluster, there are few things you need to apply, if your cluster doesn't have them already.
+  </p>
+  <div class="border border-primary-600 rounded mt-5">
+    <div class="content__header px-4 py-3" (click)="showEssentialRequirement = !showEssentialRequirement">
+      <h2 class="section__title">Essential Requirements*</h2>
+      <ic-icon [icon]="showEssentialRequirement ? icExpendeMore : icExpendeLess" size="22px"></ic-icon>
+    </div>
+    <div *ngIf="showEssentialRequirement" class="px-4 pb-4">
+      <!-- Kubernetes -->
+      <div class="preview-box rounded p-4">
+        <!-- Kubernetes -->
+        <div>
+          <h3>Kubernetes</h3>
+          <p class="desc">
+            To onboard your cluster, you’ll need to install Kubernetes. This setup allows the platform and required components to be
+            deployed within the Kubernetes cluster.
+          </p>
+          <p class="desc">
+            If Kubernetes isn’t installed on your cluster yet, please follow the instructions below to set it up on your machine.
+          </p>
+          <p class="desc">
+            <a class="text-primary underline" href="https://kubernetes.io/docs/setup" target="_blank">Click here</a>
+            to find the official documentation of the setup procedure.
+          </p>
+          <div class="alert-note">
+            <p>Note: The platform requires Kubernetes version 1.25 or higher.</p>
+          </div>
+        </div>
+        <!-- Kubectl -->
+        <div class="border-t pt-5 mt-5">
+          <h3>Kubectl</h3>
+          <p>
+            You need to install the
+            <a class="text-primary underline" href="https://kubernetes.io/docs/tasks/tools/#kubectl" target="_blank">kubectl</a>
+            command line tool in your cluster that will help you set up the necessary components in your Kubernetes clusters for onboarding.
+            For the installation instructions
+            <a class="text-primary underline" href="https://kubernetes.io/docs/tasks/tools/#kubectl" target="_blank"> here. </a>
+          </p>
+        </div>
+      </div>
+      <!-- Helm -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Helm</h3>
+        <p class="desc">
+          Helm is the package manager for Kubernetes. Helm is required to install the operator that will deploy all the components for
+          onboarding your cluster to this platform.
+        </p>
+        <p class="desc">
+          If Helm is not installed on your cluster, please
+          <a class="text-primary underline" href="https://helm.sh/docs/intro/install" target="_blank">click here</a>
+          to follow the official installation guide.
+        </p>
+        <div class="alert-note">
+          <p>Note: The platform requires Helm version 3.0 or higher.</p>
+        </div>
+      </div>
+      <!-- Fetch Operator Helm Chart -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Fetch Operator Helm Chart</h3>
+        <p class="mb-3">Run the following commands in your Kubernetes cluster to pull the operator helm chart.</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p>helm repo add klovercloud-charts https://klovercloud.github.io/klovercloud-charts/charts</p>
+          <cdk-clipboard
+            class="ml-2"
+            cbContent="helm repo add klovercloud-charts https://klovercloud.github.io/klovercloud-charts/charts"
+            message="Copied to the clipboard."
+          >
+          </cdk-clipboard>
+        </div>
+        <p class="mb-3">Run the following command to fetch the chart updates.</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p>helm repo update</p>
+          <cdk-clipboard class="ml-2" cbContent="helm repo update" message="Copied to the clipboard."> </cdk-clipboard>
+        </div>
+      </div>
+      <!-- Ingress Controller -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Ingress Controller</h3>
+        <p class="desc">
+          To access the required platform components in your cluster, the operator will set up a Kubernetes Ingress. For this Ingress to
+          work, an ingress controller must be installed. you need to configure a load balancer to make the cluster accessible from outside.
+          Additionally, the platform requires an ingress class, which helps Kubernetes determine which Ingress controller should handle
+          incoming network traffic to the services.
+        </p>
+        <p class="desc">
+          If your cluster doesn't have an Ingress controller installed, please
+          <a
+            class="text-primary underline"
+            href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers"
+            target="_blank"
+            >click here</a
+          >
+          for the official documentation.
+        </p>
+        <p class="desc">
+          Add the label <span class="font-bold">`role=krack8`</span> to the installed namespace.
+          <ic-icon class="inline-block align-middle" [icon]="icInfo" size="14px" [cdkTooltip]="ingressTooltipTemplate"></ic-icon>
+        </p>
+        <div class="alert-note">
+          <p>
+            Note: Currently, the platform supports only
+            <a
+              class="text-primary underline"
+              href="https://docs.nginx.com/nginx-ingress-controller/installation/installing-nic"
+              target="_blank"
+              >NGINX</a
+            >
+            and
+            <a
+              class="text-primary underline"
+              href="https://www.haproxy.com/documentation/kubernetes-ingress/community/installation/on-prem"
+              target="_blank"
+              >HAProxy</a
+            >
+            ingress controllers.
+          </p>
+        </div>
+      </div>
+      <!-- Domain Configuration -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Domain Configuration</h3>
+        <p class="desc">
+          For onboarding the cluster, the platform requires a wildcard domain pointing to the ingress controller's load balancer for
+          external access. The platform will create subdomains under the provided wildcard domain. You need to configure your domain to
+          point to the External IP of the
+          <a class="text-primary underline" href="https://kubernetes.io/docs/concepts/services-networking/service" target="_blank">
+            Kubernetes service
+          </a>
+          (type: LoadBalancer) associated with your ingress controller.
+        </p>
+
+        <h4>SSL Configuration</h4>
+        <p class="desc">Now, if you prefer an SSL-enabled connection (HTTPS), you can provide TLS certificates for the wildcard domain.</p>
+        <p class="desc">
+          Alternatively, you can manage SSL certificates by installing
+          <a class="text-primary underline" href="https://cert-manager.io/docs" target="_blank">cert-manager</a> on your Kubernetes cluster.
+          Once installed, you can create a certificate secret for your domain through it. Note that, cert-manager is also required to enable
+          the "Auto SSL" feature in the "SSL Config" section when creating an external endpoint through the platform.
+        </p>
+        <p class="desc">
+          If cert-manager is not yet installed on your Kubernetes cluster, you can follow the official installation
+          <a class="text-primary underline" href="https://cert-manager.io/docs/installation" target="_blank">documentation.</a>
+          to set it up. After successful installation, you can create a `ClusterIssuer` with the appropriate solver configuration and a
+          Certificate for your domain. Cert-manager will then generate a certificate secret that you can provide when setting up SSL
+          configuration during onboarding your cluster or creating external endpoints.
+        </p>
+        <p class="desc">
+          Alternatively, you can create a generic `ClusterIssuer` with the following configuration and provide the cluster issuer name in
+          the SSL configuration during cluster onboarding. Below is a sample `ClusterIssuer` configuration that you can apply to your
+          cluster (feel free to use any name or update the configuration):
+        </p>
+        <div class="relative mb-3">
+          <kc-ace-editor [readOnly]="true" [(text)]="cartManagerConf" [mode]="'yaml'" style="height: 235px"></kc-ace-editor>
+          <cdk-clipboard class="absolute right-4 top-4 z-10" [cbContent]="cartManagerConf" message="Copied to the clipboard.">
+          </cdk-clipboard>
+        </div>
+      </div>
+      <!-- Storage Information -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Storage Information</h3>
+        <p class="desc">
+          The platform requires Kubernetes Storage Class details to create and manage volumes in your cluster. Please provide two storage
+          classes: one with <span class="text-green-700">ReadWriteOnce</span> access mode and another with
+          <span class="text-green-700">ReadWriteMany</span>
+          access mode.
+        </p>
+        <p class="desc">
+          For office documents, please go through the
+          <a class="text-primary underline" href="https://kubernetes.io/docs/concepts/storage/storage-classes" target="_blank">link.</a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="border border-gray-600 rounded mt-5">
+    <div class="content__header px-4 py-3" (click)="showOptionalRequirement = !showOptionalRequirement">
+      <h2 class="section__title">Optional Requirements</h2>
+      <ic-icon [icon]="showOptionalRequirement ? icExpendeMore : icExpendeLess" size="22px"></ic-icon>
+    </div>
+    <div *ngIf="showOptionalRequirement" class="px-4 pb-4">
+      <!-- ArgoCD -->
+      <div class="preview-box rounded p-4">
+        <h3>ArgoCD</h3>
+        <p class="desc">
+          To enable the ‘Helm Apps’ feature, the platform requires
+          <a class="text-primary underline" href="https://argo-cd.readthedocs.io/en/stable" target="_blank">ArgoCD</a>. You will need to
+          provide the URL (external endpoint) to access ArgoCD, along with the username, password, and port details.
+        </p>
+        <p class="desc">
+          For office documentation
+          <a class="text-primary underline" href="https://argo-cd.readthedocs.io/en/stable" target="_blank">click here</a>. If you don't
+          have an ArgoCD server, you can execute the following commands to set up ArgoCD in your cluster.
+        </p>
+        <p class="mb-3">Create a new namespace and add a label to the namespace.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>kubectl create namespace argocd</p>
+            <cdk-clipboard class="ml-2" cbContent="kubectl create namespace argocd" message="Copied to the clipboard."> </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>kubectl label namespace argocd role=klovercloud</p>
+            <cdk-clipboard class="ml-2" cbContent="kubectl label namespace argocd role=klovercloud" message="Copied to the clipboard.">
+            </cdk-clipboard>
+          </div>
+        </div>
+
+        <p class="mb-3">Apply the deployment, this will create all the necessary components to install ArgoCD.</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p>kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml</p>
+          <cdk-clipboard
+            class="ml-2"
+            cbContent="kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+            message="Copied to the clipboard."
+          >
+          </cdk-clipboard>
+        </div>
+        <p class="mb-3">After the setup completion, get the initial admin password, (username: `admin`).</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p ngNonBindable>kubectl get secrets/argocd-initial-admin-secret -n argocd --template={{.data.password}} | base64 -d</p>
+          <cdk-clipboard
+            class="ml-2"
+            cbContent="kubectl get secrets/argocd-initial-admin-secret -n argocd --template={{ '{' }}{{ '{' }}.data.password{{ '}' }}{{
+              '}'
+            }}  | base64 -d"
+            message="Copied to the clipboard."
+          >
+          </cdk-clipboard>
+        </div>
+        <p class="mb-3">
+          You can provide the Kubernetes service DNS endpoint (e.g http://argocd-server.argocd.svc.cluster.local) or create an ingress to
+          access the ArgoCD and provide the ingress host URL (e.g http://argocd.xyz.coml) while onboarding cluster.
+        </p>
+        <p>
+          Add the label <span class="font-bold">`role=krack8`</span> to the installed namespace.
+          <ic-icon class="inline-block align-middle" [icon]="icInfo" size="14px" [cdkTooltip]="argocdTooltipTemplate"></ic-icon>
+        </p>
+      </div>
+      <!-- Monitoring Tool (Prometheus) -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Monitoring Tool (Prometheus)</h3>
+        <p class="desc">
+          Prometheus is an open-source systems monitoring and alerting toolkit designed for reliability and scalability. To collect and show
+          the metrics of the user applications, the platform requires a Prometheus server installed on your cluster.
+        </p>
+        <p class="desc">
+          If your cluster doesn’t have a Prometheus server installed, please follow the instructions below to install the server.
+        </p>
+        <p class="mb-3">Create a new namespace and add a label to the namespace.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>kubectl create ns k8-monitoring</p>
+            <cdk-clipboard class="ml-2" cbContent="kubectl create ns k8-monitoring" message="Copied to the clipboard."> </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>kubectl label namespace k8-monitoring role=klovercloud</p>
+            <cdk-clipboard
+              class="ml-2"
+              cbContent="kubectl label namespace k8-monitoring role=klovercloud"
+              message="Copied to the clipboard."
+            >
+            </cdk-clipboard>
+          </div>
+        </div>
+        <p class="mb-3">Fetch the Prometheus helm chart.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>helm repo add prometheus-community https://prometheus-community.github.io/helm-charts</p>
+            <cdk-clipboard
+              class="ml-2"
+              cbContent="helm repo add prometheus-community https://prometheus-community.github.io/helm-charts"
+              message="Copied to the clipboard."
+            >
+            </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>helm repo update</p>
+            <cdk-clipboard class="ml-2" cbContent="helm repo update" message="Copied to the clipboard."> </cdk-clipboard>
+          </div>
+        </div>
+        <p class="mb-3">Deploy a Prometheus server with the helm chart. This will install a Grafana dashboard to visualize the metrics.</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p>helm install kube-prom-stack prometheus-community/kube-prometheus-stack --namespace k8-monitoring</p>
+          <cdk-clipboard
+            class="ml-2"
+            cbContent="helm install kube-prom-stack prometheus-community/kube-prometheus-stack --namespace k8-monitoring"
+            message="Copied to the clipboard."
+          >
+          </cdk-clipboard>
+        </div>
+        <p class="mb-3">
+          You can provide the Kubernetes service DNS endpoint (e.g
+          http://kube-prom-stack-kube-prome-prometheus.k8-monitoring.svc.cluster.local) or create an ingress to access the Prometheus server
+          and provide the ingress host URL (e.g http://prometheus.xyz.coml) while onboarding cluster.
+        </p>
+        <p>
+          Add the label <span class="font-bold">`role=krack8`</span> to the installed namespace.
+          <ic-icon class="inline-block align-middle" [icon]="icInfo" size="14px" [cdkTooltip]="prometheusTooltipTemplate"></ic-icon>
+        </p>
+      </div>
+
+      <!-- Log Aggregation System (Loki) -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Log Aggregation System (Loki)</h3>
+        <p class="mb-3">
+          Loki is an open-source log aggregation system designed to collect, store, and query logs from applications and infrastructure. To
+          collect and show the logs of the user applications, the platform requires a Loki server installed on your cluster.
+        </p>
+        <p class="mb-3">
+          If your cluster doesn’t have a Loki server installed, please follow the instructions
+          <a class="text-primary underline" href="https://grafana.com/docs/loki/latest/setup/install/helm" target="_blank">here</a>
+          to install the server.
+        </p>
+        <p>
+          Add the label <span class="font-bold">`role=krack8`</span> to the installed namespace.
+          <ic-icon class="inline-block align-middle" [icon]="icInfo" size="14px" [cdkTooltip]="lokiTooltipTemplate"></ic-icon>
+        </p>
+      </div>
+
+      <!-- Service Mesh (Istio) -->
+      <div class="preview-box rounded p-4 mt-5">
+        <h3>Service Mesh (Istio)</h3>
+        <p class="desc">
+          Service mesh allows you to transparently add capabilities like observability, traffic management, and security, without adding
+          them to your applications code. Istio is an implementation of service mesh. For more details
+          <a class="text-primary underline" href="https://istio.io/latest/about/service-mesh/#what-is-istio" target="_blank">click here.</a>
+        </p>
+        <p class="desc">
+          To enable the service mesh feature in the platform, you will need to provide the Istio Gateway URL and gateway name during the
+          cluster onboarding process.
+        </p>
+        <p class="desc">
+          Install Istio on your Kubernetes cluster if it is not already installed. Follow the instructions below to complete the Istio
+          installation.
+        </p>
+        <p class="mb-3">Create a new namespace and add a label to the namespace.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>kubectl create ns istio-system</p>
+            <cdk-clipboard class="ml-2" cbContent="kubectl create ns istio-system" message="Copied to the clipboard."> </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>kubectl label namespace istio-system role=klovercloud</p>
+            <cdk-clipboard
+              class="ml-2"
+              cbContent="kubectl label namespace istio-system role=klovercloud"
+              message="Copied to the clipboard."
+            >
+            </cdk-clipboard>
+          </div>
+        </div>
+        <p class="mb-3">Fetch the Istio helm chart.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>helm repo add istio https://istio-release.storage.googleapis.com/charts</p>
+            <cdk-clipboard
+              class="ml-2"
+              cbContent="helm repo add istio https://istio-release.storage.googleapis.com/charts"
+              message="Copied to the clipboard."
+            >
+            </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>helm repo update</p>
+            <cdk-clipboard class="ml-2" cbContent="helm repo update" message="Copied to the clipboard."> </cdk-clipboard>
+          </div>
+        </div>
+        <p class="mb-3">Deploy Istio using the helm chart.</p>
+        <div class="cmd-card mb-4">
+          <div class="flex gap-2">
+            <p>helm install istio-base istio/base -n istio-system --set defaultRevision=default</p>
+            <cdk-clipboard
+              class="ml-2"
+              cbContent="helm install istio-base istio/base -n istio-system --set defaultRevision=default"
+              message="Copied to the clipboard."
+            >
+            </cdk-clipboard>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p>helm install istiod istio/istiod -n istio-system</p>
+            <cdk-clipboard class="ml-2" cbContent="helm install istiod istio/istiod -n istio-system" message="Copied to the clipboard.">
+            </cdk-clipboard>
+          </div>
+        </div>
+
+        <p class="mb-3">Create istio gateway controller</p>
+        <div class="cmd-card flex gap-2 mb-4">
+          <p>helm install istio-ingressgateway istio/gateway -n istio-system</p>
+          <cdk-clipboard
+            class="ml-2"
+            cbContent="helm install istio-ingressgateway istio/gateway -n istio-system"
+            message="Copied to the clipboard."
+          >
+          </cdk-clipboard>
+        </div>
+
+        <p class="mb-3">Now apply the gateway.</p>
+        <div class="relative mb-3">
+          <kc-ace-editor [readOnly]="true" [(text)]="istioConf" [mode]="'yaml'" style="height: 235px"></kc-ace-editor>
+          <cdk-clipboard class="absolute right-4 top-4 z-10" [cbContent]="istioConf" message="Copied to the clipboard."> </cdk-clipboard>
+        </div>
+        <p>
+          Add the label <span class="font-bold">`role=krack8`</span> to the installed namespace.
+          <ic-icon class="inline-block align-middle" [icon]="icInfo" size="14px" [cdkTooltip]="istioTooltipTemplate"></ic-icon>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #ingressTooltipTemplate let-data>
+  <div class="max-w-sm">
+    <div>For example, if you have installed nginx ingress controller under ingress-nginx namespace, then apply this</div>
+    <div class="mt-3">
+      <code>kubectl label ns ingress-nginx role=krack8</code>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #argocdTooltipTemplate>
+  <div class="max-w-sm">
+    <div>For example, if you have installed ArgoCD under argocd namespace, then apply this</div>
+    <div class="mt-3">
+      <code>kubectl label ns argocd role=krack8</code>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #prometheusTooltipTemplate>
+  <div class="max-w-sm">
+    <div>For example, if you have installed Prometheus under prometheus namespace, then apply this</div>
+    <div class="mt-3">
+      <code>kubectl label ns prometheus role=krack8</code>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #lokiTooltipTemplate>
+  <div class="max-w-sm">
+    <div>For example, if you have installed Loki under loki namespace, then apply this</div>
+    <div class="mt-3">
+      <code>kubectl label ns loki role=krack8</code>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #istioTooltipTemplate>
+  <div class="max-w-sm">
+    <div>For example, if you have installed Istio under istio-system namespace, then apply this</div>
+    <div class="mt-3">
+      <code>kubectl label ns istio-system role=krack8</code>
+    </div>
+  </div>
+</ng-template>

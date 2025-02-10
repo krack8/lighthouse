@@ -1,0 +1,114 @@
+<div fxLayout="row" fxLayoutAlign="space-between center" mat-dialog-title>
+  <h3 class="headline m-0" fxFlex="auto">Namespace Details</h3>
+
+  <!-- <button class="text-secondary" mat-dialog-close mat-icon-button type="button">
+      <mat-icon [icIcon]="icClose"></mat-icon>
+    </button> -->
+</div>
+<!-- Loader -->
+
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <div class="page-root mt-4" *ngIf="details">
+    <div class="kube-card">
+      <h2 class="kube-card__title">Metadata</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Name</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.name }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Resource Version</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.resourceVersion }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Create</div>
+              <h3 class="kc-dataset__value">
+                {{ details?.metadata?.creationTimestamp | date }}
+              </h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">UID</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.uid }}</h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Labels</div>
+              <h3 class="kc-dataset__value" *ngFor="let label of details?.metadata?.labels | keyvalue">
+                <span class="kc-dataset-key">{{ label.key }}</span> : {{ label.value }}
+              </h3>
+            </div>
+          </div>
+
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Annotations</div>
+              <h3 class="kc-dataset__value" *ngFor="let item of details?.metadata?.annotations | keyvalue">
+                <span class="kc-dataset-key"> {{ item.key }} </span> : {{ item.value }}
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root mt-4" *ngIf="details">
+    <div class="kube-card">
+      <h2 class="kube-card__title">Spec</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Finalizers</div>
+              <div *ngFor="let item of details?.spec?.finalizers">
+                <h3 class="kc-dataset__value">{{ item }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-root mt-4" *ngIf="details">
+    <div class="kube-card">
+      <h2 class="kube-card__title">Status</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Phase</div>
+              <h3 class="kc-dataset__value">{{ details?.status.phase }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+
+  <mat-dialog-actions *ngIf="!isLoading" class="flex ml-auto justify-end mt-5 mb-2">
+    <button class="btn btn-default" mat-button mat-dialog-close type="button">Close</button>
+  </mat-dialog-actions>
+</ng-template>

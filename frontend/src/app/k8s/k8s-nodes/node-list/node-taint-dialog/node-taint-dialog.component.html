@@ -1,0 +1,127 @@
+<div class="flex justify-between items-center mb-6">
+  <h2>Taints</h2>
+  <button class="text-secondary float-right" (click)="closeDialog()" mat-icon-button type="button">
+    <i class="kc-close"></i>
+  </button>
+</div>
+
+<div class="mt-2" *ngIf="taintList.length == 0">
+  <h3>No Taints available on this node.</h3>
+</div>
+
+<table *ngIf="taintList.length > 0" class="table-label max-w-2xl">
+  <thead>
+    <tr class="heading-diff">
+      <th>Key</th>
+      <th class="border-left">Value</th>
+      <th class="border-left">Effect</th>
+      <th *ngIf="!deleteAction" class="border-left">Action</th>
+      <th *ngIf="deleteAction"><mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar></th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let taint of taintList">
+      <tr class="data-row">
+        <td>
+          <div class="flex items-center">
+            <span class="mr-4">
+              {{ taint.key }}
+            </span>
+          </div>
+        </td>
+
+        <td>
+          <div class="flex items-center">
+            <span class="mr-4">
+              {{ taint.value }}
+            </span>
+          </div>
+        </td>
+
+        <td>
+          <div class="flex items-center">
+            <span class="mr-4">
+              {{ taint.effect }}
+            </span>
+          </div>
+        </td>
+
+        <td>
+          <div class="flex items-center">
+            <span class="mr-4">
+              <mat-checkbox color="primary" (change)="toggleCheckbox($event.checked, taint)"></mat-checkbox>
+            </span>
+          </div>
+        </td>
+      </tr>
+    </ng-container>
+  </tbody>
+</table>
+
+<button mat-raised-button class="mt-4" *ngIf="!addTaint" color="primary" (click)="toogleAddTaint()">
+  <mat-icon [icIcon]="icAdd">add</mat-icon> Add Taints
+</button>
+
+<button
+  [disabled]="deleteAction"
+  mat-raised-button
+  class="mt-4 ml-2"
+  *ngIf="taintList.length > 0"
+  color="primary"
+  (click)="untaintNode(true)"
+>
+  Untaint All
+</button>
+
+<button
+  [disabled]="deleteAction || untaintList.keys.length === 0"
+  mat-raised-button
+  class="mt-4 ml-2"
+  *ngIf="taintList.length > 0"
+  color="primary"
+  (click)="untaintNode()"
+>
+  Untaint Selected
+</button>
+
+<div class="mt-6" *ngIf="addTaint">
+  <form [formGroup]="form">
+    <div formArrayName="taints">
+      <div *ngFor="let textbox of taints.controls; let i = index" [formGroupName]="i">
+        <mat-form-field appearance="outline">
+          <mat-label>Key</mat-label>
+          <input matInput formControlName="key" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="ml-2">
+          <mat-label>Value</mat-label>
+          <input matInput formControlName="value" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="ml-2">
+          <mat-label>Effect</mat-label>
+          <mat-select formControlName="effect">
+            <mat-option value="NoSchedule">NoSchedule</mat-option>
+            <mat-option value="PreferNoSchedule">PreferNoSchedule</mat-option>
+            <mat-option value="NoExecute">NoExecute</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button class="ml-2" (click)="removeTaint(i)">
+          <mat-icon class="cursor-pointer" [icIcon]="icDelete">delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <button [disabled]="form.get('taints').invalid" mat-raised-button class="mr-2" color="primary" (click)="addNewTaint()">
+      <mat-icon [icIcon]="icAdd">add</mat-icon> Add More
+    </button>
+
+    <button [disabled]="form.get('taints').invalid || submittingForm" class="ml-2" color="accent" mat-raised-button (click)="saveTaints()">
+      <span *ngIf="!submittingForm">Apply</span>
+      <span *ngIf="submittingForm" class="align-middle" fxFlex="auto" fxLayout="column" fxLayoutAlign="center center">
+        <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+      </span>
+    </button>
+  </form>
+</div>

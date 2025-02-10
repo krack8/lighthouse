@@ -1,0 +1,62 @@
+.filter-chart-label ._item {
+  margin-right: 20px;
+  font-size: 13px;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+._chart_container {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 30px;
+
+  @screen sm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @screen lg {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.active_icon_img {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.activeClass {
+  background-color: var(--color-success);
+  color: white;
+  border-radius: 15px;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+.inactiveClass {
+  background-color: var(--color-danger);
+  color: white;
+  border-radius: 15px;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+::ng-deep .cdk-overlay-pane .view-labels {
+  min-width: 550px;
+  max-height: 700px;
+}
+
+@media (max-width: 1023px) {
+  ._label_col {
+    order: 3;
+    display: flex;
+    margin-top: 20px;
+    width: 100%;
+
+    .filter-chart-label {
+      width: 100%;
+    }
+  }
+}

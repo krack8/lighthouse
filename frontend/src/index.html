@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Home</title>
+    <base href="/" />
+
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <link href="/assets/images/favicon_klovercloud.ico" rel="icon" type="image/x-icon" />
+    <script>
+      var global = window;
+    </script>
+  </head>
+
+  <body dir="ltr">
+    <style>
+      #kc-splash-screen {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* background: #13293d; */
+        z-index: 99999;
+        pointer-events: none;
+      }
+
+      #kc-splash-screen > .wrapper {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+      }
+
+      @-webkit-keyframes ball-scale-multiple {
+        0% {
+          -webkit-transform: scale(0);
+          transform: scale(0);
+          opacity: 0;
+        }
+
+        5% {
+          opacity: 1;
+        }
+
+        100% {
+          -webkit-transform: scale(1);
+          transform: scale(1);
+          opacity: 0;
+        }
+      }
+
+      @keyframes ball-scale-multiple {
+        0% {
+          -webkit-transform: scale(0);
+          transform: scale(0);
+          opacity: 0;
+        }
+
+        5% {
+          opacity: 1;
+        }
+
+        100% {
+          -webkit-transform: scale(1);
+          transform: scale(1);
+          opacity: 0;
+        }
+      }
+
+      .ball-scale-multiple {
+        position: relative;
+        -webkit-transform: translateY(-30px);
+        transform: translateY(-30px);
+      }
+
+      .ball-scale-multiple > div:nth-child(2) {
+        -webkit-animation-delay: -0.4s;
+        animation-delay: -0.4s;
+      }
+
+      .ball-scale-multiple > div:nth-child(3) {
+        -webkit-animation-delay: -0.2s;
+        animation-delay: -0.2s;
+      }
+
+      .ball-scale-multiple > div {
+        background-color: #20d4f3;
+        border-radius: 100%;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        position: absolute;
+        left: -30px;
+        top: 0;
+        opacity: 0;
+        margin: 0;
+        width: 60px;
+        height: 60px;
+        -webkit-animation: ball-scale-multiple 1s 0s linear infinite;
+        animation: ball-scale-multiple 1s 0s linear infinite;
+      }
+    </style>
+
+    <div id="kc-splash-screen">
+      <div class="wrapper">
+        <div class="ball-scale-multiple">
+          <!-- <svg width="100%" height="100%" id="eXl5EyYxhAr1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 35 40" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><style><![CDATA[#eXl5EyYxhAr2_to {animation: eXl5EyYxhAr2_to__to 1500ms linear infinite alternate backwards}@keyframes eXl5EyYxhAr2_to__to { 0% {transform: translate(47.072382px,40px)} 100% {transform: translate(-8.081108px,8.013414px)}} #eXl5EyYxhAr3_to {animation: eXl5EyYxhAr3_to__to 1500ms linear infinite alternate backwards}@keyframes eXl5EyYxhAr3_to__to { 0% {transform: translate(2.392863px,6.220951px)} 100% {transform: translate(19.680908px,24.526278px)}} #eXl5EyYxhAr4_to {animation: eXl5EyYxhAr4_to__to 1500ms linear infinite alternate backwards}@keyframes eXl5EyYxhAr4_to__to { 0% {transform: translate(76.439044px,-12.725750px)} 100% {transform: translate(19.816550px,13.162946px)}}]]></style><g id="eXl5EyYxhAr2_to" transform="translate(47.072382,40)"><path id="eXl5EyYxhAr2" d="M15.394800,15.517800C16.581100,15.517800,17.739200,15.994900,18.699600,16.920900C23.558000,21.494900,28.331700,26.237200,32.907700,31.007600C34.856700,33.028000,34.800200,35.946400,32.822900,37.966800C31.806100,39.005000,30.478500,39.566300,29.122600,39.566300C27.908000,39.566300,26.778200,39.117300,25.874300,38.219300C21.241800,33.813700,16.807100,29.352000,12.089900,24.637700L11.666200,24.216800C10.677600,23.234600,10.140900,21.915800,10.197400,20.512700C10.225700,19.165800,10.818800,17.903000,11.835700,17.005100L11.864000,16.977000L11.892200,16.948900C12.937300,16.022900,14.151900,15.517800,15.394800,15.517800Z" transform="translate(7.306648,-7.542050)" fill="rgb(65,100,169)" stroke="none" stroke-width="1"/></g><g id="eXl5EyYxhAr3_to" transform="translate(2.392863,6.220951)"><path id="eXl5EyYxhAr3" d="M5.112630,5.387700C6.524960,5.387700,7.796060,5.920860,8.756450,6.874940C10.705500,8.839220,10.649000,12.150400,8.671710,14.058600C7.711320,14.984600,6.468470,15.489700,5.140880,15.489700C3.756800,15.489700,2.457450,14.956600,1.468820,13.946400C0.508439,12.992300,0,11.701500,0,10.354500C0,9.007590,0.564932,7.744830,1.525320,6.790750C2.485700,5.892800,3.756800,5.387700,5.112630,5.387700Z" transform="translate(-19.037361,-25.026814)" fill="rgb(91,196,214)" stroke="none" stroke-width="1"/></g><g id="eXl5EyYxhAr4_to" transform="translate(76.439044,-12.725750)"><path id="eXl5EyYxhAr4" d="M28.698300,0C29.969400,1.234690,31.155800,2.385200,32.229200,3.563770C34.093400,5.640300,34.093400,8.109680,32.285600,10.017800C27.681400,14.816300,22.907800,19.558600,18.105900,24.104600C17.173700,24.974500,16.043900,25.451500,14.857500,25.451500C13.614600,25.451500,12.400000,24.946400,11.439700,24.020400C9.490650,22.140300,9.377660,19.306100,11.185400,17.482100C15.620200,12.908100,20.111400,8.474480,24.856800,3.788260C26.099600,2.553570,27.399000,1.262750,28.698300,0Z" transform="translate(-21.767434,-12.725750)" fill="rgb(91,196,214)" stroke="none" stroke-width="1"/></g></svg>-->
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <kc-root></kc-root>
+  </body>
+</html>

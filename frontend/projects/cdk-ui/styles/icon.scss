@@ -1,0 +1,22 @@
+.cdk-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  width: 38px;
+  border-radius: 10px;
+  background: var(--cdk-icon-bg);
+  // Modifier
+  &-check {
+    border-radius: 50%;
+    height: 25px;
+    width: 25px;
+  }
+
+  // Element
+  img,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
