@@ -33,3 +33,15 @@ func InitializeLogger() {
 	Logger = ZLogger.Sugar()
 	defer Logger.Sync()
 }
+
+// this is for test
+func InitializeTestLogger() {
+	config := zap.NewProductionEncoderConfig()
+	// Setting time encoder
+	config.EncodeTime = zapcore.ISO8601TimeEncoder
+	// Setting Log level should be printed in capital letters with level colors
+	config.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	Logger = zap.NewNop().Sugar() // zap.NewNop() creates a no-op logger
+	ZLogger = zap.NewNop()
+}

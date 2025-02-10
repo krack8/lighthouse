@@ -246,14 +246,21 @@ func (namespace *namespaceService) GetNamespaceDetails(c context.Context, p GetN
 type DeployNamespaceInputParams struct {
 	Namespace *corev1.Namespace
 	output    *corev1.Namespace
+	Client    v1.NamespaceInterface
+}
+
+func (p *DeployNamespaceInputParams) GetClient() v1.NamespaceInterface {
+	if p.Client != nil {
+		return p.Client
+	}
+	return getNamespaceClient()
 }
 
 func (p *DeployNamespaceInputParams) Process(c context.Context) error {
-	namespaceClient := cfg.GetKubeClientSet().CoreV1().Namespaces()
-	_, err := namespaceClient.Get(context.Background(), p.Namespace.Name, metav1.GetOptions{})
+	_, err := p.GetClient().Get(context.Background(), p.Namespace.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating namespace "+p.Namespace.Name, "value", p.Namespace.Name)
-		p.output, err = namespaceClient.Create(context.Background(), p.Namespace, metav1.CreateOptions{})
+		p.output, err = p.GetClient().Create(context.Background(), p.Namespace, metav1.CreateOptions{})
 		if err != nil {
 			log.Logger.Errorw("failed to create namespace "+p.Namespace.Name, "err", err.Error())
 			return err
@@ -262,7 +269,7 @@ func (p *DeployNamespaceInputParams) Process(c context.Context) error {
 	} else {
 		log.Logger.Infow("Namespace exists "+p.Namespace.Name, "value", p.Namespace.Name)
 		log.Logger.Infow("Updating namespace "+p.Namespace.Name, "value", p.Namespace.Name)
-		p.output, err = namespaceClient.Update(context.Background(), p.Namespace, metav1.UpdateOptions{})
+		p.output, err = p.GetClient().Update(context.Background(), p.Namespace, metav1.UpdateOptions{})
 		if err != nil {
 			log.Logger.Errorw("failed to update namespace ", p.Namespace.Name, "err", err.Error())
 			return err
@@ -277,7 +284,7 @@ func (namespace *namespaceService) DeployNamespace(c context.Context, p DeployNa
 	if err != nil {
 		return nil, err
 	}
-
+	p.output.ManagedFields = nil
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -286,12 +293,19 @@ func (namespace *namespaceService) DeployNamespace(c context.Context, p DeployNa
 
 type DeleteNamespaceInputParams struct {
 	NamespaceName string
+	Client        v1.NamespaceInterface
+}
+
+func (p *DeleteNamespaceInputParams) GetClient() v1.NamespaceInterface {
+	if p.Client != nil {
+		return p.Client
+	}
+	return getNamespaceClient()
 }
 
 func (p *DeleteNamespaceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("Deleting Namespace ....", "value", p.NamespaceName)
-	namespaceClient := cfg.GetKubeClientSet().CoreV1().Namespaces()
-	err := namespaceClient.Delete(context.Background(), p.NamespaceName, metav1.DeleteOptions{})
+	err := p.GetClient().Delete(context.Background(), p.NamespaceName, metav1.DeleteOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to delete namespace "+p.NamespaceName, "err", err.Error())
 		return err
