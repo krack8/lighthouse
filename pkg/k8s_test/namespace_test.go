@@ -46,39 +46,42 @@ func (s *NamespaceTestSuite) TearDownTest() { // Teardown after each test
 	// Clean up after *each* test runs
 }
 
-func (s *NamespaceTestSuite) TestGetNamespaceDetailsSuccess() {
-	p := k8s.GetNamespaceInputParams{
-		NamespaceName: "test-namespace",
-		Client:        s.clientSet.CoreV1().Namespaces(), // Use the clientSet from SetupSuite
-	}
-	expectedNamespace := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-namespace",
-		},
-	}
-	expectedNamespace = removeNamespaceFields(expectedNamespace)
+func (s *NamespaceTestSuite) TestGetNamespaceDetails() {
+	s.T().Run("Success GetNamespaceDetails", func(t *testing.T) {
+		t.Log("Test CASE: Get Namespace with existing namespace")
+		p := k8s.GetNamespaceInputParams{
+			NamespaceName: "test-namespace",
+			Client:        s.clientSet.CoreV1().Namespaces(), // Use the clientSet from SetupSuite
+		}
+		expectedNamespace := corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-namespace",
+			},
+		}
+		expectedNamespace = removeNamespaceFields(expectedNamespace)
 
-	result, err := k8s.NamespaceService().GetNamespaceDetails(context.Background(), p)
-	assert := assert.New(s.T())
-	assert.NoError(err)
-	assert.NotNil(result)
+		result, err := k8s.NamespaceService().GetNamespaceDetails(context.Background(), p)
+		assert := assert.New(s.T())
+		assert.NoError(err)
+		assert.NotNil(result)
 
-	response, ok := result.(k8s.ResponseDTO)
-	assert.True(ok)
-	assert.Equal("success", response.Status)
-	assert.Equal(expectedNamespace, response.Data)
-}
+		response, ok := result.(k8s.ResponseDTO)
+		assert.True(ok)
+		assert.Equal("success", response.Status)
+		assert.Equal(expectedNamespace, response.Data)
+	})
+	s.T().Run("Error GetNamespaceDetails", func(t *testing.T) {
+		t.Log("Test CASE: Get Namespace with non-existent namespace")
+		p := k8s.GetNamespaceInputParams{
+			NamespaceName: "non-existent-namespace",
+			Client:        s.clientSet.CoreV1().Namespaces(), // Use the clientSet from SetupSuite
+		}
 
-func (s *NamespaceTestSuite) TestGetNamespaceDetailsError() {
-	p := k8s.GetNamespaceInputParams{
-		NamespaceName: "non-existent-namespace",
-		Client:        s.clientSet.CoreV1().Namespaces(), // Use the clientSet from SetupSuite
-	}
-
-	result, err := k8s.NamespaceService().GetNamespaceDetails(context.Background(), p)
-	assert := assert.New(s.T())
-	assert.Error(err)
-	assert.Nil(result)
+		result, err := k8s.NamespaceService().GetNamespaceDetails(context.Background(), p)
+		assert := assert.New(s.T())
+		assert.Error(err)
+		assert.Nil(result)
+	})
 }
 
 // A dummy removeNamespaceFields function for testing purposes
@@ -87,26 +90,28 @@ func removeNamespaceFields(ns corev1.Namespace) corev1.Namespace {
 }
 
 func (s *NamespaceTestSuite) TestDeleteNamespaceSuccess() {
+	s.T().Run("Success DeleteNamespace", func(t *testing.T) {
+		t.Log("Test CASE: Delete Namespace with existing namespace")
+		p := k8s.DeleteNamespaceInputParams{
+			NamespaceName: "test-namespace",
+			Client:        s.clientSet.CoreV1().Namespaces(),
+		}
 
-	p := k8s.DeleteNamespaceInputParams{
-		NamespaceName: "test-namespace",
-		Client:        s.clientSet.CoreV1().Namespaces(),
-	}
+		result, err := k8s.NamespaceService().DeleteNamespace(context.Background(), p)
+		assert := assert.New(s.T())
+		assert.NoError(err)
+		assert.NotNil(result)
 
-	result, err := k8s.NamespaceService().DeleteNamespace(context.Background(), p)
-	assert := assert.New(s.T())
-	assert.NoError(err)
-	assert.NotNil(result)
+		response, ok := result.(k8s.ResponseDTO)
+		assert.True(ok)
+		assert.Equal("success", response.Status)
+		assert.Equal("deleted namespace test-namespace", response.Msg)
 
-	response, ok := result.(k8s.ResponseDTO)
-	assert.True(ok)
-	assert.Equal("success", response.Status)
-	assert.Equal("deleted namespace test-namespace", response.Msg)
+		_, err = s.clientSet.CoreV1().Namespaces().Get(context.Background(), "test-namespace", metav1.GetOptions{})
+		assert.Error(err)
+	})
 
-	_, err = s.clientSet.CoreV1().Namespaces().Get(context.Background(), "test-namespace", metav1.GetOptions{})
-	assert.Error(err)
-
-	s.T().Run("Test Namespace Error", func(t *testing.T) {
+	s.T().Run("Error DeleteNamespace", func(t *testing.T) {
 		t.Log("Test CASE: Delete Namespace with non-existent namespace")
 		p := k8s.DeleteNamespaceInputParams{
 			NamespaceName: "non-existent-namespace",
@@ -114,26 +119,15 @@ func (s *NamespaceTestSuite) TestDeleteNamespaceSuccess() {
 		}
 
 		result, err := k8s.NamespaceService().DeleteNamespace(context.Background(), p)
+		assert := assert.New(s.T())
 		assert.Error(err)
 		assert.Nil(result)
 	})
 }
 
-func (s *NamespaceTestSuite) TestDeleteNamespaceError() {
-	p := k8s.DeleteNamespaceInputParams{
-		NamespaceName: "non-existent-namespace",
-		Client:        s.clientSet.CoreV1().Namespaces(),
-	}
-
-	result, err := k8s.NamespaceService().DeleteNamespace(context.Background(), p)
-
-	assert := assert.New(s.T())
-	assert.Error(err)
-	assert.Nil(result)
-}
-
 func (s *NamespaceTestSuite) TestDeployNamespace() {
 	s.T().Run("Success CreateNamespace", func(t *testing.T) {
+		t.Log("Test CASE: Create Namespace with new namespace")
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "new-namespace",
@@ -165,6 +159,7 @@ func (s *NamespaceTestSuite) TestDeployNamespace() {
 	})
 
 	s.T().Run("Success UpdateNamespace", func(t *testing.T) {
+		t.Log("Test CASE: Update Namespace with existing namespace")
 		updatedLabels := map[string]string{"updated": "true"}
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -193,6 +188,7 @@ func (s *NamespaceTestSuite) TestDeployNamespace() {
 		assert.Equal(updatedLabels, fetchedNamespace.Labels)
 	})
 	s.T().Run("Error CreateNamespace - Create Fails", func(t *testing.T) {
+		t.Log("Test CASE: Create Namespace with new namespace fail")
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "new-namespace",
@@ -215,6 +211,7 @@ func (s *NamespaceTestSuite) TestDeployNamespace() {
 		assert.Nil(result)
 	})
 	s.T().Run("Error UpdateNamespace - Update Fails", func(t *testing.T) {
+		t.Log("Test CASE: Update Namespace with existing namespace fail")
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "test-namespace",
