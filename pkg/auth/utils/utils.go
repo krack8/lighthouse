@@ -2,10 +2,13 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/auth/dto"
 	"golang.org/x/crypto/bcrypt"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
+	"os"
 )
 
 func HashPassword(password string) string {
@@ -34,15 +37,6 @@ func CheckPassword(password, hashedPassword string) bool {
 	return err == nil // Return true if passwords match, false otherwise
 }
 
-func GenerateSecureToken(length int) string {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		_ = fmt.Errorf("failed to generate secure token: %w", err)
-		return ""
-	}
-	return hex.EncodeToString(bytes)
-}
-
 // Helper function to generate reset token
 func GenerateResetToken() string {
 	b := make([]byte, 32)
@@ -51,4 +45,22 @@ func GenerateResetToken() string {
 		return ""
 	}
 	return fmt.Sprintf("%x", b)
+}
+
+func CreateAgentSecret(key dto.AgentKey) (v1.Secret, error) {
+
+	directMap := map[string][]byte{
+		"AUTH_TOKEN": key.AuthToken,
+	}
+	kubeSecretInfo := v1.Secret{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      os.Getenv("AGENT_SECRET_NAME"),
+			Namespace: os.Getenv("AGENT_SECRET_NAMESPACE"),
+		},
+		Data: directMap,
+		Type: "Opaque",
+	}
+
+	return kubeSecretInfo, nil
 }

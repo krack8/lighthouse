@@ -101,9 +101,14 @@ func (r *RbacService) AssignRole(username string, roleIds []string) error {
 func CheckPermission(permissions []string, route, method string) bool {
 	// Normalize the input
 	method = strings.ToUpper(method)
-	permissionKey := route + ":" + method
 
-	// Check for exact matches first
+	// Replace any path variables (e.g., :id) with @
+	normalizedRoute := normalizeRoute(route)
+	permissionKey := normalizedRoute + ":" + method
+
+	fmt.Printf("Incoming request permission key: %s\n", permissionKey)
+
+	// Check for exact matches or matches with normalized routes
 	for _, perm := range permissions {
 		if strings.EqualFold(perm, permissionKey) {
 			return true
@@ -111,6 +116,17 @@ func CheckPermission(permissions []string, route, method string) bool {
 	}
 
 	return false
+}
+
+// Helper function to normalize the route
+func normalizeRoute(route string) string {
+	segments := strings.Split(route, "/")
+	for i, segment := range segments {
+		if strings.HasPrefix(segment, ":") {
+			segments[i] = "@" // Replace path variables with @
+		}
+	}
+	return strings.Join(segments, "/")
 }
 
 // GetAllRoles retrieves all roles
@@ -308,13 +324,13 @@ func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResp
 			seenPermissions[perm.ID] = true
 
 			// Create DTO and group by category
-			dto := dto.PermissionDTO{
+			dtoRole := dto.PermissionDTO{
 				ID:          perm.ID,
 				Name:        perm.Name,
 				Description: perm.Description,
 			}
 			if categoryGroup, exists := permissionMap[perm.Category]; exists {
-				*categoryGroup = append(*categoryGroup, dto)
+				*categoryGroup = append(*categoryGroup, dtoRole)
 			}
 		}
 	}
@@ -393,7 +409,12 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	if err != nil {
 		return nil, 0, err
 	}
-	defer countCursor.Close(ctx)
+	defer func(countCursor *mongo.Cursor, ctx context.Context) {
+		err := countCursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(countCursor, ctx)
 
 	// Get total count
 	var countResult []bson.M
@@ -417,7 +438,12 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	if err != nil {
 		return nil, 0, err
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Decode results
 	var users []models.User

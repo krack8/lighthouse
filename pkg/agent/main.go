@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/krack8/lighthouse/pkg/auth/dto"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/config"
+	"github.com/krack8/lighthouse/pkg/k8s"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
@@ -31,13 +35,39 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to dial controller: %v", err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
 
 	client := pb.NewControllerClient(conn)
 	// Open the bi-directional stream.
 	stream, err := client.TaskStream(context.Background())
 	if err != nil {
 		log.Fatalf("Failed to create TaskStream: %v", err)
+	}
+
+	//Agent Auth Process
+	secretParams := k8s.GetSecretDetailsInputParams{
+		NamespaceName: os.Getenv("AGENT_SECRET_NAMESPACE"),
+		SecretName:    os.Getenv("AGENT_SECRET_NAME"),
+	}
+	_, err = k8s.SecretService().GetSecretDetails(context.Background(), secretParams)
+	if err != nil {
+
+	} else {
+		encryptedSecretKey := os.Getenv("AGENT_AUTH_TOKEN")
+
+		agentKey := dto.AgentKey{
+			AuthToken: []byte(encryptedSecretKey),
+		}
+
+		_, err = utils.CreateAgentSecret(agentKey)
+		if err != nil {
+			log.Println("[ERROR] Failed - Agent Secret Creation ...........", err.Error(), "\n\n\n")
+		}
 	}
 
 	// 1) Send WorkerIdentification
