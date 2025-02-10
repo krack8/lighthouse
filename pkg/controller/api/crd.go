@@ -69,7 +69,7 @@ func (ctrl *crdController) GetCrdDetails(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.GetCrdDetailsInputParams)
 	input.CrdName = ctx.Param("name")
-	taskName := tasks.GetTaskName(k8s.CrdService().GetCrdList)
+	taskName := tasks.GetTaskName(k8s.CrdService().GetCrdDetails)
 	logRequestedTaskController("crd", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
