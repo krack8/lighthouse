@@ -453,3 +453,18 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 
 	return users, total, nil
 }
+
+// GetRoleByName fetch roles
+func GetRoleByName(name string) ([]models.Role, error) {
+	var roles []models.Role
+	var singleRole models.Role
+	filter := bson.M{"name": name}
+	if err := db.RoleCollection.FindOne(context.Background(), filter).Decode(&singleRole); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("role not found")
+		}
+		return nil, fmt.Errorf("failed to fetch role: %w", err)
+	}
+	roles = append(roles, singleRole)
+	return roles, nil
+}

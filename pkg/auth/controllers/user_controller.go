@@ -23,7 +23,6 @@ func NewUserController(userService *services.UserService) *UserController {
 }
 
 // CreateUserHandler handles the creation of a new user.
-
 func (uc *UserController) CreateUserHandler(c *gin.Context) {
 	username, exists := c.Get("username")
 	if !exists {
@@ -55,11 +54,17 @@ func (uc *UserController) CreateUserHandler(c *gin.Context) {
 }
 
 func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.UserDTO, requester string) (*models.User, error) {
-
 	// Convert role IDs to Role objects
 	roles, err := uc.UserService.GetRolesByIds(ctx, userDTO.RoleIds)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(roles) == 0 {
+		roles, err = services.GetRoleByName("DEFAULT_ROLE")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &models.User{

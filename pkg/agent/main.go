@@ -55,8 +55,6 @@ func main() {
 	}
 
 	// Use the processed token
-	log.Printf("Processed AUTH_TOKEN: %s\n", secretToken)
-
 	// 1) Send WorkerIdentification
 	err = stream.Send(&pb.TaskStreamRequest{
 		Payload: &pb.TaskStreamRequest_WorkerInfo{

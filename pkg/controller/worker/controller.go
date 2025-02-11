@@ -85,6 +85,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 						if err != nil {
 							return err
 						}
+						return nil
 					}
 				} else {
 					log.Printf("Worker auth token is required")

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/log"
@@ -63,12 +62,17 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 }
 
 func IsAgentAuthTokenValid(authToken string) bool {
-	fmt.Println(authToken)
 	tokenValidation, err := GetToken(context.Background(), authToken)
 	if err != nil {
 		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
 		return false
 	}
+
+	if tokenValidation == nil {
+		log.Logger.Errorw("Invalid Token", nil)
+		return false
+	}
+
 	_, clusterID, err := ValidateToken(authToken, tokenValidation)
 	if err != nil {
 		log.Logger.Errorw("token not valid", "err", err.Error())
