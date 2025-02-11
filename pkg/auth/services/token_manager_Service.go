@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/auth/enum"
-	"github.com/krack8/lighthouse/pkg/auth/errors"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,8 +22,10 @@ type TokenValidationResult struct {
 	Token     *models.TokenValidation
 }
 
+var tm *TokenManager
+
 type TokenValidator interface {
-	ValidateToken(ctx context.Context, token string) (*TokenValidationResult, error)
+	ValidateToken(token string) (bool, primitive.ObjectID, error)
 	CreateToken(ctx context.Context, clusterID primitive.ObjectID, createdBy string) (*models.TokenValidation, error)
 }
 
@@ -35,47 +36,37 @@ func NewTokenManager(storage Storage, crypto utils.Crypto) *TokenManager {
 	}
 }
 
-// ValidateToken validates the combined token
-func (tm *TokenManager) ValidateToken(ctx context.Context, combinedToken string) (*TokenValidationResult, error) {
-	result := &TokenValidationResult{
-		IsValid: false,
-	}
-
+// ValidateToken validates the combined token and returns true/false along with clusterID
+func ValidateToken(combinedToken string, validator *models.TokenValidation) (bool, primitive.ObjectID, error) {
 	// Parse the combined token (encrypted raw token + cluster ID + signature)
-	clusterID, rawToken, err := tm.crypto.ParseCombinedToken(combinedToken)
+
+	crypto, _ := utils.NewCryptoImpl()
+	clusterID, _, err := crypto.ParseCombinedToken(combinedToken)
 	if err != nil {
-		result.Error = errors.ErrInvalidSignature
-		return result, nil
+		fmt.Printf("Error decoding combined token: %v\n", err)
+		return false, primitive.NilObjectID, err
 	}
 
-	result.ClusterID = clusterID.Hex()
-
-	// Retrieve the stored combined token from the database based on the cluster ID
-	tokenValidation, err := tm.storage.GetToken(ctx, rawToken)
-	if err != nil {
-		result.Error = errors.ErrTokenNotFound
-		return result, nil
+	// Check if the decoded cluster ID matches the stored cluster ID
+	if validator.ClusterID != clusterID {
+		fmt.Println("Cluster ID mismatch.")
+		return false, primitive.NilObjectID, err
 	}
 
-	if tokenValidation == nil {
-		result.Error = errors.ErrTokenNotFound
-		return result, nil
+	// Validate the token's status, expiry, and validity
+	if err := tm.validateTokenStatus(validator); err != nil {
+		fmt.Printf("Token validation failed: %v\n", err)
+		return false, primitive.NilObjectID, err
 	}
 
-	// The combined token is already stored, we now verify its validity
-	if err := tm.validateTokenStatus(tokenValidation); err != nil {
-		result.Error = err
-		return result, nil
-	}
-
-	// Update the "last used" timestamp for the token
-	if err := tm.storage.UpdateLastUsed(ctx, combinedToken); err != nil {
+	/*// Update the "last used" timestamp for the token
+	if err := tm.storage.UpdateLastUsed(context.Background(), combinedToken); err != nil {
 		fmt.Printf("Failed to update last used time: %v\n", err)
-	}
+		return false, primitive.NilObjectID, err
+	}*/
 
-	result.IsValid = true
-	result.Token = tokenValidation
-	return result, nil
+	// If all checks pass, return true indicating the token is valid along with the clusterID
+	return true, clusterID, nil
 }
 
 // Store the combined token

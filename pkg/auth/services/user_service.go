@@ -287,7 +287,6 @@ func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]mo
 func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newPassword string, requester string) error {
 	// Find user by ID
 	var user models.User
-	var req models.User
 	err := db.UserCollection.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -296,25 +295,31 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 		return fmt.Errorf("failed to fetch user: %w", err)
 	}
 
-	if user.Username != requester {
-		err := db.UserCollection.FindOne(context.Background(), bson.M{"username": requester}).Decode(&req)
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				return fmt.Errorf("requester not found")
-			}
-			return fmt.Errorf("failed to fetch requester data: %w", err)
-		}
-		if req.UserType != models.AdminUser {
-			return fmt.Errorf("unauthorized !! you don't have ADMIN permission")
-		}
-
-	} else {
-		// Verify old password
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
-		if err != nil {
-			return fmt.Errorf("incorrect old password")
-		}
+	// Verify old password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+	if err != nil {
+		return fmt.Errorf("incorrect old password")
 	}
+
+	/*	if user.Username != requester {
+			err := db.UserCollection.FindOne(context.Background(), bson.M{"username": requester}).Decode(&req)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					return fmt.Errorf("requester not found")
+				}
+				return fmt.Errorf("failed to fetch requester data: %w", err)
+			}
+			if req.UserType != models.AdminUser {
+				return fmt.Errorf("unauthorized !! you don't have ADMIN permission")
+			}
+
+		} else {
+			// Verify old password
+			err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+			if err != nil {
+				return fmt.Errorf("incorrect old password")
+			}
+		}*/
 
 	// Update password in database
 	update := bson.M{

@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/krack8/lighthouse/pkg/auth/dto"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/k8s"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
@@ -26,11 +24,11 @@ func main() {
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
-	authToken := "my-secret"
+	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
 
 	// Dial the controller's gRPC server.
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to dial controller: %v", err)
@@ -50,32 +48,21 @@ func main() {
 	}
 
 	//Agent Auth Process
-	secretParams := k8s.GetSecretDetailsInputParams{
-		NamespaceName: os.Getenv("AGENT_SECRET_NAMESPACE"),
-		SecretName:    os.Getenv("AGENT_SECRET_NAME"),
-	}
-	_, err = k8s.SecretService().GetSecretDetails(context.Background(), secretParams)
+	// Fetch the secret
+	secretToken, err := utils.GetOrCreateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("AGENT_SECRET_NAMESPACE"), os.Getenv("AGENT_AUTH_TOKEN"))
 	if err != nil {
-
-	} else {
-		encryptedSecretKey := os.Getenv("AGENT_AUTH_TOKEN")
-
-		agentKey := dto.AgentKey{
-			AuthToken: []byte(encryptedSecretKey),
-		}
-
-		_, err = utils.CreateAgentSecret(agentKey)
-		if err != nil {
-			log.Println("[ERROR] Failed - Agent Secret Creation ...........", err.Error(), "\n\n\n")
-		}
+		log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 	}
+
+	// Use the processed token
+	log.Printf("Processed AUTH_TOKEN: %s\n", secretToken)
 
 	// 1) Send WorkerIdentification
 	err = stream.Send(&pb.TaskStreamRequest{
 		Payload: &pb.TaskStreamRequest_WorkerInfo{
 			WorkerInfo: &pb.WorkerIdentification{
 				GroupName: groupName,
-				AuthToken: authToken,
+				AuthToken: secretToken,
 			},
 		},
 	})

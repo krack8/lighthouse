@@ -188,7 +188,7 @@ func InitializeClusters() {
 		}
 
 		// Create token validations
-		agentTokenValidation := models.TokenValidation{
+		agentToken := models.TokenValidation{
 			ID:          primitive.NewObjectID(),
 			ClusterID:   agentClusterID,
 			TokenHash:   combinedToken,
@@ -202,7 +202,7 @@ func InitializeClusters() {
 			UpdatedAt:   time.Now(),
 		}
 
-		_, err = TokenCollection.InsertOne(context.Background(), agentTokenValidation)
+		_, err = TokenCollection.InsertOne(context.Background(), agentToken)
 		if err != nil {
 			log.Fatalf("Error creating token validations: %v", err)
 		}
@@ -225,16 +225,17 @@ func InitializeClusters() {
 		// Create agent cluster
 		//agentToken := utils.GenerateSecureToken(32)
 		agentCluster := models.Cluster{
-			ID:          agentClusterID,
-			Name:        "agent-cluster",
-			ClusterType: enum.AGENT,
-			Token:       agentTokenValidation,
-			Status:      enum.VALID,
-			CreatedBy:   string(enum.SYSTEM),
-			UpdatedBy:   string(enum.SYSTEM),
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			IsActive:    true,
+			ID:              agentClusterID,
+			Name:            "agent-cluster",
+			ClusterType:     enum.AGENT,
+			Token:           agentToken,
+			Status:          enum.VALID,
+			SecretNamespace: os.Getenv("AGENT_SECRET_NAMESPACE"),
+			CreatedBy:       string(enum.SYSTEM),
+			UpdatedBy:       string(enum.SYSTEM),
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+			IsActive:        true,
 		}
 
 		masterCluster.MasterClusterId = masterCluster.ID.Hex()

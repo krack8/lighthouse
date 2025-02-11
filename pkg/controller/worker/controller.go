@@ -74,7 +74,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			if cfg.IsAuth() {
 				if authToken != "" {
 					if services.IsAgentAuthTokenValid(authToken) == false {
-						log.Printf("Invalid Agent Token")
+						fmt.Printf("Invalid Agent Token")
 						err := stream.Send(&pb.TaskStreamResponse{
 							Payload: &pb.TaskStreamResponse_Ack{
 								Ack: &pb.Ack{

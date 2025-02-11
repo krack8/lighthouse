@@ -6,13 +6,17 @@ import (
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/enum"
-	"time"
-
 	"github.com/krack8/lighthouse/pkg/auth/models"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"log"
+	"time"
 )
+
+var storage Storage     // Implement the Storage interface
+var crypto utils.Crypto // Implement the Crypto interface
 
 // ClusterService handles cluster-related business logic
 type ClusterService struct {
@@ -81,28 +85,76 @@ func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
 	return clusters, nil
 }
 
-func ValidateAgentClusterToken(token string) (*models.Cluster, error) {
-	var tokenValidation models.TokenValidation
-	err := db.TokenCollection.FindOne(context.Background(), bson.M{
-		"token":      token,
-		"is_valid":   true,
-		"status":     enum.VALID,
-		"expires_at": bson.M{"$gt": time.Now()},
-	}).Decode(&tokenValidation)
+// UpdateClusterStatusToActive updates the cluster's status to "active"
+func UpdateClusterStatusToActive(clusterID primitive.ObjectID) error {
+	// Update the cluster status to "active" for the given cluster ID
+	_, err := db.ClusterCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": clusterID},
+		bson.M{"$set": bson.M{"is_active": true}},
+	)
+	return err
+}
 
+// CreateCluster creates a new cluster and inserts it into the database
+func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId string) (*models.Cluster, error) {
+	agentClusterID := primitive.NewObjectID()
+
+	// Generate a raw token
+	crypto, _ := utils.NewCryptoImpl()
+
+	rawToken, err := crypto.GenerateSecureToken(32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid or expired token")
+		log.Fatalf("failed to generate secure token: %w", err)
 	}
 
-	var cluster models.Cluster
-	err = db.ClusterCollection.FindOne(context.Background(), bson.M{
-		"_id":    tokenValidation.ClusterID,
-		"status": enum.VALID,
-	}).Decode(&cluster)
-
+	// Create the combined token
+	combinedToken, err := crypto.CreateCombinedToken(rawToken, agentClusterID)
 	if err != nil {
-		return nil, fmt.Errorf("cluster not found or inactive")
+		log.Fatalf("failed to create combined token: %w", err)
 	}
 
-	return &cluster, nil
+	// Create token validations
+	agentToken := models.TokenValidation{
+		ID:          primitive.NewObjectID(),
+		ClusterID:   agentClusterID,
+		TokenHash:   combinedToken,
+		IsValid:     true,
+		ExpiresAt:   time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+		Status:      enum.VALID,
+		TokenStatus: enum.TokenStatusValid,
+		CreatedBy:   string(enum.SYSTEM),
+		UpdatedBy:   string(enum.SYSTEM),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	_, err = db.TokenCollection.InsertOne(context.Background(), agentToken)
+	if err != nil {
+		log.Fatalf("Error creating token validations: %v", err)
+	}
+
+	// Create a new cluster
+	cluster := &models.Cluster{
+		ID:              agentClusterID,
+		Name:            name,
+		ClusterType:     enum.AGENT, // Set default cluster type to Agent
+		Token:           agentToken,
+		MasterClusterId: masterClusterId,
+		IsActive:        false,
+		SecretNamespace: namespace,
+		Status:          enum.VALID,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		CreatedBy:       string(enum.SYSTEM),
+		UpdatedBy:       string(enum.SYSTEM),
+	}
+
+	// Insert the new cluster into the MongoDB collection
+	_, err = db.ClusterCollection.InsertOne(context.Background(), cluster)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert cluster into database: %w", err)
+	}
+
+	return cluster, nil
 }

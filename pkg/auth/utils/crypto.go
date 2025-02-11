@@ -21,9 +21,43 @@ type Crypto interface {
 	ParseCombinedToken(combinedToken string) (primitive.ObjectID, string, error)
 }
 
+// Constants for the keys and lengths
+const (
+	EncryptionKey = "0123456789abcdef0123456789abcdef" // 32 bytes for AES-256 (32 hex characters)
+	SigningKey    = "fedcba9876543210fedcba9876543210" // 32 bytes for HMAC SHA-256 (32 hex characters)
+)
+
 type CryptoImpl struct {
 	encryptionKey []byte
 	signingKey    []byte
+}
+
+// Function to generate a random 32-byte encryption key and a signing key
+func NewCryptoImpl() (*CryptoImpl, error) {
+	// Directly use the hardcoded keys
+	encryptionKey := []byte(EncryptionKey)
+	signingKey := []byte(SigningKey)
+
+	return &CryptoImpl{
+		encryptionKey: encryptionKey,
+		signingKey:    signingKey,
+	}, nil
+
+	// Generate encryption and signing keys if not already present
+	/*encryptionKey, err := generateKey("ENCRYPTION_KEY", 32) // 32 bytes for AES-256
+	if err != nil {
+		return nil, err
+	}
+
+	signingKey, err := generateKey("SIGNING_KEY", 32) // 32 bytes for HMAC SHA-256
+	if err != nil {
+		return nil, err
+	}
+
+	return &CryptoImpl{
+		encryptionKey: encryptionKey,
+		signingKey:    signingKey,
+	}, nil*/
 }
 
 // Key generation function
@@ -52,25 +86,6 @@ func generateKey(keyName string, length int) ([]byte, error) {
 	}
 
 	return newKey, nil
-}
-
-// Function to generate a random 32-byte encryption key and a signing key
-func NewCryptoImpl() (*CryptoImpl, error) {
-	// Generate encryption and signing keys if not already present
-	encryptionKey, err := generateKey("ENCRYPTION_KEY", 32) // 32 bytes for AES-256
-	if err != nil {
-		return nil, err
-	}
-
-	signingKey, err := generateKey("SIGNING_KEY", 32) // 32 bytes for HMAC SHA-256
-	if err != nil {
-		return nil, err
-	}
-
-	return &CryptoImpl{
-		encryptionKey: encryptionKey,
-		signingKey:    signingKey,
-	}, nil
 }
 
 // GenerateSecureToken generates a random token of specified length
@@ -110,6 +125,7 @@ func (c *CryptoImpl) CreateCombinedToken(rawToken string, clusterID primitive.Ob
 }
 
 // ParseCombinedToken parses and validates a combined token
+// ParseCombinedToken parses and validates a combined token
 func (c *CryptoImpl) ParseCombinedToken(combinedToken string) (primitive.ObjectID, string, error) {
 	parts := strings.Split(combinedToken, ".")
 	if len(parts) != 3 {
@@ -122,6 +138,7 @@ func (c *CryptoImpl) ParseCombinedToken(combinedToken string) (primitive.ObjectI
 	payload := fmt.Sprintf("%s.%s", encryptedBase64, clusterIDHex)
 	expectedSignature := c.generateSignature([]byte(payload))
 
+	// Log to check the generated signature and the token's signature
 	if signature != expectedSignature {
 		return primitive.NilObjectID, "", fmt.Errorf("invalid signature")
 	}

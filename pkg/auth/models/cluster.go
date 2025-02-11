@@ -11,7 +11,8 @@ type Cluster struct {
 	Name            string             `json:"name" bson:"name"`
 	ClusterType     enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "AGENT"
 	Token           TokenValidation    `json:"-" bson:"token"`
-	MasterClusterId string             `json:"masterClusterId" bson:"masterClusterId"`
+	MasterClusterId string             `json:"master_cluster_id" bson:"master_cluster_id"`
+	SecretNamespace string             `json:"secret_namespace" bson:"secret_namespace"`
 	IsActive        bool               `json:"is_active" bson:"is_active"`
 	Status          enum.Status        `json:"status" bson:"status"`
 	CreatedAt       time.Time          `json:"created_at" bson:"created_at"`
