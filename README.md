@@ -29,3 +29,8 @@ NO_AUTH="TRUE"
 // Noauth disabled
 NO_AUTH="FALSE"
 ```
+
+Run Mode
+``` 
+"PRODUCTION"/"DEVELOP"
+```
