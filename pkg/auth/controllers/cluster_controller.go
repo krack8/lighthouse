@@ -98,7 +98,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/charts",
-		HelmCommand: "helm install lighthouse-agent --create-namespace --namespace " + Cluster.SecretNamespace + " krack8/lighthouse-agent --version 1.0.0 --set auth.enabled=true --set agent.enabled=true --set controller.enabled=false --set auth.token=" + Cluster.Token.TokenHash + " --set controller.url=" + os.Getenv("CONTROLLER_URL"),
+		HelmCommand: "helm install lighthouse-agent --create-namespace --namespace " + Cluster.ResourceNamespace + " krack8/lighthouse-agent --version 1.0.0 --set auth.enabled=true --set agent.enabled=true --set controller.enabled=false --set auth.token=" + Cluster.Token.TokenHash + " --set controller.url=" + os.Getenv("CONTROLLER_URL"),
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
