@@ -92,22 +92,13 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	// Prepare the response with additional information
 	response := struct {
-		Id            string `json:"id"`
-		Name          string `json:"name"`
-		Namespace     string `json:"namespace"`
-		Token         string `json:"token"`
-		ControllerURL string `json:"controller_url"`
-		SecretName    string `json:"secret_name"`
+		RepoCommand string `json:"helm_repo"`
+		HelmCommand string `json:"helm_command"`
 	}{
-		Id:            Cluster.ID.Hex(),
-		Name:          Cluster.Name,
-		Namespace:     Cluster.SecretNamespace,
-		Token:         Cluster.Token.TokenHash,
-		ControllerURL: os.Getenv("CONTROLLER_URL"),
-		SecretName:    os.Getenv("AGENT_SECRET_NAME"),
+		RepoCommand: "helm repo add krack8 https://krack8.github.io/charts",
+		HelmCommand: "helm install --create-namespace --namespace " + Cluster.SecretNamespace + " krack8/lighthouse-agent --version 1.0.0 --set auth.enabled=true --set auth.token=" + Cluster.Token.TokenHash + " --set controller.url=" + os.Getenv("CONTROLLER_URL"),
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
