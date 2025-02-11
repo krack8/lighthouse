@@ -27,6 +27,10 @@ func ConfigMapService() *configMapService {
 	return &cms
 }
 
+func getConfigMapClient(namespace string) v1.ConfigMapInterface {
+	return cfg.GetKubeClientSet().CoreV1().ConfigMaps(namespace)
+}
+
 type OutputConfigMapList struct {
 	Result    []corev1.ConfigMap
 	Resource  string
@@ -164,12 +168,19 @@ type GetConfigMapDetailsInputParams struct {
 	NamespaceName string
 	ConfigMapName string
 	output        corev1.ConfigMap
+	Client        v1.ConfigMapInterface
+}
+
+func (p *GetConfigMapDetailsInputParams) GetClient() v1.ConfigMapInterface {
+	if p.Client != nil {
+		return p.Client
+	}
+	return getConfigMapClient(p.NamespaceName)
 }
 
 func (p *GetConfigMapDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching configMap details of ....", p.NamespaceName)
-	configMapClient := cfg.GetKubeClientSet().CoreV1().ConfigMaps(p.NamespaceName)
-	output, err := configMapClient.Get(context.Background(), p.ConfigMapName, metav1.GetOptions{})
+	output, err := p.GetClient().Get(context.Background(), p.ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get configMap ", p.ConfigMapName, "err", err.Error())
 		return err

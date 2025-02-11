@@ -1,0 +1,133 @@
+<!-- Loader -->
+<div class="flex items-center" *ngIf="isLoading">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+
+<!-- Data Render -->
+<ng-template [ngIf]="!isLoading">
+  <!-- <div class="flex items-center mt-8 mb-4">
+      <a [routerLink]="'../'" [queryParams]="queryParams"><mat-icon [icIcon]="icArrowBack"></mat-icon></a>
+      <h3 class="px-4 mb-2">{{ details?.metadata?.name }}</h3>
+    </div> -->
+
+  <div class="page-root" *ngIf="details">
+    <div class="kube-card">
+      <h2 class="kube-card__title">Metadata</h2>
+      <div class="kube-card__content">
+        <div class="flex flex-wrap -mx-2">
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Name</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.name }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Namespace</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.namespace }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 sm:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Create</div>
+              <h3 class="kc-dataset__value">
+                {{ details?.metadata?.creationTimestamp | date }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6 lg:mt-0">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Age</div>
+              <h3 class="kc-dataset__value">
+                {{ details?.metadata?.creationTimestamp | ago }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">UID</div>
+              <h3 class="kc-dataset__value">{{ details?.metadata?.uid }}</h3>
+            </div>
+          </div>
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Labels</div>
+              <h3 class="kc-dataset__value" *ngFor="let label of details?.metadata?.labels | keyvalue">
+                <span class="kc-dataset-key"> {{ label.key }} </span> : {{ label.value }}
+              </h3>
+            </div>
+          </div>
+          <div class="px-2 w-full sm:w-1/2 mt-6">
+            <div class="kc-dataset">
+              <div class="kc-dataset__name">Annotations</div>
+              <h3 class="kc-dataset__value" *ngFor="let item of details?.metadata?.annotations | keyvalue">
+                <span class="kc-dataset-key"> {{ item.key }} </span> : {{ item.value }}
+              </h3>
+              <h3 class="kc-dataset__value" *ngIf="!details?.metadata?.annotations || !details?.metadata?.annotations.length">-</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kube-card mt-3">
+      <h2 class="kube-card__title">Spec</h2>
+      <div class="kube-card__content">
+        <div class="px-2 w-full sm:w-1/2 mt-6">
+          <div class="kc-dataset">
+            <ng-container *ngFor="let item of details?.spec | keyvalue">
+              <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item }"></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kube-card mt-3">
+      <h2 class="kube-card__title">Status</h2>
+      <div class="kube-card__content">
+        <div class="px-2 w-full sm:w-1/2 mt-6">
+          <div class="kc-dataset">
+            <ng-container *ngFor="let item of details?.status | keyvalue">
+              <ng-container *ngTemplateOutlet="processItem; context: { $implicit: item }"></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #processItem let-item>
+      <h3 class="kc-dataset__value" *ngIf="!isObject(item.value)">
+        <div *ngIf="isInt(item.key)">
+          {{ item.value }}
+        </div>
+        <div *ngIf="!isInt(item.key)">
+          <span class="kc-dataset-key"> {{ item.key }}</span> : {{ item.value }}
+        </div>
+      </h3>
+
+      <div *ngIf="isObject(item.value)">
+        <div *ngIf="isInt(item.key)">
+          <!-- <h3 class="">-</h3> -->
+        </div>
+        <h3 *ngIf="!isInt(item.key)" class="kc-dataset__value kc-dataset-key">{{ item.key }}</h3>
+
+        <ng-container class="ml-2" *ngFor="let subitem of item.value | keyvalue">
+          <div class="ml-2 mt-2">
+            <ng-container *ngTemplateOutlet="processItem; context: { $implicit: subitem }"></ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </ng-template>
+
+    <mat-dialog-actions *ngIf="!isLoading" class="flex ml-auto justify-end mt-5 mb-2">
+      <button class="btn btn-default" mat-button mat-dialog-close type="button">Close</button>
+    </mat-dialog-actions>
+  </div>
+
+  <!-- Empty Content -->
+  <ng-template #emptyDataStatus>
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </ng-template>
+</ng-template>

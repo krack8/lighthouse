@@ -1,0 +1,42 @@
+<div class="settings-box w-full">
+  <div class="flex flex-wrap">
+    <cdk-icon src="assets/img/icons/ico-theme-preference.svg" alt="" @fadeInRight></cdk-icon>
+    <h3 fxLayoutAlign="start center" @fadeInRight class="pl-4">Theme Preference</h3>
+  </div>
+  <div fxLayout="row" fxLayoutAlign="end center">
+    <p fxFlex class="mt-4" @fadeInRight>You can change your UI Theme here.</p>
+    <div *ngIf="!isThemeInfo" class="w-4/12 flex justify-end items-center">
+      <div>
+        <button mat-button class="kc-button-primary w-32" @fadeInRight (click)="showThemeInfo()">Edit</button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="isThemeInfo" @fadeInUp class="git-info mt-6">
+    <div fxLayout="row">
+      <div class="d-flex-p-relative mr-5" (click)="selectTheme('LIGHT')" matRipple>
+        <span class="font-medium mb-2">Light</span>
+        <img class="ic-theme" src="assets/img/icons/ic-theme-light.svg" />
+        <img *ngIf="selectedTheme == 'LIGHT'" class="checked" src="assets/img/icons/ic-checked.svg" />
+      </div>
+      <div class="d-flex-p-relative mr-5" (click)="selectTheme('DARK')" matRipple>
+        <span class="font-medium mb-2">Dark</span>
+        <img class="ic-theme" src="assets/img/icons/ic-theme-dark.svg" />
+        <img *ngIf="selectedTheme == 'DARK'" class="checked" src="assets/img/icons/ic-checked.svg" />
+      </div>
+      <div class="d-flex-p-relative" (click)="selectTheme('LIGHT_PINK')" matRipple>
+        <span class="font-medium mb-2">Pantone Magenta</span>
+        <img class="ic-theme" src="assets/img/icons/ic-theme-pink.svg" />
+        <img *ngIf="selectedTheme == 'LIGHT_PINK'" class="checked" src="assets/img/icons/ic-checked.svg" />
+      </div>
+    </div>
+    <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="8px">
+      <button class="btn-close" mat-button type="button" (click)="showThemeInfo()">Close</button>
+      <button mat-raised-button color="primary" [disabled]="isSubmitting" (click)="saveThemeInfo()">
+        <span *ngIf="!isSubmitting">Save</span>
+        <div *ngIf="isSubmitting" class="align-middle" fxFlex="auto" fxLayout="column" fxLayoutAlign="center center">
+          <mat-progress-bar mode="indeterminate" color="primary" class="mx-4 my-4"></mat-progress-bar>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>

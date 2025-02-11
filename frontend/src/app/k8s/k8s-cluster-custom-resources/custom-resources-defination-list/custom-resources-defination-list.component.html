@@ -1,0 +1,126 @@
+<div>
+  <div class="flex items-center flex-wrap">
+    <div class="mr-4 w-full flex justify-between items-center">
+      <div class="flex">
+        <div *hasAnyAuthority="'MANAGE_K8S_CUSTOM_RESOURCE_DEFINATION'">
+          <button mat-raised-button color="primary" class="btn primary float-right" type="button" (click)="onCreate()">
+            <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="24px"></ic-icon>
+            {{ title }}
+          </button>
+        </div>
+        <h3 class="total_count px-8">Total: {{ total || 0 }}</h3>
+
+        <button matTooltip="Refresh" class="float-right mt-2 mr-4" (click)="reloadList()">
+          <mat-icon [icIcon]="icRefresh"></mat-icon>
+        </button>
+      </div>
+      <div class="flex justify-between items-center">
+        <div class="filter-form">
+          <button (click)="onSearch()" mat-icon-button type="submit">
+            <mat-icon [icIcon]="icSearch">search</mat-icon>
+          </button>
+          <div (keyup.enter)="onSearch()">
+            <input
+              (input)="handleInputChange()"
+              class="outline-none"
+              [(ngModel)]="searchTerm"
+              type="text"
+              autocomplete="off"
+              placeholder="Search"
+            />
+          </div>
+          <button (click)="clearSearch()" *ngIf="searchTerm.length !== 0" mat-icon-button type="submit">
+            <mat-icon [icIcon]="icCross">cancel</mat-icon>
+          </button>
+        </div>
+
+        <div class="ml-6 mt-4">
+          <mat-form-field class="_k8s_search_form_field" appearance="outline">
+            <mat-label>Search By</mat-label>
+            <mat-select [(ngModel)]="searchBy">
+              <mat-option [value]="'name'">Name</mat-option>
+              <mat-option [value]="'label'">Label</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full px-0 mt-4">
+      <div *ngIf="customResources?.length && !isLoading">
+        <div>
+          <div class="mt-4 mb-4"></div>
+          <div class="kube-table__wrapper">
+            <table class="kube-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th class="border-lef">Kind</th>
+                  <th class="border-lef">Name Plural</th>
+                  <th class="border-lef">Group</th>
+                  <th class="border-lef">Scope</th>
+                  <th class="border-lef">Creation Time</th>
+                  <!-- <th class="border-lef">Status</th> -->
+                  <th class=""></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of customResources">
+                  <td width="20%">
+                    <button (click)="onCrdClick(item)" class="details__link">{{ item?.name }}</button>
+                  </td>
+                  <td width="15%">{{ item?.kind }}</td>
+                  <td width="15%">{{ item?.name_plural }}</td>
+                  <td width="15%">{{ item?.group }}</td>
+                  <td width="15%">{{ item?.scope }}</td>
+
+                  <td width="20%">{{ item?.creationTimestamp | date: 'medium' }}</td>
+                  <!-- <td >{{item?.status?.phase}}</td> -->
+                  <td>
+                    <button mat-button [matMenuTriggerFor]="menu" class="float-right" mat-icon-button>
+                      <mat-icon [icIcon]="icMoreHoriz"></mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                      <!-- <a mat-menu-item [routerLink]="item?.metadata?.name" [queryParams]="queryParams">
+                  <mat-icon [icIcon]="icInfo"></mat-icon>
+                  <span>Details</span>
+                  </a> -->
+                      <button *hasAnyAuthority="'MANAGE_K8S_CUSTOM_RESOURCE_DEFINATION'" mat-menu-item (click)="onUpdate(item)">
+                        <mat-icon [icIcon]="icEdit"></mat-icon> Edit
+                      </button>
+                      <button *hasAnyAuthority="'MANAGE_K8S_CUSTOM_RESOURCE_DEFINATION'" mat-menu-item (click)="onDelete(item)">
+                        <mat-icon [icIcon]="icDelete"></mat-icon> Delete
+                      </button>
+                      <button mat-menu-item (click)="openDetails(item?.name)"><mat-icon [icIcon]="icInfo"></mat-icon> Defination</button>
+                    </mat-menu>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div *ngIf="resourceToken.length !== 0" class="flex justify-center items-center">
+          <mat-progress-spinner
+            class="mx-6 mt-4"
+            *ngIf="loadMoreData"
+            strokeWidth="2"
+            diameter="40"
+            color="accent"
+            mode="indeterminate"
+          ></mat-progress-spinner>
+
+          <!-- <button (click)="loadMore()"  class="load-more-btn" mat-raised-button type="button">
+            <span *ngIf="!loadMoreData">Load More <ic-icon [icon]="icDown" size="24px"></ic-icon></span>
+            <mat-progress-spinner class="mx-6" *ngIf="loadMoreData" strokeWidth="2" diameter="20" color="accent" mode="indeterminate"></mat-progress-spinner>
+          </button> -->
+        </div>
+      </div>
+    </div>
+
+    <h5 class="opacity-75 mt-4" *ngIf="!customResources?.length && !isLoading">There is nothing found!</h5>
+  </div>
+  <div class="mt-5" *ngIf="isLoading">
+    <mat-progress-spinner strokeWidth="2" diameter="40" mode="indeterminate"></mat-progress-spinner>
+  </div>
+</div>

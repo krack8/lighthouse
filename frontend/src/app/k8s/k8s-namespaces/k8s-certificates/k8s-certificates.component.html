@@ -1,0 +1,127 @@
+<!-- Topbar -->
+<div class="flex items-center justify-between flex-wrap mb-4">
+  <div class="flex">
+    <h3 class="text-lg">Certificates</h3>
+    <button matTooltip="Refresh" class="ml-2" (click)="reloadList()">
+      <mat-icon class="text-xl refresh-icon" [icIcon]="icRefresh"></mat-icon>
+    </button>
+  </div>
+  <div *hasAnyAuthority="'MANAGE_NAMESPACE_CERTIFICATE'" class="flex justify-between items-center">
+    <div class="px-8">
+      <button mat-raised-button color="primary" class="btn primary float-right" type="button" (click)="onCreate()">
+        <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="24px"></ic-icon>
+        {{ title }}
+      </button>
+    </div>
+    <div class="flex justify-between items-center">
+      <div class="filter-form">
+        <button (click)="onSearch()" mat-icon-button type="submit">
+          <mat-icon [icIcon]="icSearch">search</mat-icon>
+        </button>
+        <div (keyup.enter)="onSearch()">
+          <input
+            (input)="handleInputChange()"
+            class="outline-none"
+            [(ngModel)]="searchTerm"
+            type="text"
+            autocomplete="off"
+            placeholder="Search"
+          />
+        </div>
+        <button (click)="clearSearch()" *ngIf="searchTerm.length !== 0" mat-icon-button type="submit">
+          <mat-icon [icIcon]="icCross">cancel</mat-icon>
+        </button>
+      </div>
+
+      <div class="ml-6 mt-4">
+        <mat-form-field class="_k8s_search_form_field" appearance="outline">
+          <mat-label>Search By</mat-label>
+          <mat-select [(ngModel)]="searchBy">
+            <mat-option [value]="'name'">Name</mat-option>
+            <mat-option [value]="'label'">Label</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="flex items-center" *ngIf="loadingSpanner">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+<!-- Data List -->
+<ng-template [ngIf]="!loadingSpanner">
+  <div class="kube-table__wrapper" *ngIf="data?.length">
+    <table class="kube-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th class="border-lef">Created</th>
+          <th width="10%" class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of data">
+          <td>
+            <a class="details__link" [routerLink]="item?.metadata?.name" [queryParams]="queryParams">
+              {{ item?.metadata?.name }}
+            </a>
+          </td>
+          <td>
+            {{ item?.metadata?.creationTimestamp | date: 'medium' }} <br />
+            {{ item?.metadata.creationTimestamp | ago }}
+          </td>
+          <td class="text-center">
+            <button mat-icon-button [matMenuTriggerFor]="menu" class="k8s-menu-toggler">
+              <mat-icon [icIcon]="icMoreVert"></mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" xPosition="before" class="k8s-menu">
+              <a mat-menu-item [routerLink]="item.metadata.name" [queryParams]="queryParams">
+                <mat-icon [icIcon]="icInfo"></mat-icon>
+                <span>Details</span>
+              </a>
+
+              <button *hasAnyAuthority="'MANAGE_NAMESPACE_CERTIFICATE'" mat-menu-item (click)="onUpdate(item)">
+                <mat-icon [icIcon]="icEdit"></mat-icon>
+                <span>Edit</span>
+              </button>
+              <button *hasAnyAuthority="'MANAGE_NAMESPACE_CERTIFICATE'" mat-menu-item (click)="onDelete(item)">
+                <mat-icon [icIcon]="icDelete"></mat-icon>
+                <span>Delete</span>
+              </button>
+              <button mat-menu-item [matMenuTriggerFor]="Labels"><mat-icon [icIcon]="icLabel"></mat-icon> Labels</button>
+
+              <mat-menu class="view-labels" #Labels="matMenu">
+                <div (click)="$event.stopPropagation()" class="p-2">
+                  <h3 class="mb-2">Labels</h3>
+
+                  <div class="kc-dataset">
+                    <h3 class="kc-dataset__value" *ngFor="let label of item?.metadata?.labels | keyvalue">
+                      <span class="kc-dataset-key">{{ label.key }}</span> : {{ label.value }}
+                    </h3>
+                    <h5 *ngIf="!item?.metadata?.labels">No labels found.</h5>
+                  </div>
+                </div>
+              </mat-menu>
+            </mat-menu>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="resourceToken.length !== 0" class="flex justify-center items-center">
+    <mat-progress-spinner
+      class="mx-6 mt-4"
+      *ngIf="loadMoreData"
+      strokeWidth="2"
+      diameter="40"
+      color="accent"
+      mode="indeterminate"
+    ></mat-progress-spinner>
+  </div>
+
+  <div *ngIf="!data?.length">
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </div>
+</ng-template>

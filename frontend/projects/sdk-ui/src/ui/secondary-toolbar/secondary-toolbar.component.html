@@ -1,0 +1,10 @@
+<!-- <div class="secondary-toolbar-placeholder">&nbsp;</div> -->
+
+<div class="secondary-toolbar py-1 z-40">
+  <h2 *ngIf="current" class="subheading-2 font-medium m-0">
+    {{ current }}
+  </h2>
+  <div class="flex gap-x-2 overflow-x-auto pb-1">
+    <ng-content></ng-content>
+  </div>
+</div>

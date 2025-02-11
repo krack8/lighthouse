@@ -1,0 +1,11 @@
+::ng-deep {
+  .k8s-update-tab-group {
+    .mat-tab-header {
+      margin-bottom: 16px;
+    }
+  }
+}
+
+.k8s-ace-editor-host {
+  min-height: 70vh;
+}

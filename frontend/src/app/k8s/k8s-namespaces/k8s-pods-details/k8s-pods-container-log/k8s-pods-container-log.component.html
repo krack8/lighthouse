@@ -1,0 +1,66 @@
+<div class="flex justify-between items-center">
+  <h2 class="m-4">Container Log</h2>
+  <button class="text-secondary" mat-dialog-close mat-icon-button type="button">
+    <mat-icon [icIcon]="icClose"></mat-icon>
+  </button>
+</div>
+
+<div class="flex justify-between items-center mb-4">
+  <div [formGroup]="logForm" class="flex items-center flex-wrap">
+    <mat-form-field class="container-selector m-2" appearance="outline">
+      <mat-label>Container</mat-label>
+      <mat-select (selectionChange)="fetchLogs()" formControlName="container">
+        <mat-option *ngFor="let container of data.allContainers" [value]="container">
+          {{ container }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field matTooltip="Range: 50-2500" class="line-selector m-2" appearance="outline">
+      <mat-label>Lines</mat-label>
+      <div class="flex space-between items-center">
+        <input type="number" formControlName="lines" matInput />
+        <button (click)="fetchLogs()">
+          <mat-icon class="cursor-pointer text-base" [icIcon]="icFilter"></mat-icon>
+        </button>
+      </div>
+    </mat-form-field>
+
+    <mat-form-field matTooltip="In Minutes" class="line-selector m-2" appearance="outline">
+      <mat-label>since</mat-label>
+      <div class="flex space-between items-center">
+        <input type="number" formControlName="since" matInput />
+        <button (click)="fetchLogs()">
+          <mat-icon class="cursor-pointer text-base" [icIcon]="icFilter"></mat-icon>
+        </button>
+      </div>
+    </mat-form-field>
+
+    <div class="mr-6 ml-4">
+      <mat-slide-toggle (change)="toggleShowPrevious()" formControlName="previous"> Show Previous </mat-slide-toggle>
+    </div>
+
+    <div class="mr-6">
+      <mat-slide-toggle (change)="fetchLogs()" formControlName="timestamps"> Timestamps </mat-slide-toggle>
+    </div>
+
+    <!-- <div class="mr-6">
+      <mat-slide-toggle formControlName="follow" (change)="fetchLogs()"> Follow </mat-slide-toggle>
+    </div> -->
+  </div>
+
+  <div>
+    <!-- <mat-icon class="ml-4" (click)="clearLogs()" [icIcon]="icSearch"></mat-icon> -->
+    <mat-icon class="ml-4 cursor-pointer" matTooltip="Clear Logs" (click)="clearLogs()" [icIcon]="icClear"></mat-icon>
+    <mat-icon class="ml-4 cursor-pointer" matTooltip="Export Logs" (click)="downloadLogs()" [icIcon]="icExport"></mat-icon>
+  </div>
+</div>
+
+<div class="log-container text-pretty mb-2" #appLogViewContainer>
+  <div class="w-full">
+    <pre><div class="logs" [scrollTop]="appLogViewContainer" [innerHTML]="liveLogs"></div></pre>
+    <div *ngIf="isLoading" class="flex items-center">
+      <span class="terminal-spinner"></span>
+    </div>
+  </div>
+</div>

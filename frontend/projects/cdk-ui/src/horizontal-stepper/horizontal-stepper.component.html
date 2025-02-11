@@ -1,0 +1,28 @@
+<section class="w-full">
+  <header class="progress__header mb-4">
+    <h3>{{ header }}</h3>
+  </header>
+  <div class="progress__navbar__scroll">
+    <nav class="progress__navbar">
+      <ol class="progress__nav" [ngClass]="'progress__nav__' + steps.length">
+        <li
+          class="progress__step"
+          [class.progress__step--current]="selectedIndex === i"
+          [ngClass]="'progress__step--' + steps.length"
+          *ngFor="let step of steps; let i = index"
+          (click)="onClick(i)"
+        >
+          <span class="progress__step__number"></span>
+          <span class="progress__step__text">
+            <ng-container [ngTemplateOutlet]="step.stepLabel.template"></ng-container>
+          </span>
+          <div class="progress__step__arrow"></div>
+        </li>
+      </ol>
+    </nav>
+  </div>
+  <div class="progress__content" [style.display]="selected ? 'block' : 'none'">
+    <!-- Content from the CdkStep is projected here -->
+    <ng-container [ngTemplateOutlet]="selected?.content || null"></ng-container>
+  </div>
+</section>

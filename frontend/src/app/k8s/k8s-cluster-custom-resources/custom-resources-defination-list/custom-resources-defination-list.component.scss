@@ -1,0 +1,13 @@
+.load-more-btn {
+  background-color: transparent;
+  margin: 10px;
+  border: 1px solid var(--background-2);
+  height: 40px;
+  width: 110px;
+  margin-top: 50px;
+}
+
+::ng-deep .cdk-overlay-pane .view-labels {
+  min-width: 550px;
+  max-height: 700px;
+}

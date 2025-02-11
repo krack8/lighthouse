@@ -1,0 +1,50 @@
+.horizontal-layout {
+  --navigation-height: 0px;
+  --toolbar-width: 100%;
+
+  @screen xl {
+    --toolbar-width: calc(100% - var(--sidenav-width));
+
+    &.sidenav-collapsed {
+      --toolbar-width: calc(100% - var(--sidenav-collapsed-width));
+    }
+  }
+
+  .sidenav-container {
+    /* When the sidenav is not fixed, stretch the sidenav container to fill the available space. This
+       causes `<mat-sidenav-content>` to act as our scrolling element for desktop layouts. */
+    flex: 1;
+  }
+
+  &.has-fixed-footer {
+    &.scroll-disabled .content {
+      height: calc(100% - var(--toolbar-height) - var(--footer-height));
+    }
+  }
+}
+
+@screen xl {
+  body:not([dir='rtl']) {
+    .horizontal-layout {
+      &.sidenav-collapsed .sidenav-content {
+        margin-left: var(--sidenav-collapsed-width) !important;
+      }
+
+      &:not(.sidenav-collapsed) .sidenav-content {
+        margin-left: var(--sidenav-width) !important;
+      }
+    }
+  }
+
+  [dir='rtl'] {
+    .horizontal-layout {
+      &.sidenav-collapsed .sidenav-content {
+        margin-right: var(--sidenav-collapsed-width) !important;
+      }
+
+      &:not(.sidenav-collapsed) .sidenav-content {
+        margin-right: var(--sidenav-width) !important;
+      }
+    }
+  }
+}

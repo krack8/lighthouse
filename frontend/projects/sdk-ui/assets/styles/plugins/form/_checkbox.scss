@@ -1,0 +1,79 @@
+.rounded-checkbox {
+  .mat-checkbox-background,
+  .mat-checkbox-frame {
+    border-radius: 50% !important;
+  }
+}
+
+.mat-checkbox-checked .mat-checkbox-background,
+.mat-checkbox-indeterminate .mat-checkbox-background {
+  background-color: var(--background-kc-step-number) !important;
+
+  svg {
+    path {
+      stroke: #0d152f !important;
+    }
+  }
+}
+
+mat-checkbox,
+.directoryListCheckBox {
+  mat-icon {
+    float: left;
+  }
+
+  .mat-checkbox-inner-container {
+    width: 18px;
+    height: 18px;
+  }
+
+  .mat-checkbox-frame {
+    border-radius: unset;
+    border: 0.5px solid rgba(0, 0, 0, 0.25);
+  }
+
+  mat-checkbox,
+  .directoryListCheckBox {
+    mat-icon {
+      float: left;
+    }
+
+    .mat-checkbox-inner-container {
+      width: 18px;
+      height: 18px;
+    }
+
+    .mat-checkbox-frame {
+      border-radius: unset;
+      border: 0.5px solid rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  table {
+    mat-checkbox,
+    .directoryListCheckBox {
+      .mat-checkbox-inner-container {
+        height: 16px !important;
+        width: 16px !important;
+      }
+    }
+  }
+}
+
+mat-checkbox.mat-checkbox-circular .mat-checkbox-frame,
+.directoryListCheckBox .mat-checkbox-frame {
+  border-radius: 50px;
+}
+
+.mat-checkbox-checked .mat-checkbox-background,
+.mat-checkbox-indeterminate .mat-checkbox-background {
+  background-color: #d7dce3 !important;
+
+  svg {
+    path {
+      stroke: #0d152f !important;
+    }
+  }
+}
