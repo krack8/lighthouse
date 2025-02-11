@@ -178,13 +178,13 @@ func InitializeClusters() {
 
 		rawToken, err := crypto.GenerateSecureToken(32)
 		if err != nil {
-			log.Fatalf("failed to generate secure token: %w", err)
+			log.Fatalf("failed to generate secure token:  %v", err)
 		}
 
 		// Create the combined token
 		combinedToken, err := crypto.CreateCombinedToken(rawToken, agentClusterID)
 		if err != nil {
-			log.Fatalf("failed to create combined token: %w", err)
+			log.Fatalf("failed to create combined token:  %v", err)
 		}
 
 		// Create token validations
