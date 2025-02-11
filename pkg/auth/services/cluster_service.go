@@ -8,10 +8,10 @@ import (
 	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 	"time"
 )
 
@@ -105,13 +105,13 @@ func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId str
 
 	rawToken, err := crypto.GenerateSecureToken(32)
 	if err != nil {
-		log.Fatalf("failed to generate secure token: %w", err)
+		log.Logger.Errorw("Failed to generate secure token:", "err", err.Error())
 	}
 
 	// Create the combined token
 	combinedToken, err := crypto.CreateCombinedToken(rawToken, agentClusterID)
 	if err != nil {
-		log.Fatalf("failed to create combined token: %w", err)
+		log.Logger.Errorw("Failed to create combined token:", "err", err.Error())
 	}
 
 	// Create token validations
@@ -131,7 +131,7 @@ func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId str
 
 	_, err = db.TokenCollection.InsertOne(context.Background(), agentToken)
 	if err != nil {
-		log.Fatalf("Error creating token validations: %v", err)
+		log.Logger.Errorw("Error creating token validations:", "err", err.Error())
 	}
 
 	// Create a new cluster
