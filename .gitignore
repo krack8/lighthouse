@@ -2,5 +2,9 @@
 .vscode
 node_modules
 coverage
-.env
+
+frontend/dist
+frontend/.angular/cache
+frontend/.sass-cache
+
 *.patch

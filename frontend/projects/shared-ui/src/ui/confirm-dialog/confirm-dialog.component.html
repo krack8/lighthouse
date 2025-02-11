@@ -1,0 +1,17 @@
+<div mat-dialog-content>
+  <button class="text-secondary float-right" mat-dialog-close mat-icon-button type="button">
+    <i class="kc-close"></i>
+  </button>
+  <div class="modal-wrapper">
+    <img src="/assets/img/icons/airdrop.svg" />
+    <div class="dialog1">
+      <div class="text-center text-dark top">
+        <h3>{{ message }}</h3>
+      </div>
+      <div class="modal-btns mt-5 mb-5">
+        <button mat-raised-button class="btn cancel" (click)="onNoClick()">Cancel</button>
+        <button class="btn primary ml-5" mat-raised-button color="primary" [mat-dialog-close]="true" cdkFocusInitial>Okay</button>
+      </div>
+    </div>
+  </div>
+</div>

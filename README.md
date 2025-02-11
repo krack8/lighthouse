@@ -29,3 +29,8 @@ AUTH_ENABLED="TRUE"
 // auth disabled
 AUTH_ENABLED="FALSE"
 ```
+
+Run Mode
+``` 
+"PRODUCTION"/"DEVELOP"
+```

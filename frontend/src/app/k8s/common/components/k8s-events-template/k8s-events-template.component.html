@@ -1,0 +1,47 @@
+<div class="kube-card mt-3">
+  <div class="flex items-center">
+    <h2 class="kube-card__title mr-2">Events</h2>
+    <button matTooltip="Refresh" (click)="getEvents()">
+      <mat-icon class="text-xl" style="margin-bottom: 16px" [icIcon]="icRefresh"></mat-icon>
+    </button>
+  </div>
+  <div class="kube-card__content">
+    <div class="w-full mb-6">
+      <div class="kube-card__content">
+        <div class="flex items-center" *ngIf="isLoading">
+          <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+          <span class="ml-4">Loading...</span>
+        </div>
+        <div *ngIf="!isLoading" class="row">
+          <div *ngIf="eventsData?.length; else emptyDataStatus" class="kube-table__wrapper">
+            <table class="kube-table heading-diff">
+              <thead>
+                <tr>
+                  <th width="10%">Type</th>
+                  <th width="10%">Reason</th>
+                  <th width="10%">Age</th>
+                  <th width="15%">From</th>
+                  <th width="55%">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of eventsData">
+                  <td>{{ data.type }}</td>
+                  <td>{{ data.reason }}</td>
+                  <td>{{ data.lastTimestamp ? (data.lastTimestamp | ago) : (data.eventTime | ago) }}</td>
+                  <td>{{ data.reportingComponent }}</td>
+                  <td>{{ data.message }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty Content -->
+<ng-template #emptyDataStatus>
+  <h6 class="color-text text-center">There is nothing to display.</h6>
+</ng-template>

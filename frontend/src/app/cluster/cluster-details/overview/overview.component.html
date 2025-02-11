@@ -1,0 +1,993 @@
+<div *ngIf="!isLoaded">
+  <mat-progress-spinner mode="indeterminate" color="primary" strokeWidth="2" diameter="40"></mat-progress-spinner>
+</div>
+
+<div *ngIf="isLoaded">
+  <div *ngIf="serverError; else contentTemplate" class="border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <span>{{ errMessage }}</span>
+  </div>
+
+  <ng-template #contentTemplate>
+    <!-- Cluster Release update info -->
+    <div *ngIf="newReleaseAvailable" class="update-card p-4 mt-6 flex justify-between items-center" role=" alert">
+      <p class="font-bold">
+        {{ releaseUpdateInProgress ? 'New Platform Release Update In Progress.' : 'New Platform Release.' }}
+      </p>
+      <button (click)="upgradeCluster()" *ngIf="!releaseUpdateInProgress" mat-raised-button class="_upgrade_btn">Upgrade</button>
+
+      <div *ngIf="releaseUpdateInProgress">
+        <mat-icon class="spin-item mr-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            width="1em"
+            height="1em"
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 24 24"
+            style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg)"
+          >
+            <path fill="currentColor" d="m8 7.5l4 4l4-4V4H8zm0 9V20h8v-3.5l-4-4z" opacity=".3"></path>
+            <path
+              fill="currentColor"
+              d="M18 2H6v6h.01L6 8.01L10 12l-4 4l.01.01H6V22h12v-5.99h-.01L18 16l-4-4l4-3.99l-.01-.01H18V2zm-2 14.5V20H8v-3.5l4-4l4 4zm0-9l-4 4l-4-4V4h8v3.5z"
+            ></path>
+          </svg>
+        </mat-icon>
+      </div>
+    </div>
+
+    <!-- Basic Info -->
+    <div>
+      <div class="_base_card grid grid-cols-3 gap-4 mt-4 p-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14">
+            <svg class="w-14 h-14" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="38" height="38" rx="9.80645" fill="#151F36" />
+              <mask id="mask0_11407_10061" style="mask-type: alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="38" height="38">
+                <rect width="38" height="38" rx="4" fill="#151F36" />
+              </mask>
+              <g mask="url(#mask0_11407_10061)">
+                <path
+                  d="M19.5932 7.68794L19.5932 7.68802L19.6026 7.69254L28.1019 11.7622C28.3911 11.9191 28.596 12.1545 28.6816 12.4109L30.7883 21.478C30.8189 21.7928 30.7432 22.096 30.5706 22.3456L24.6936 29.6145C24.6876 29.6219 24.6817 29.6295 24.6761 29.6372C24.488 29.8934 24.2212 30.0072 23.9524 29.9777C23.9302 29.9753 23.9079 29.9741 23.8855 29.9741H14.5271C14.2252 29.9517 13.9073 29.8064 13.6778 29.5869L7.82309 22.3456C7.64771 22.092 7.57936 21.7939 7.62836 21.4947L9.71827 12.3275L9.71868 12.3257C9.74852 12.1929 9.80864 12.0689 9.89435 11.9632C9.98006 11.8576 10.089 11.7731 10.2128 11.7166L10.2128 11.7167L10.224 11.7113L18.6733 7.63869C18.802 7.61536 18.9611 7.6129 19.1699 7.6129C19.351 7.6129 19.4927 7.63765 19.5932 7.68794Z"
+                  stroke="white"
+                  stroke-width="1.22581"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M26.613 19.9254L24.7752 19.5212C24.942 18.2775 24.6411 17.0173 23.9269 15.9691L25.3398 14.8834L24.6461 14.0448L23.2339 15.13C22.3239 14.2278 21.1129 13.6639 19.8141 13.5376V11.9023H18.7016V13.5376C17.4028 13.6639 16.1918 14.2278 15.2819 15.13L13.8691 14.0448L13.176 14.8834L14.5888 15.9691C13.8749 17.0174 13.5742 18.2775 13.7411 19.5212L11.9033 19.9254L12.1514 20.9709L13.9853 20.5672C14.4028 21.7636 15.2433 22.7805 16.3599 23.44L15.6201 24.9214L16.6224 25.3862L17.3617 23.9064C18.5855 24.3437 19.9314 24.3437 21.1552 23.9064L21.895 25.3862L22.8973 24.9208L22.1575 23.44C23.2741 22.7805 24.1147 21.7636 24.5321 20.5672L26.366 20.9704L26.613 19.9254ZM23.7078 18.8724C23.7078 19.0102 23.6994 19.1464 23.6861 19.2815L20.9049 18.6692C20.8909 18.5608 20.8654 18.4541 20.8287 18.3507L23.0514 16.642C23.4801 17.3126 23.7073 18.0847 23.7078 18.8724ZM18.7016 18.8724C18.7016 18.7664 18.7343 18.6627 18.7954 18.5745C18.8565 18.4864 18.9434 18.4176 19.045 18.3771C19.1467 18.3365 19.2585 18.3259 19.3664 18.3466C19.4743 18.3672 19.5734 18.4183 19.6512 18.4933C19.729 18.5683 19.782 18.6638 19.8034 18.7678C19.8249 18.8718 19.8139 18.9796 19.7718 19.0776C19.7297 19.1756 19.6584 19.2593 19.5669 19.3182C19.4754 19.3771 19.3679 19.4086 19.2579 19.4086C19.1104 19.4086 18.9689 19.3521 18.8646 19.2515C18.7602 19.151 18.7016 19.0146 18.7016 18.8724ZM22.3595 15.8024L20.1367 17.5111C20.035 17.4506 19.9269 17.4008 19.8141 17.3626V14.6207C20.7736 14.7368 21.6673 15.152 22.3595 15.8029V15.8024ZM18.7016 14.6207V17.3631C18.5889 17.4014 18.4807 17.4512 18.379 17.5116L16.1563 15.8029C16.8484 15.152 17.7422 14.7368 18.7016 14.6207ZM14.808 18.8724C14.8085 18.0847 15.0357 17.3126 15.4643 16.642L17.6871 18.3507C17.6504 18.4541 17.6249 18.5608 17.6109 18.6692L14.8297 19.281C14.8158 19.1452 14.8085 19.0089 14.808 18.8724ZM15.0767 20.3265L17.8445 19.7174C17.9098 19.8214 17.987 19.918 18.0748 20.0053L16.8438 22.47C16.0287 21.9598 15.4085 21.2072 15.0772 20.3265H15.0767ZM19.2579 23.1617C18.7774 23.1609 18.3002 23.0849 17.845 22.9365L19.0799 20.4637C19.1389 20.4725 19.1983 20.4782 19.2579 20.4809C19.3173 20.4782 19.3765 20.4725 19.4353 20.4637L20.6707 22.9365C20.2156 23.085 19.7384 23.1611 19.2579 23.1617ZM21.6719 22.47L20.441 20.0048C20.5287 19.9176 20.606 19.8212 20.6713 19.7174L23.4391 20.3265C23.1078 21.2072 22.4876 21.9598 21.6725 22.47H21.6719Z"
+                  fill="white"
+                />
+              </g>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-semibold">Name</h4>
+            {{ clusterDetails?.displayName }}
+          </div>
+        </div>
+        <div class="_box_card rounded-lg items-start">
+          <h4 class="font-semibold">Type</h4>
+          <span>{{ clusterDetails?.clusterType === 'MANUAL' ? 'On-boarded cluster' : 'Automated' }}</span>
+        </div>
+        <div fxLayout="column" fxLayoutAlign="center end">
+          <img
+            *ngIf="clusterDetails?.clusterType !== 'MANUAL'"
+            matTooltip="Cloud Provider"
+            matTooltipPosition="left"
+            class="mt-2"
+            width="60px"
+            [src]="'assets/img/providers/' + (clusterDetails?.providerType | lowercase) + '_logo.svg'"
+            alt=""
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- HelmChart Command Form Manual cluster -->
+    <mat-accordion
+      class="helm-chart-accordion mt-5 rounded"
+      *ngIf="clusterDetails?.clusterType === 'MANUAL' && clusterDetails?.helmCommand"
+    >
+      <mat-expansion-panel class="rounded bg-transparent" [expanded]="clusterDetails?.currentState === 'PENDING'">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <h4 class="text-lg">
+              <span class="required-text" *ngIf="clusterDetails?.currentState === 'PENDING'">Required:</span>
+              <span class="executed-text" *ngIf="clusterDetails?.currentState !== 'PENDING'">Executed:</span> To On-Board your kubernetes
+              cluster with this platform, please apply this helm command in your desired kubernetes cluster
+            </h4>
+          </mat-panel-title>
+          <!-- <mat-panel-description>
+              Currently I am {{panelOpenState ? 'open' : 'closed'}}
+          </mat-panel-description> -->
+        </mat-expansion-panel-header>
+        <div class="pt-4">
+          <div class="flex justify-between overflow-auto relative">
+            <pre>{{ getProcessedHelmCommand() }}</pre>
+            <div class="sticky top-3 right-0 z-10">
+              <cdk-clipboard class="ml-2" [cbContent]="clusterDetails?.helmCommand"></cdk-clipboard>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <!-- GCP -->
+    <ng-template [ngIf]="clusterDetails?.providerType === 'GCP'">
+      <ng-container *ngIf="clusterDetails?.clusterType !== 'MANUAL'">
+        <div class="mt-4">
+          <h4 class="text-lg">Details</h4>
+          <div class="_base_card mt-2 p-4">
+            <div gdColumns="1fr 1fr 1fr" gdColumns.md="1fr 1fr 1fr" gdColumns.lt-sm="1fr" gdGap="25px">
+              <div fxLayout="column" fxLayoutAlign="center start">
+                <h4 class="font-semibold">Region</h4>
+                {{ clusterDetails?.gcpClusterDTO?.region }}
+              </div>
+              <div fxLayout="column" fxLayoutAlign="center center" fxLayoutAlign.lt-sm="center start">
+                <h4 class="font-semibold">Cluster Location</h4>
+                {{ clusterDetails?.gcpClusterDTO?.clusterLocation }}
+              </div>
+              <div fxLayout="column" fxLayoutAlign="center end" fxLayoutAlign.xs="center start" fxLayoutAlign.sm="center start">
+                <h4 class="font-semibold">Cluster VPC Name</h4>
+                {{ clusterDetails?.gcpClusterDTO?.clusterVpcId }}
+              </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:justify-end items-start md:items-center">
+              <h4 class="text-right mt-2">
+                Created at: {{ clusterDetails?.createdTime | date: 'd MMM y,' }}
+                {{ clusterDetails?.createdTime | date: 'h:mm a' }}
+              </h4>
+              <!-- <p class="text-xs hidden md:block mt-1 mx-1">|</p>
+              <h4 class="text-right mt-2">Updated at: {{clusterDetails?.updatedTime | date : "d MMM y,"}} {{clusterDetails?.updatedTime | date : "h:mm a"}}</h4> -->
+            </div>
+            <hr class="my-6" />
+            <div class="flex flex-wrap -mx-2">
+              <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+                <div class="_box_card">
+                  <h4 class="font-semibold">DevOps Platform</h4>
+                  {{ clusterDetails?.gcpClusterDTO?.agent ? 'Agent' : 'Console' }}
+                </div>
+              </div>
+              <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+                <div class="_box_card">
+                  <h4 class="font-semibold">K8s Api Accessibility</h4>
+                  <div fxLayout="row" fxLayoutAlign="start center">
+                    {{ clusterDetails?.gcpClusterDTO?.k8sApiExposed ? 'External' : 'Internal' }}
+                    <i
+                      *ngIf="clusterDetails?.gcpClusterDTO?.k8sApiExposed"
+                      class="text-orange-500 text-[10px] ml-2"
+                      [matTooltip]="'Warning! Exposing K8s API is not recommended for security reason!'"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="flex-shrink-0 inline w-5 h-5 mr-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </i>
+                  </div>
+                </div>
+              </div>
+              <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+                <div class="_box_card">
+                  <h4 class="font-semibold">Service Mesh (Istio)</h4>
+                  {{ clusterDetails?.istioEnable ? 'Enabled' : 'Disabled' }}
+                </div>
+              </div>
+              <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+                <div class="_box_card">
+                  <h4 class="font-semibold">NAT for all availability zones</h4>
+                  {{ clusterDetails?.gcpClusterDTO?.singleNat ? 'Single' : 'Individual' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Balancer -->
+        <div class="mt-4">
+          <h4 class="text-lg">Load Balancer Host Addresses</h4>
+          <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="_base_card mt-3 p-4">
+            <div class="lg:border-r-2 lg:pr-4" fxLayout="column" fxLayoutAlign="center start">
+              <h4 class="font-semibold">For Nginx Ingress</h4>
+              <div fxLayout="row" fxLayoutAlign="start center">
+                {{ clusterDetails?.loadBalancerHostAddress || 'Pending...' }}
+                <cdk-clipboard
+                  *ngIf="clusterDetails?.loadBalancerHostAddress"
+                  class="ml-2"
+                  [cbContent]="clusterDetails?.loadBalancerHostAddress"
+                ></cdk-clipboard>
+              </div>
+            </div>
+            <div fxLayout="column" fxLayoutAlign="center start" *ngIf="clusterDetails?.loadBalancerIstioHostAddress">
+              <h4 class="font-semibold">For Istio Gateway</h4>
+              <div fxLayout="row" fxLayoutAlign="start center">
+                {{ clusterDetails?.loadBalancerIstioHostAddress || 'Pending...' }}
+                <cdk-clipboard class="ml-2" [cbContent]="clusterDetails?.loadBalancerIstioHostAddress"></cdk-clipboard>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div gdColumns="1fr 1fr 1fr" gdColumns.md="1fr 1fr 1fr" gdColumns.lt-md="1fr 1fr" gdColumns.xs="1fr" gdGap="25px">
+            <div class="_box_card">
+              <h4 class="font-semibold">LoadBalancer Accessibility</h4>
+              <div fxLayout="row" fxLayoutAlign="start center">
+                {{ clusterDetails?.gcpClusterDTO?.loadbalancerIsExposed ? 'Internal' : 'External' }}
+
+                <!--  <i *ngIf="clusterDetails?.k8sApiExposed" class="text-orange-500 text-[10px] ml-2" [matTooltip]="'Warning! Exposing K8s API is not recommended for security reason!'">
+                  <svg aria-hidden="true" class="flex-shrink-0 inline w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                </i>-->
+              </div>
+            </div>
+            <div class="_box_card">
+              <h4 class="font-semibold">Istio LoadBalancer Type</h4>
+              {{ clusterDetails?.gcpClusterDTO?.loadbalancerIsExposed ? 'Internal' : 'External' }}
+            </div>
+
+            <div class="_box_card">
+              <h4 class="font-semibold">NGINX LoadBalancer Type</h4>
+              {{ clusterDetails?.gcpClusterDTO?.loadbalancerIsExposed ? 'Internal' : 'External' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- SSH Key -->
+        <div *hasAnyAuthority="'CREATE_CLUSTER'" class="mt-4">
+          <div *ngIf="!clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+            <!--      <h4 class="text-lg">Download SSH private key for worker node (EC2 Instance)</h4>-->
+            <h4 class="text-lg">
+              Download SSH private key for
+              {{ clusterDetails?.gcpClusterDTO?.k8sApiExposed ? 'worker node' : 'Bastion Host' }}
+            </h4>
+            <div class="_base_card mt-3 p-4" gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+              <div
+                class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right"
+                role="alert"
+              >
+                <span class="flex-auto text-xs sm:break-normal text-left"
+                  >You can SSH into <span class="text-teal-500"> worker node VPC</span> by using this private key.</span
+                >
+              </div>
+              <div fxLayout="row" fxLayoutAlign="end center">
+                <a mat-raised-button class="ml-4 _routing_btn" [href]="clusterDetails?.gcpClusterDTO?.vpcPrivateKeyUrl" target="_blank"
+                  >Click to download</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Access VPC and Configuration -->
+        <div class="mt-4">
+          <h4 class="text-lg">
+            Configure your GKE Credentials to Connect with the K8s Cluster by using gcloud CLI
+            <i class="text-orange-500 text-[10px] ml-2" [matTooltip]="'You should have installed the gcloud CLI in your machine.'">
+              <svg
+                aria-hidden="true"
+                class="flex-shrink-0 inline w-5 h-5 mr-3"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clip-rule="evenodd"
+                  fill="#D7DCE3"
+                ></path>
+              </svg>
+            </i>
+          </h4>
+          <div class="_base_card mt-3 p-4 overflow-x-auto">
+            <div class="_terminal_container">
+              <div class="flex items-center mb-1" *ngIf="clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>gcloud auth revoke --all
+                <cdk-clipboard class="ml-2" [cbContent]="'gcloud auth revoke --all'"></cdk-clipboard>
+              </div>
+              <div class="flex items-center mb-1" *ngIf="clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>gcloud auth login --no-browser
+                --cred-file=$LOCATION_OF_SERVICE_ACCOUNNT_JSON_FILE --activate
+              </div>
+              <div class="flex items-center mb-1" *ngIf="clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>gcloud container clusters get-credentials "{{
+                  clusterDetails?.gcpClusterDTO?.clusterName
+                }}" --region "{{ clusterDetails?.gcpClusterDTO?.clusterLocation }}" --project "{{
+                  clusterDetails?.gcpClusterDTO?.serviceAccountInfo?.project_id
+                }}"
+              </div>
+
+              <div class="flex items-center mb-1" *ngIf="!clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>sudo chmod 0600
+                {{ clusterDetails?.gcpClusterDTO?.vpcPrivateKeyName }}
+                <cdk-clipboard
+                  class="ml-2"
+                  [cbContent]="'sudo chmod 0600 ' + clusterDetails?.gcpClusterDTO?.vpcPrivateKeyName"
+                ></cdk-clipboard>
+              </div>
+              <div class="flex items-center mb-1" *ngIf="!clusterDetails?.gcpClusterDTO?.k8sApiExposed">
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>ssh -i
+                {{ clusterDetails?.gcpClusterDTO?.vpcPrivateKeyName }} -o StrictHostKeyChecking=no kcroot&#64;{{
+                  clusterDetails?.gcpClusterDTO?.bastionHostPublicIp
+                }}
+                <cdk-clipboard
+                  class="ml-2"
+                  [cbContent]="
+                    'ssh -i ' +
+                    clusterDetails?.gcpClusterDTO?.vpcPrivateKeyName +
+                    ' -o StrictHostKeyChecking=no kcroot@' +
+                    clusterDetails?.gcpClusterDTO?.bastionHostPublicIp
+                  "
+                ></cdk-clipboard>
+              </div>
+            </div>
+          </div>
+          <mat-hint class="text-orange-500 p-3 mt-2 text-[10px] px-3 _bg-deep rounded">
+            [N:B These commands will not work if K8s Api is not externally exposed]
+          </mat-hint>
+        </div>
+
+        <!-- Subnet -->
+        <div class="mt-4">
+          <div>
+            <h4 class="text-lg">Public Subnets</h4>
+            <div class="_base_card mt-3 p-4 flex flex-wrap">
+              <div class="w-full px-2">
+                <div class="border-b border-sky-900 py-2">
+                  <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                    <div class="font-semibold">Subnet ID</div>
+                    <div>{{ clusterDetails?.gcpClusterDTO?.subnetId }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </ng-template>
+
+    <!-- Aws -->
+    <ng-template [ngIf]="clusterDetails?.providerType === 'AWS'">
+      <div class="mt-4">
+        <h4 class="text-lg">Details</h4>
+        <div class="_base_card mt-3 p-4">
+          <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+            <div fxLayout="column" fxLayoutAlign="center start">
+              <h4 class="font-semibold">Region</h4>
+              {{ clusterDetails?.awsRegion }}
+            </div>
+            <div fxLayout="column" fxLayoutAlign="center end" fxLayoutAlign.xs="center start" fxLayoutAlign.sm="center start">
+              <h4 class="font-semibold">Cluster VPC Name</h4>
+              {{ clusterDetails?.awsMasterVPCName }}
+            </div>
+          </div>
+          <hr class="my-6" />
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+              <div class="_box_card">
+                <h4 class="font-semibold">DevOps Platform</h4>
+                {{ clusterDetails?.agent ? 'Agent' : 'Console' }}
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+              <div class="_box_card">
+                <h4 class="font-semibold">K8s Api Accessibility</h4>
+                <div fxLayout="row" fxLayoutAlign="start center">
+                  {{ clusterDetails?.k8sApiExposed ? 'External' : 'Internal' }}
+                  <i
+                    *ngIf="clusterDetails?.k8sApiExposed"
+                    class="text-orange-500 text-[10px] ml-2"
+                    [matTooltip]="'Warning! Exposing K8s API is not recommended for security reason!'"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="flex-shrink-0 inline w-5 h-5 mr-3"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                  </i>
+                </div>
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+              <div class="_box_card">
+                <h4 class="font-semibold">Service Mesh (Istio)</h4>
+                {{ clusterDetails?.istioEnable ? 'Enabled' : 'Disabled' }}
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 lg:w-1/4 p-2">
+              <div class="_box_card">
+                <h4 class="font-semibold">NAT for all availability zones</h4>
+                {{ clusterDetails?.singleNat ? 'Single' : 'Individual' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div *ngIf="clusterDetails?.userDomain">
+          <h4 class="text-lg">KloverCloud DevOps Control Plane URL</h4>
+          <div class="_base_card mt-3 p-4 text-sm" gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+            <div
+              class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right"
+              role="alert"
+            >
+              <span class="flex-auto text-xs sm:break-normal text-right leading-normal"
+                >To <span class="text-teal-500">Access the Console</span> Please Create a CNAME Record in Aws Route53 with
+                <span class="text-teal-500">{{ clusterDetails?.userDomain }}</span> and
+                <span class="text-teal-500">*{{ clusterDetails?.userDomain }} </span>and use Load Balancer Host Address in the Value
+                Section</span
+              >
+            </div>
+            <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+              <span>{{ clusterDetails?.userDomain }}</span>
+              <a mat-raised-button class="_routing_btn" href="http://{{ clusterDetails?.userDomain }}" target="_blank">Click to visit</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <h4 class="text-lg">Load Balancer Host Addresses</h4>
+        <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="_base_card mt-3 p-4">
+          <div class="lg:border-r-2 lg:pr-4" fxLayout="column" fxLayoutAlign="center start">
+            <h4 class="font-semibold">For Nginx Ingress</h4>
+            <div fxLayout="row" fxLayoutAlign="start center">
+              {{ clusterDetails?.loadBalancerHostAddress || 'Pending...' }}
+              <cdk-clipboard
+                *ngIf="clusterDetails?.loadBalancerHostAddress"
+                class="ml-2"
+                [cbContent]="clusterDetails?.loadBalancerHostAddress"
+              ></cdk-clipboard>
+            </div>
+          </div>
+          <div fxLayout="column" fxLayoutAlign="center start" *ngIf="clusterDetails?.loadBalancerIstioHostAddress">
+            <h4 class="font-semibold">For Istio Gateway</h4>
+            <div fxLayout="row" fxLayoutAlign="start center">
+              {{ clusterDetails?.loadBalancerIstioHostAddress || 'Pending...' }}
+
+              <cdk-clipboard
+                *ngIf="clusterDetails?.loadBalancerIstioHostAddress"
+                class="ml-2"
+                [cbContent]="clusterDetails?.loadBalancerIstioHostAddress"
+              ></cdk-clipboard>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div gdColumns="1fr 1fr 1fr" gdColumns.md="1fr 1fr 1fr" gdColumns.lt-md="1fr 1fr" gdColumns.xs="1fr" gdGap="25px">
+          <div class="_box_card">
+            <h4 class="font-semibold">LoadBalancer Accessibility</h4>
+            <div fxLayout="row" fxLayoutAlign="start center">
+              {{ clusterDetails?.loadbalancerIsExposed ? 'External' : 'Internal' }}
+
+              <!--  <i *ngIf="clusterDetails?.k8sApiExposed" class="text-orange-500 text-[10px] ml-2" [matTooltip]="'Warning! Exposing K8s API is not recommended for security reason!'">
+                <svg aria-hidden="true" class="flex-shrink-0 inline w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+              </i>-->
+            </div>
+          </div>
+          <div class="_box_card">
+            <h4 class="font-semibold">Istio LoadBalancer Type</h4>
+            {{ clusterDetails?.istioLoadBalancerType || 'N/A' }}
+          </div>
+
+          <div class="_box_card">
+            <h4 class="font-semibold">NGINX LoadBalancer Type</h4>
+            {{ clusterDetails?.nginxLoadBalancerType || 'N/A' }}
+          </div>
+        </div>
+      </div>
+
+      <div *hasAnyAuthority="'CREATE_CLUSTER'" class="mt-4">
+        <div *ngIf="clusterDetails?.userDomain">
+          <!--      <h4 class="text-lg">Download SSH private key for worker node (EC2 Instance)</h4>-->
+          <h4 class="text-lg">
+            Download SSH private key for
+            {{ clusterDetails?.k8sApiExposed ? 'worker node (EC2 Instance)' : 'Bastion Host' }}
+          </h4>
+          <div class="_base_card mt-3 p-4" gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+            <div
+              class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right"
+              role="alert"
+            >
+              <span class="flex-auto text-xs sm:break-normal text-left"
+                >You can SSH into <span class="text-teal-500"> worker node (EC2 Instance)</span> by using this private key.</span
+              >
+            </div>
+            <div fxLayout="row" fxLayoutAlign="end center">
+              <a mat-raised-button class="ml-4 _routing_btn" [href]="clusterDetails?.ec2PrivateKeyUrl" target="_blank">Click to download</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <h4 class="text-lg">Configure your AWS Credentials to Connect the K8s Cluster by AWS CLI</h4>
+        <div class="_base_card mt-3 p-4 overflow-x-auto">
+          <div class="_terminal_container">
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>chmod 400
+              {{ clusterDetails?.ec2PrivateKeyUrl?.split('/')[clusterDetails?.ec2PrivateKeyUrl?.split('/').length - 1] }}
+              <i class="text-orange-500 ml-1" [matTooltip]="'Download your private key from the download button above!'">
+                <svg
+                  aria-hidden="true"
+                  class="flex-shrink-0 inline w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </i>
+              <cdk-clipboard
+                class="ml-2"
+                [cbContent]="
+                  'chmod 400 ' + clusterDetails?.ec2PrivateKeyUrl?.split('/')[clusterDetails?.ec2PrivateKeyUrl?.split('/').length - 1]
+                "
+              ></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>ssh -i
+              {{ clusterDetails?.ec2PrivateKeyUrl?.split('/')[clusterDetails?.ec2PrivateKeyUrl?.split('/').length - 1] }}
+              ubuntu&#64;{{ clusterDetails?.bastionHostIp }}
+              <cdk-clipboard
+                class="ml-2"
+                [cbContent]="
+                  'ssh -i ' +
+                  clusterDetails?.ec2PrivateKeyUrl?.split('/')[clusterDetails?.ec2PrivateKeyUrl?.split('/').length - 1] +
+                  ' ec2-user@' +
+                  clusterDetails?.bastionHostIp
+                "
+              ></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>sudo curl -o kubectl
+              https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/kubectl
+              <cdk-clipboard
+                class="ml-2"
+                [cbContent]="'sudo curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/kubectl'"
+              ></cdk-clipboard>
+            </div>
+
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>sudo chmod +x ./kubectl
+              <cdk-clipboard class="ml-2" [cbContent]="'sudo chmod +x ./kubectl'"></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export
+              PATH=$PATH:$HOME/bin
+              <cdk-clipboard
+                class="ml-2"
+                [cbContent]="'mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin'"
+              ></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+              <cdk-clipboard class="ml-2" [cbContent]="'echo \'export PATH=$PATH:$HOME/bin\' >> ~/.bashrc'"></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1" *ngIf="!clusterDetails?.k8sApiExposed">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>kubectl version --short --client
+              <cdk-clipboard class="ml-2" [cbContent]="'kubectl version --short --client'"></cdk-clipboard>
+            </div>
+
+            <div class="flex items-center mb-2">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>aws configure set aws_access_key_id "$aws_access_key"
+            </div>
+            <div class="flex items-center mb-1">
+              <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>aws configure set aws_secret_access_key "$aws_secret_key"
+            </div>
+            <div class="flex items-center mb-1">
+              <div>
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>aws configure set default.region
+                {{ clusterDetails?.awsRegion }}
+              </div>
+              <cdk-clipboard class="ml-2" [cbContent]="'aws configure set default.region ' + clusterDetails?.awsRegion"></cdk-clipboard>
+            </div>
+            <div class="flex items-center mb-1">
+              <div>
+                <span class="_terminal_device_info mr-2">usr&#64;linux:~$</span>
+                aws eks update-kubeconfig --region {{ clusterDetails?.awsRegion }} --name
+                {{ clusterDetails?.clusterName }}
+              </div>
+              <cdk-clipboard
+                class="ml-2"
+                [cbContent]="'aws eks update-kubeconfig --region ' + clusterDetails?.awsRegion + ' --name ' + clusterDetails?.clusterName"
+              ></cdk-clipboard>
+            </div>
+            <!--   <div class="flex items-center" *ngIf="!clusterDetails?.k8sApiExposed"><span class="_terminal_device_info mr-2">usr@linux:~$</span>kubectl get pod -n klovercloud
+              <cdk-clipboard class="ml-2" [cbContent]="'kubectl get pod -n klovercloud'"></cdk-clipboard>
+            </div>-->
+          </div>
+        </div>
+        <mat-hint class="text-orange-500 p-3 mt-2 text-[10px] px-3 _bg-deep rounded">
+          [N:B These commands will not work if K8s Api is not externally exposed]
+        </mat-hint>
+      </div>
+      <div class="mt-4">
+        <div>
+          <h4 class="text-lg">Public Subnets</h4>
+          <div class="_base_card mt-3 p-4 flex flex-wrap -mx-2">
+            <div *ngFor="let subnet of clusterDetails?.publicSubnetList; let i = index" class="w-full sm:w-1/2 xl:w-1/3 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Subnet {{ i + 1 }}</div>
+                  <div>{{ subnet }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div>
+          <h4 class="text-lg">Private Subnets</h4>
+          <div class="_base_card mt-3 p-4 flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 xl:w-1/3 xxl:w-1/4 px-2" *ngFor="let subnet of clusterDetails?.subnetList; let i = index">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Subnet {{ i + 1 }}</div>
+                  <div>{{ subnet }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Volume Snapshot -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.snapshotClassName">
+      <h4 class="text-lg">Volume Snapshot Configuration</h4>
+      <div class="_base_card mt-2 p-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="border-b border-sky-900 py-2">
+            <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+              <div class="font-semibold">Snapshot Class (Read Write Once)</div>
+              <div class="flex items-center">
+                <span>{{ kubeClusterDetails.snapshotClassName }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="border-b border-sky-900 py-2">
+            <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+              <div class="font-semibold">Snapshot Class (Read Write Many)</div>
+              <div class="flex items-center">
+                <span>{{ kubeClusterDetails.snapshotClassRWMName }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kiali -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.kialiUrl">
+      <h4 class="text-lg">Kiali Dashboard</h4>
+      <div class="_base_card mt-2">
+        <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="p-4 border-b border-sky-900">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Kiali is a management console for <span class="text-teal-500">Istio</span> service mesh. please visit<span
+                class="text-teal-500"
+              >
+                {{ kubeClusterDetails.kialiUrl }}</span
+              >
+              to see the console.</span
+            >
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails.kialiUrl }}</span>
+            <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails.kialiUrl" target="_blank">Click to visit</a>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2" *ngIf="kubeClusterDetails.kialiUsername">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Kiali Username</div>
+                  <div class="flex items-center">
+                    <span>{{ kubeClusterDetails.kialiUsername }}</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails.kialiUsername"
+                      message="Kiali username copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Kiali Auth Token</div>
+                  <div class="flex items-center">
+                    <span>*******************<span class="hidden xxl:inline-block">************************</span></span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.kialiToken"
+                      message="Kiali credential token copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prometheus -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.prometheusUrl">
+      <h4 class="text-lg">Prometheus Dashbroad</h4>
+      <div class="_base_card mt-2">
+        <div class="p-4 border-b border-sky-900" gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Prometheus is a metrics visualization tool for <span class="text-teal-500">K8s resources</span> please visit
+              <span class="text-teal-500">{{ kubeClusterDetails.prometheusUrl }}</span> to see the console.</span
+            >
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails.prometheusUrl }}</span>
+            <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails.prometheusUrl" target="_blank">Click to visit</a>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Prometheus Username</div>
+                  <div class="flex items-center">
+                    <span>{{ kubeClusterDetails.prometheusUsername }}</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails.prometheusUsername"
+                      message="Prometheus username copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Prometheus Password</div>
+                  <div class="flex items-center">
+                    <span>***********************</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails.prometheusPassword"
+                      message="Prometheus password copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grafana -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.grafanaUrl">
+      <h4 class="text-lg">Grafana Dashbroad</h4>
+      <div class="_base_card mt-2">
+        <div class="p-4 border-b border-sky-900" gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Grafana is a visualization tool for <span class="text-teal-500">K8s resources</span>. please visit
+              <span class="text-teal-500">{{ kubeClusterDetails.grafanaUrl }}</span> to see the console.</span
+            >
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails.grafanaUrl }}</span>
+            <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails.grafanaUrl" target="_blank">Click to visit</a>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Grafana Username</div>
+                  <div class="flex items-center">
+                    <span>{{ kubeClusterDetails.grafanaUsername }}</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails.grafanaUsername"
+                      message="Grafana username copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Grafana Password</div>
+                  <div class="flex items-center">
+                    <span>***********************</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails.grafanaPassword"
+                      message="Grafana password copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loki -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.lokiUrl">
+      <h4 class="text-lg">Loki Configuration</h4>
+      <div class="_base_card mt-2">
+        <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="p-4 border-b border-sky-900">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Loki is a <span class="text-teal-500"> horizontally-scalable, highly-available, multi-tenant </span> log aggregation
+              system.</span
+            >
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails?.lokiUrl }}</span>
+            <!-- <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails?.lokiUrl" target="_blank"
+              >Click to visit</a
+            > -->
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Loki Username</div>
+                  <div class="flex items-center">
+                    <span>{{ kubeClusterDetails?.lokiUsername }}</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.lokiUsername"
+                      message="Loki username copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Loki Password</div>
+                  <div class="flex items-center">
+                    <span>***********************</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.lokiPassword"
+                      message="Loki password copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ArgoCD -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.argocdURL">
+      <h4 class="text-lg">ArgoCD Dashboard</h4>
+      <div class="_base_card mt-2">
+        <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="p-4 border-b border-sky-900">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Please visit <span class="text-teal-500">{{ kubeClusterDetails?.argocdURL }}</span> to see the console.
+            </span>
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails?.argocdURL }}</span>
+            <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails?.argocdURL" target="_blank">Click to visit</a>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">ArgoCD Username</div>
+                  <div class="flex items-center">
+                    <span>{{ kubeClusterDetails?.argocdUsername }}</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.argocdUsername"
+                      message="ArgoCD username copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">ArgoCD Password</div>
+                  <div class="flex items-center">
+                    <span>***********************</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.argocdPassword"
+                      message="ArgoCD password copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kiali -->
+    <div class="mt-6" *ngIf="kubeClusterDetails?.kialiURL">
+      <h4 class="text-lg">Kiali Dashboard</h4>
+      <div class="_base_card mt-2">
+        <div gdColumns="1fr 1fr" gdColumns.md="1fr 1fr" gdColumns.lt-md="1fr" gdGap="25px" class="p-4 border-b border-sky-900">
+          <div class="mt-2 p-2 px-3 _bg-deep items-center leading-none rounded flex lg:inline-flex sm:break-normal text-right" role="alert">
+            <span class="text-left flex-auto text-xs sm:break-normal leading-normal"
+              >Kiali is a <span class="text-teal-500">web-based UI that visualizes the service mesh's structure</span>, showing how services
+              are connected and interact. please visit <span class="text-teal-500">{{ kubeClusterDetails?.kialiURL }}</span> to see the
+              console.
+            </span>
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-end gap-x-4 gap-y-2">
+            <span>{{ kubeClusterDetails?.kialiURL }}</span>
+            <a mat-raised-button class="_routing_btn" [href]="kubeClusterDetails?.kialiURL" target="_blank">Click to visit</a>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap -mx-2">
+            <div class="w-full sm:w-1/2 px-2">
+              <div class="border-b border-sky-900 py-2">
+                <div class="border-l-2 border-contrast-white pl-4" fxLayout="column" fxLayoutAlign="center start">
+                  <div class="font-semibold">Kiali Token</div>
+                  <div class="flex items-center">
+                    <span>***********************</span>
+                    <cdk-clipboard
+                      class="ml-2"
+                      [cbContent]="kubeClusterDetails?.kialiToken"
+                      message="Kiali token copied to the clipboard."
+                    ></cdk-clipboard>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>
