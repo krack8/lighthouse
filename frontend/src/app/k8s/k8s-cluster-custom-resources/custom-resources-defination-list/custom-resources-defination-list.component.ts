@@ -170,8 +170,6 @@ export class CustomResourcesDefinationListComponent implements OnInit, OnDestroy
         if (res.status === 'success') {
           this.isLoading = false;
           crdDetails = res.data;
-          console.log('--------------->', crdDetails);
-
           if (crdDetails) {
             const dialog = this.dialog.open(K8sUpdateComponent, {
               minHeight: '300px',
