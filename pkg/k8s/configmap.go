@@ -177,6 +177,7 @@ func (p *GetConfigMapDetailsInputParams) GetClient() v1.ConfigMapInterface {
 	}
 	return getConfigMapClient(p.NamespaceName)
 }
+
 func (p *GetConfigMapDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching configMap details of ....", p.NamespaceName)
 	output, err := p.GetClient().Get(context.Background(), p.ConfigMapName, metav1.GetOptions{})
