@@ -65,13 +65,15 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 
 	// Prepare the response with additional information
 	response := struct {
+		Id            string `json:"id"`
 		Name          string `json:"name"`
 		Namespace     string `json:"namespace"`
 		Token         string `json:"token"`
 		ControllerURL string `json:"controller_url"`
 		SecretName    string `json:"secret_name"`
 	}{
-		Name:          os.Getenv("AGENT_SECRET_NAME"),
+		Id:            cluster.ID.Hex(),
+		Name:          cluster.Name,
 		Namespace:     request.Namespace,
 		Token:         cluster.Token.TokenHash,
 		ControllerURL: os.Getenv("CONTROLLER_URL"),
@@ -93,13 +95,15 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 
 	// Prepare the response with additional information
 	response := struct {
+		Id            string `json:"id"`
 		Name          string `json:"name"`
 		Namespace     string `json:"namespace"`
 		Token         string `json:"token"`
 		ControllerURL string `json:"controller_url"`
 		SecretName    string `json:"secret_name"`
 	}{
-		Name:          os.Getenv("AGENT_SECRET_NAME"),
+		Id:            Cluster.ID.Hex(),
+		Name:          Cluster.Name,
 		Namespace:     Cluster.SecretNamespace,
 		Token:         Cluster.Token.TokenHash,
 		ControllerURL: os.Getenv("CONTROLLER_URL"),
