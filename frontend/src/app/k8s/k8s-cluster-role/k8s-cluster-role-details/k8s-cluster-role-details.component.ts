@@ -68,8 +68,7 @@ export class K8sClusterRoleDetailsComponent implements OnInit {
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              const queryParams = this.queryParams;
-              this.router.navigate(['../'], { relativeTo: this.route, queryParams });
+              this.router.navigate(['../'], { relativeTo: this.route});
             }
           },
           err => {

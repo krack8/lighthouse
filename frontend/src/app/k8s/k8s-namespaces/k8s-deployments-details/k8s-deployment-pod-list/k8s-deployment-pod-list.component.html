@@ -107,7 +107,7 @@
     </table>
   </div>
 
-  <div *ngIf="resourceToken.length !== 0" class="flex justify-center items-center">
+  <div *ngIf="resourceToken?.length !== 0" class="flex justify-center items-center">
     <mat-progress-spinner
       class="mx-6 mt-4"
       *ngIf="loadMoreData"
