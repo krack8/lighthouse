@@ -46,7 +46,6 @@ func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
 func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	var request struct {
 		Name            string `json:"name"`
-		Namespace       string `json:"namespace"`
 		MasterClusterId string `json:"masterClusterId"`
 	}
 
@@ -57,7 +56,7 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	}
 
 	// Create the cluster
-	cluster, err := uc.ClusterService.CreateAgentCluster(request.Name, request.Namespace, request.MasterClusterId)
+	cluster, err := uc.ClusterService.CreateAgentCluster(request.Name, request.MasterClusterId)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
@@ -67,14 +66,12 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	response := struct {
 		Id            string `json:"id"`
 		Name          string `json:"name"`
-		Namespace     string `json:"namespace"`
 		Token         string `json:"token"`
 		ControllerURL string `json:"controller_url"`
 		SecretName    string `json:"secret_name"`
 	}{
 		Id:            cluster.ID.Hex(),
 		Name:          cluster.Name,
-		Namespace:     request.Namespace,
 		Token:         cluster.Token.TokenHash,
 		ControllerURL: os.Getenv("CONTROLLER_URL"),
 		SecretName:    os.Getenv("AGENT_SECRET_NAME"),
@@ -98,7 +95,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/charts",
-		HelmCommand: "helm install lighthouse-agent --create-namespace --namespace " + Cluster.ResourceNamespace + " krack8/lighthouse-agent --version 1.0.0 --set auth.enabled=true --set agent.enabled=true --set controller.enabled=false --set auth.token=" + Cluster.Token.TokenHash + " --set controller.url=" + os.Getenv("CONTROLLER_URL"),
+		HelmCommand: "helm install lighthouse-agent --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse-agent --version 1.0.0 --set auth.enabled=true --set agent.enabled=true --set controller.enabled=false --set auth.token=" + Cluster.Token.TokenHash + " --set controller.url=" + os.Getenv("CONTROLLER_URL"),
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)

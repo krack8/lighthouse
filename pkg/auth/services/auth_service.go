@@ -62,7 +62,7 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 }
 
 func IsAgentAuthTokenValid(authToken string) bool {
-	tokenValidation, err := GetToken(context.Background(), authToken)
+	tokenValidation, err := mongoUpdate.GetToken(context.Background(), authToken)
 	if err != nil {
 		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
 		return false

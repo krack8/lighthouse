@@ -7,18 +7,18 @@ import (
 )
 
 type Cluster struct {
-	ID                primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name              string             `json:"name" bson:"name"`
-	ClusterType       enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "AGENT"
-	Token             TokenValidation    `json:"-" bson:"token"`
-	MasterClusterId   string             `json:"master_cluster_id" bson:"master_cluster_id"`
-	ResourceNamespace string             `json:"resource_namespace" bson:"resource_namespace"`
-	IsActive          bool               `json:"is_active" bson:"is_active"`
-	Status            enum.Status        `json:"status" bson:"status"`
-	CreatedAt         time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt         time.Time          `json:"updated_at" bson:"updated_at"`
-	CreatedBy         string             `json:"created_by" bson:"created_by"`
-	UpdatedBy         string             `json:"updated_by" bson:"updated_by"`
+	ID              primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name            string             `json:"name" bson:"name"`
+	ClusterType     enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "AGENT"
+	Token           TokenValidation    `json:"-" bson:"token"`
+	MasterClusterId string             `json:"master_cluster_id" bson:"master_cluster_id"`
+	IsActive        bool               `json:"is_active" bson:"is_active"`
+	Status          enum.Status        `json:"status" bson:"status"`
+	ClusterStatus   enum.ClusterStatus `json:"cluster_status" bson:"cluster_status"`
+	CreatedAt       time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at" bson:"updated_at"`
+	CreatedBy       string             `json:"created_by" bson:"created_by"`
+	UpdatedBy       string             `json:"updated_by" bson:"updated_by"`
 }
 
 type TokenValidation struct {

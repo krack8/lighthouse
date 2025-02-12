@@ -91,13 +91,13 @@ func UpdateClusterStatusToActive(clusterID primitive.ObjectID) error {
 	_, err := db.ClusterCollection.UpdateOne(
 		context.Background(),
 		bson.M{"_id": clusterID},
-		bson.M{"$set": bson.M{"is_active": true}},
+		bson.M{"$set": bson.M{"is_active": true, "cluster_status": enum.CONNECTED}},
 	)
 	return err
 }
 
 // CreateCluster creates a new cluster and inserts it into the database
-func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId string) (*models.Cluster, error) {
+func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*models.Cluster, error) {
 	agentClusterID := primitive.NewObjectID()
 
 	// Generate a raw token
@@ -136,18 +136,18 @@ func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId str
 
 	// Create a new cluster
 	cluster := &models.Cluster{
-		ID:                agentClusterID,
-		Name:              name,
-		ClusterType:       enum.AGENT, // Set default cluster type to Agent
-		Token:             agentToken,
-		MasterClusterId:   masterClusterId,
-		IsActive:          false,
-		ResourceNamespace: namespace,
-		Status:            enum.VALID,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
-		CreatedBy:         string(enum.SYSTEM),
-		UpdatedBy:         string(enum.SYSTEM),
+		ID:              agentClusterID,
+		Name:            name,
+		ClusterType:     enum.AGENT, // Set default cluster type to Agent
+		Token:           agentToken,
+		MasterClusterId: masterClusterId,
+		IsActive:        false,
+		Status:          enum.VALID,
+		ClusterStatus:   enum.PENDING,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		CreatedBy:       string(enum.SYSTEM),
+		UpdatedBy:       string(enum.SYSTEM),
 	}
 
 	// Insert the new cluster into the MongoDB collection
