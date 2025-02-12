@@ -368,6 +368,11 @@ func (rbac *RbacController) UpdateRoleHandler(c *gin.Context) {
 		return
 	}
 
+	_, err = services.GetUsersByRoleIDAndUpdateUserRoles(objectID, updateRole)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to update users permission with updated roles."})
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Role updated successfully"})
 }
 

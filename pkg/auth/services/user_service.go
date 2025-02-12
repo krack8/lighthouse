@@ -336,6 +336,73 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 	return nil
 }
 
+// GetUsersByRoleID retrieves all users that have a specific role ID
+func GetUsersByRoleIDAndUpdateUserRoles(roleID primitive.ObjectID, newRole models.Role) ([]models.User, error) {
+	// Query to match users who have the specified role ID in their roles array
+	filter := bson.M{
+		"roles": bson.M{
+			"$elemMatch": bson.M{
+				"_id": roleID,
+			},
+		},
+	}
+
+	cursor, err := db.UserCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users by role ID: %w", err)
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			// Handle cursor close error if needed
+		}
+	}(cursor, context.Background())
+
+	var users []models.User
+	for cursor.Next(context.Background()) {
+		var user models.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, fmt.Errorf("failed to decode user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	// Update roles for each user
+	for i, user := range users {
+		// Find and replace the old role with the new role
+		for j, role := range user.Roles {
+			if role.ID == roleID {
+				user.Roles[j] = newRole
+				// Update the user in the database
+				update := bson.M{
+					"$set": bson.M{
+						"roles":      user.Roles,
+						"updated_at": time.Now(),
+					},
+				}
+
+				_, err := db.UserCollection.UpdateOne(
+					context.Background(),
+					bson.M{"_id": user.ID},
+					update,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to update user %s roles: %w", user.ID.Hex(), err)
+				}
+
+				// Update the user in our slice
+				users[i] = user
+				break
+			}
+		}
+	}
+	return users, nil
+}
+
 // InitiateForgotPassword starts the forgot password process
 func (s *UserService) InitiateForgotPassword(email string) error {
 	// Find user by email

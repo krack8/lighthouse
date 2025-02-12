@@ -171,6 +171,14 @@ func InitializeClusters() {
 			log.Fatalf("failed to create combined token:  %v", err)
 		}
 
+		config.InitiateKubeClientSet()
+		// create the secret
+		secretToken, err := utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
+		if err != nil {
+			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
+		}
+		log.Println("Agent Token.", secretToken)
+
 		// Create token validations
 		agentToken := models.TokenValidation{
 			ID:          primitive.NewObjectID(),
@@ -231,14 +239,6 @@ func InitializeClusters() {
 		if err != nil {
 			log.Fatalf("Error creating default clusters: %v", err)
 		}
-
-		config.InitiateKubeClientSet()
-		// Fetch the secret
-		secretToken, err := utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
-		if err != nil {
-			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
-		}
-		log.Println("Agent Token.", secretToken)
 
 		log.Println("Default clusters and token validations created successfully")
 	} else {
