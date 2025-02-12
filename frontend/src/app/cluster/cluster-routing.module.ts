@@ -15,25 +15,6 @@ const routes: Routes = [
       toolbarTitle: 'Cluster List',
       permissions: ['*']
     }
-  },
-  {
-    path: 'create',
-    loadComponent: () => import('./cluster-form/cluster-form.component').then(m => m.ClusterFormComponent),
-    data: {
-      title: 'Create Agent Cluster',
-      toolbarTitle: 'Create Agent Cluster',
-      permissions: ['CREATE_CLUSTER']
-    }
-  },
-  {
-    path: ':clusterId/init',
-    loadComponent: () => import('./cluster-init/cluster-init.component').then(m => m.ClusterInitComponent),
-    resolve: { clusterDetails: ClusterResolver },
-    data: {
-      title: 'Cluster Initialization',
-      toolbarTitle: 'Cluster Initialization',
-      permissions: ['*']
-    }
   }
 ];
 

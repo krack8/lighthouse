@@ -1,4 +1,5 @@
 export type ClusterType = 'MASTER' | 'AGENT';
+export type ClusterSTATUS = 'PENDING' | 'CONNECTED';
 
 export interface ICluster {
   id: string;
@@ -7,7 +8,7 @@ export interface ICluster {
   master_cluster_id: string;
   resource_namespace: string;
   is_active: boolean;
-  status: string;
+  cluster_status: ClusterSTATUS;
   created_at: string;
   updated_at: string;
   created_by: string;

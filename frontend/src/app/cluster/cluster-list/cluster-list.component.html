@@ -15,14 +15,14 @@
             <div class="ml-auto flex items-center gap-2">
               <button
                 *hasAnyAuthority="'CREATE_CLUSTER'"
-                [routerLink]="['/clusters/create']"
+                (click)="routeToDetails()"
                 class="rounded-full pl-3"
                 mat-raised-button
                 color="primary"
               >
                 <span class="flex items-center">
                   <mat-icon class="mr-1" [icIcon]="icAddCircleOutline"></mat-icon>
-                  Create Agent Cluster
+                  Add Agent Cluster
                 </span>
               </button>
             </div>
@@ -34,7 +34,7 @@
                 <div
                   matRipple
                   class="cluster_card cluster_card--master"
-                  [routerLink]="['/clusters', cluster?.id, cluster.is_active ? 'k8s' : 'init']"
+                  (click)="routeToDetails(cluster)"
                 >
                   <div class="cluster_inner">
                     <div class="name_col flex items-center">
