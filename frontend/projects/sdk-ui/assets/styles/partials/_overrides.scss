@@ -1,0 +1,18 @@
+.ic-inline > svg {
+  display: inline-block;
+}
+
+ic-icon:not(.ic-inline) > svg,
+.iconify:not(.ic-inline) > svg {
+  margin: 0 auto;
+  vertical-align: middle;
+}
+
+.kc-scrollbar {
+  min-height: 0;
+}
+
+.kc-scrollblock {
+  position: fixed;
+  width: 100%;
+}

@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/log"
 	"os"
 	"time"
 )
@@ -57,4 +59,30 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 	}
 
 	return parsed, nil
+}
+
+func IsAgentAuthTokenValid(authToken string) bool {
+	tokenValidation, err := mongoUpdate.GetToken(context.Background(), authToken)
+	if err != nil {
+		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
+		return false
+	}
+
+	if tokenValidation == nil {
+		log.Logger.Errorw("Invalid Token", nil)
+		return false
+	}
+
+	_, clusterID, err := ValidateToken(authToken, tokenValidation)
+	if err != nil {
+		log.Logger.Errorw("token not valid", "err", err.Error())
+		return false
+	}
+
+	err = UpdateClusterStatusToActive(clusterID)
+	if err != nil {
+		log.Logger.Errorw("Failed to update cluster status", "err", err.Error())
+		return false
+	}
+	return true
 }

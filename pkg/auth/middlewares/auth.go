@@ -3,7 +3,8 @@ package middleware
 import (
 	"context"
 	"errors"
-	db "github.com/krack8/lighthouse/pkg/auth/config"
+	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
@@ -15,26 +16,29 @@ import (
 )
 
 // AuthMiddleware is used to verify if a user is authenticated and authorized to access a route
-func AuthMiddleware(route string, method string, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		// Extract the Authorization header
-		authHeader := r.Header.Get("Authorization")
+		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Authorization token required", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
+			c.Abort()
 			return
 		}
 
 		// Remove "Bearer " prefix from the token if present
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		if token == "" {
-			http.Error(w, "Authorization token is missing", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is missing"})
+			c.Abort()
 			return
 		}
 
 		// Validate token and extract claims
 		claims, err := utils.ValidateToken(token, os.Getenv("JWT_SECRET"))
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
 			return
 		}
 
@@ -42,40 +46,49 @@ func AuthMiddleware(route string, method string, next http.Handler) http.Handler
 		// Check if filter is not nil
 		if filter == nil {
 			// Handle the error
-			http.Error(w, "User not Found", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.Abort()
 			return
 		}
 
 		// FindOne with error handling
-		result := db.UserCollection.FindOne(context.Background(), filter)
+		result := config.UserCollection.FindOne(context.Background(), filter)
 
 		var user models.User
 		if err := result.Decode(&user); err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				http.Error(w, "User not Found", http.StatusUnauthorized)
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+				c.Abort()
 				return
 			}
-			http.Error(w, "User not Found", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.Abort()
 			return
 		}
-
+		// store username
+		c.Set("username", claims.Username)
 		if user.UserType == models.RegularUser {
 			// Collect all permissions of the user's roles
-			var permissions []string
+			var permissionEndpoints []string
 			for _, role := range user.Roles {
 				for _, perm := range role.Permissions {
-					permissions = append(permissions, perm.Route+":"+perm.Method)
+					// Iterate through each endpoint in the EndpointList
+					for _, endpoint := range perm.EndpointList {
+						permissionEndpoints = append(permissionEndpoints,
+							endpoint.Route+":"+endpoint.Method)
+					}
 				}
 			}
 
 			// Check if user has permission for the requested route and method
-			if !services.CheckPermission(permissions, route, method) {
-				http.Error(w, "Permission denied", http.StatusForbidden)
+			if !services.CheckPermission(permissionEndpoints, c.FullPath(), c.Request.Method) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "Permission denied"})
+				c.Abort()
 				return
 			}
 		}
 
-		// Forward to the next handler if authentication and authorization pass
-		next.ServeHTTP(w, r)
-	})
+		// Proceed to the next handler if authentication and authorization pass
+		c.Next()
+	}
 }

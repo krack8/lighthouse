@@ -1,0 +1,108 @@
+.item {
+  align-items: center;
+  box-sizing: border-box;
+  color: var(--sidenav-item-color);
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  min-height: 48px;
+  padding: var(--padding-8) var(--sidenav-item-padding);
+  position: relative;
+  text-decoration: none;
+  transition: var(--trans-ease-out);
+  user-select: none;
+  width: 100%;
+
+  &:hover,
+  &.active {
+    background: var(--sidenav-item-background-active);
+
+    .item-icon {
+      color: var(--sidenav-item-color-active);
+    }
+
+    .item-label {
+      color: var(--sidenav-item-color-active);
+    }
+
+    .item-dropdown-icon {
+      color: var(--sidenav-item-color-active);
+    }
+  }
+
+  &.open {
+    .item-dropdown-icon {
+      transform: rotate(90deg) !important;
+    }
+  }
+}
+
+@for $i from 1 through 6 {
+  :host(.item-level-#{$i}) .item {
+    background: var(--sidenav-item-dropdown-background);
+    padding-inline-start: calc(
+      var(--sidenav-item-icon-size) +
+        var(--sidenav-item-icon-gap) +
+        var(--sidenav-item-padding) +
+        (var(--sidenav-item-dropdown-gap) * #{$i - 1})
+    );
+
+    &:hover {
+      background: var(--sidenav-item-dropdown-background-hover);
+    }
+  }
+}
+
+.item-icon,
+.item-label,
+.item-dropdown-icon {
+  transition: inherit;
+}
+
+.item-icon {
+  color: var(--text-color);
+  font-size: var(--sidenav-item-icon-size);
+  height: var(--sidenav-item-icon-size);
+  margin-inline-end: var(--sidenav-item-icon-gap);
+  width: var(--sidenav-item-icon-size);
+}
+
+.item-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-badge {
+  border-radius: 9999px;
+  font-size: 11px;
+  line-height: 20px;
+  margin-inline-start: var(--padding-8);
+  padding: 0 7px;
+  text-align: center;
+}
+
+.item-dropdown-icon {
+  color: var(--sidenav-item-icon-color);
+  font-size: 18px;
+  height: 18px;
+  line-height: 18px;
+  margin-inline-start: var(--padding-8);
+  transform: rotate(0deg) !important;
+  width: 18px;
+}
+
+.item-dropdown {
+  overflow: hidden;
+}
+
+.subheading {
+  box-sizing: border-box;
+  color: var(--sidenav-item-color);
+  font: var(--font-caption);
+  margin-top: var(--padding);
+  padding: var(--padding-12) var(--padding);
+  text-transform: uppercase;
+  white-space: nowrap;
+}

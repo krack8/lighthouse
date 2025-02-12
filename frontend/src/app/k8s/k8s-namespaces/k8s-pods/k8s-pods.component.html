@@ -1,0 +1,257 @@
+<!-- Overview Counter -->
+
+<div class="flex flex-wrap -mx-2 mb-6">
+  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
+    <div class="kube-card">
+      <div class="_custom-label">
+        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Total || 0 }}</h3>
+        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+        <h6 class="color-text">Total</h6>
+      </div>
+    </div>
+  </div>
+  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
+    <div class="kube-card">
+      <div class="_custom-label">
+        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Running || 0 }}</h3>
+        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+        <h6 class="color-text">Running</h6>
+      </div>
+    </div>
+  </div>
+  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
+    <div class="kube-card">
+      <div class="_custom-label">
+        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Pending || 0 }}</h3>
+        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+        <h6 class="color-text">Pending</h6>
+      </div>
+    </div>
+  </div>
+  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
+    <div class="kube-card">
+      <div class="_custom-label">
+        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Failed || 0 }}</h3>
+        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+        <h6 class="color-text">Failed</h6>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Topbar -->
+<div class="flex items-center justify-between flex-wrap mb-4">
+  <div class="flex">
+    <h3 class="text-lg">Pods</h3>
+    <button matTooltip="Refresh" class="ml-2" (click)="reloadList()">
+      <mat-icon class="text-xl refresh-icon" [icIcon]="icRefresh"></mat-icon>
+    </button>
+  </div>
+  <div class="flex justify-between items-center">
+    <div *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" class="px-8">
+      <button mat-raised-button color="primary" class="btn primary float-right" type="button" (click)="onCreate()">
+        <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="24px"></ic-icon>
+        {{ title }}
+      </button>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <div class="filter-form">
+        <button (click)="onSearch()" mat-icon-button type="submit">
+          <mat-icon [icIcon]="icSearch">search</mat-icon>
+        </button>
+        <div (keyup.enter)="onSearch()">
+          <input
+            (input)="handleInputChange()"
+            class="outline-none"
+            [(ngModel)]="searchTerm"
+            type="text"
+            autocomplete="off"
+            placeholder="Search"
+          />
+        </div>
+        <button (click)="clearSearch()" *ngIf="searchTerm.length !== 0" mat-icon-button type="submit">
+          <mat-icon [icIcon]="icCross">cancel</mat-icon>
+        </button>
+      </div>
+
+      <div class="ml-6 mt-4">
+        <mat-form-field class="_k8s_search_form_field" appearance="outline">
+          <mat-label>Search By</mat-label>
+          <mat-select [(ngModel)]="searchBy">
+            <mat-option [value]="'name'">Name</mat-option>
+            <mat-option [value]="'label'">Label</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="flex items-center" *ngIf="loadingSpanner">
+  <mat-progress-spinner strokeWidth="2" diameter="30" mode="indeterminate"></mat-progress-spinner>
+  <span class="ml-4">Loading...</span>
+</div>
+<!-- Data List -->
+<ng-template [ngIf]="!loadingSpanner">
+  <div class="kube-table__wrapper" *ngIf="data?.length">
+    <table class="kube-table">
+      <thead>
+        <tr>
+          <th width="18%">Name</th>
+          <th width="12%" class="border-lef">Node</th>
+          <th width="18%" class="border-lef">Images</th>
+          <th width="8%" class="border-lef pe-1">Status</th>
+          <th width="8%" class="border-lef pe-1">Restart</th>
+          <th width="8%" class="border-lef">Running</th>
+          <th width="13%" class="border-lef text-center">
+            Limits
+            <table class="kube-table__inner w-full mt-1">
+              <tr class="border-0">
+                <td width="50%" matTooltip="CPU">
+                  <i class="icon-cpu ic-vpc-resource"></i>
+                </td>
+                <td class="border-0" width="50%" matTooltip="Memory">
+                  <i class="icon-memory ic-vpc-resource"></i>
+                </td>
+              </tr>
+            </table>
+          </th>
+          <th width="" class="text-center ps-1">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of data">
+          <td>
+            <a [routerLink]="item.metadata.name" [queryParams]="queryParams" class="details__link">{{ item?.metadata?.name }}</a>
+          </td>
+          <td>{{ item?.spec?.nodeName || '-' }}</td>
+          <td class="break-all">
+            <div *ngFor="let container of item?.spec?.containers">
+              {{ container?.image }}
+            </div>
+          </td>
+          <td class="pe-1">
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Running'"
+              matTooltip="Running"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/ic-active-deployment.gif"
+            />
+
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Succeeded'"
+              matTooltip="Succeeded"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/succeeded.svg"
+            />
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Failed'"
+              matTooltip="Failed"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/failed.svg"
+            />
+            <img
+              width="30px"
+              class="ic-app-status"
+              *ngIf="item?.status?.phase === 'Pending'"
+              matTooltip="Pending"
+              [matTooltipPosition]="'above'"
+              src="assets/img/icons/pending.svg"
+            />
+          </td>
+          <td class="ps-1">
+            <span *ngIf="item.status?.containerStatuses?.length">{{ item.status?.containerStatuses[0]?.restartCount || 0 }}</span>
+            <span *ngIf="!item.status?.containerStatuses">
+              <h3>-</h3>
+            </span>
+          </td>
+          <td>
+            <span *ngIf="item?.status?.phase === 'Running'; else notRunning"
+              >{{ containerRunning(item?.status?.containerStatuses) }} / {{ item?.status?.containerStatuses?.length }}</span
+            >
+
+            <ng-template #notRunning>
+              <h3 class="ml-2">-</h3>
+            </ng-template>
+          </td>
+          <td>
+            <table class="kube-table__inner w-full">
+              <tr>
+                <td width="50%" matTooltip="CPU" matTooltipPosition="above">
+                  {{ calcCpu(item?.spec?.containers, 'limits') }}
+                </td>
+                <td width="50%" matTooltip="Memory" matTooltipPosition="above">
+                  {{ calcMemory(item?.spec?.containers, 'limits') }}
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td class="text-center">
+            <button mat-icon-button [matMenuTriggerFor]="menu" class="k8s-menu-toggler">
+              <mat-icon [icIcon]="icMoreVert"></mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" xPosition="before" class="k8s-menu">
+              <a mat-menu-item [routerLink]="item.metadata.name" [queryParams]="queryParams">
+                <mat-icon [icIcon]="icInfo"></mat-icon>
+                <span>Details</span>
+              </a>
+
+              <div *ngIf="!item?.metadata?.ownerReferences">
+                <button *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" mat-menu-item (click)="onUpdate(item)">
+                  <mat-icon [icIcon]="icEdit"></mat-icon>
+                  <span>Edit</span>
+                </button>
+              </div>
+              <div *ngIf="!item?.metadata?.ownerReferences">
+                <button *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" mat-menu-item (click)="onDelete(item)">
+                  <mat-icon [icIcon]="icDelete"></mat-icon>
+                  <span>Delete</span>
+                </button>
+              </div>
+              <button *hasAnyAuthority="'VIEW_LOGS'" mat-menu-item (click)="viewLogs(item)">
+                <mat-icon [icIcon]="icLogs"></mat-icon>
+                <span>Logs</span>
+              </button>
+
+              <!-- View Labels -->
+              <button mat-menu-item [matMenuTriggerFor]="Labels"><mat-icon [icIcon]="icLabel"></mat-icon> Labels</button>
+
+              <mat-menu class="view-labels" #Labels="matMenu">
+                <div (click)="$event.stopPropagation()" class="p-2">
+                  <h3 class="mb-2">Labels</h3>
+
+                  <div class="kc-dataset">
+                    <h3 class="kc-dataset__value" *ngFor="let label of item?.metadata?.labels | keyvalue">
+                      <span class="kc-dataset-key">{{ label.key }}</span> : {{ label.value }}
+                    </h3>
+                    <h5 *ngIf="!item?.metadata?.labels">No labels found.</h5>
+                  </div>
+                </div>
+              </mat-menu>
+            </mat-menu>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="resourceToken.length !== 0" class="flex justify-center items-center">
+    <mat-progress-spinner
+      class="mx-6 mt-4"
+      *ngIf="loadMoreData"
+      strokeWidth="2"
+      diameter="40"
+      color="accent"
+      mode="indeterminate"
+    ></mat-progress-spinner>
+  </div>
+
+  <div *ngIf="!data?.length">
+    <h6 class="color-text text-center">There is nothing to display.</h6>
+  </div>
+</ng-template>

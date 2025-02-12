@@ -1,0 +1,116 @@
+.kc-style-light {
+  $sidenav-background: white;
+  $primary: #5bc4d6;
+  $secondary: #4164a9;
+  $info: #6d90c7;
+  $warn: #ffbb33;
+  $warn-dark: #ff8800;
+  $success: #36c678;
+  $success-light: #d2e1ff;
+  $grey: rgb(82, 81, 81);
+  $grey-dark: #212121;
+  $danger: #b1122a;
+  $slider: #4164a9;
+
+  // Color
+  --active-box-shadow-1: 5px 15px 40px rgba(211, 221, 239, 0.7);
+  --status-active: #caedf3;
+  --color-primary: #{$primary};
+  --color-secondary: #{$secondary};
+  --color-info: #{$info};
+  --color-warn: #{$warn};
+  --color-success: #{$success};
+  --color-success-light: #{$success-light};
+  --color-danger: #{$danger};
+  --color-white: #ffffff;
+  --color-kc-step-number-active: var(--color-secondary);
+  --color-kc-step-number: white;
+  --commit-item-shimmer-1: #f9fbff;
+  --commit-item-shimmer-2: #e9f0ff;
+  --btn-transparent-color: #1a202e;
+  --btn-transparent-background: #e4eaf1;
+  --text-color-1: #3d4857;
+  --color-tomato-red: #ff6347;
+  --text-hint: rgba(0, 0, 0, 0.6);
+
+  //temp
+  --box-container-bg: #d2e1ff;
+  --box-container-bg-2: #dae3f1;
+  --create-new-app-btn-bg: #d2e1ff;
+
+  --background-selected-repo: #f4f7fc;
+  --background-block-btn-details-box: #ffffff;
+  --background-resource-type: var(--color-primary);
+  --background-kc-step-number-active: #d2e1ff;
+  --background-info-name-box: #e9f0ff;
+  --background-pipeline-step-box: #ffffff;
+  --background-kc-step-number: var(--color-secondary);
+  --background-kc-stepper: #f9fbff;
+  --background: #ffffff;
+  --background-1: #f9fbff;
+  --background-2: #ffffff;
+  --background-3: #ffffff;
+  --background-4: #f7f9fe;
+  --background-5: #ffffff;
+  --background-active: #e9f0ff;
+  --border: #d2e1ff;
+  --border-active: #{$secondary};
+  --border-form-field: #d2e1ff;
+  --text-color: #323b6e;
+  --label-color: #d2e1ff;
+  --icon: #{$grey};
+  --background-close-btn: #d2e1ff;
+  --icon-primary: $primary;
+
+  --white: #ffffff;
+  --brand: #4164a9;
+  --brand-lighter: #d2e1ff;
+  --brand-2: #52bacc;
+  --brand-2-lighter: #caedf3;
+  --grey: #bdbdbd;
+  --grey-lighter: #e8eefb;
+
+  --navigation-background: var(--background-card);
+  --sidenav-background: #{$sidenav-background};
+  --step-bg: #1e232e;
+  --step-active-bg: var(--color-secondary);
+  --custom-tab-active: #e9f0ff;
+  --step-active-text: #ffffff;
+  --step-active-number: var(--color-secondary);
+  --input-bg: var(--background-4);
+  --input-border: var(--border);
+
+  // Sidenav
+  --toolbar-background: #f5f5f8;
+  --toolbar-border: #efefef;
+  --sidenav-color: var(--text-color);
+
+  // Sidenav Item
+  --sidenav-item-background-active: #{darken($sidenav-background, 2)};
+  --sidenav-item-color: var(--text-color);
+  --sidenav-item-color-active: #{$secondary};
+  --sidenav-item-dropdown-background: #{darken($sidenav-background, 2)};
+  --sidenav-item-dropdown-background-hover: #{darken($sidenav-background, 3)};
+  --sidenav-item-icon-color: #494b74;
+  --sidenav-item-icon-color-active: var(--color-primary-500);
+  --sidenav-toolbar-background: #{$sidenav-background};
+
+  --dialog-border-color: transparent;
+
+  // --background-card: #e2e8f0;
+  --background-card-2: #f5f5f8;
+
+  // Box
+  --box-background: #e2e8f0;
+
+  // Table Label
+  --background-table: #523f680b;
+  --background-table-th: #eeeeee;
+
+  // CDK Icon
+  --cdk-icon-bg: var(--border-active);
+  --cdk-icon-2-bg: var(--color-primary-50);
+  --cdk-icon-2-color: var(--border-active);
+
+  background: var(--background-base);
+}

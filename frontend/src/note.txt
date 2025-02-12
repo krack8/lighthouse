@@ -1,0 +1,11 @@
+# Helm App Catelog Icons
+# Helm App Role Base Permission
+# Add logs in resource, only kind=Pods contain logs 
+
+# repository new column new chart or column
+
+# Event message Copy and show full message [x]
+# helm template file view [x]
+# helm clusterid and cluster display name, clusterName [x]
+
+# embetted success, error ToastrService
