@@ -14,8 +14,8 @@ const routes: Routes = [
     data: {
       title: 'Cluster | Cluster Custom Resources Defination List',
       toolbarTitle: 'Cluster Custom Resources Defination',
-      breadcrumb: 'custom-resources-defination',
-      permissions: ['VIEW_K8S_CUSTOM_RESOURCE_DEFINATION']
+      breadcrumb: 'custom-resources-definition',
+      permissions: ['VIEW_K8S_CUSTOM_RESOURCE_DEFINITION']
     }
   },
   {
@@ -25,7 +25,7 @@ const routes: Routes = [
     data: {
       title: 'Cluster | Cluster Custom Resources List',
       toolbarTitle: 'Cluster Custom Resources',
-      breadcrumb: 'custom-resources-defination',
+      breadcrumb: 'custom-resources-definition',
       permissions: ['VIEW_K8S_CUSTOM_RESOURCES']
     }
   },
@@ -36,7 +36,7 @@ const routes: Routes = [
     data: {
       title: 'Cluster | Cluster Custom Resources Details',
       toolbarTitle: 'Cluster Custom Resources Details',
-      breadcrumb: 'custom-resources-defination',
+      breadcrumb: 'custom-resources-definition',
       permissions: ['VIEW_K8S_CUSTOM_RESOURCES']
     }
   }

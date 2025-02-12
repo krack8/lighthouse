@@ -56,7 +56,7 @@ const k8sRoutes: Routes = [
     loadChildren: () =>
       import('./k8s-cluster-custom-resources/k8s-cluster-custom-resources.module').then(m => m.K8sClusterCustomResourcesModule),
     data: {
-      permissions: ['VIEW_K8S_CUSTOM_RESOURCE_DEFINATION']
+      permissions: ['VIEW_K8S_CUSTOM_RESOURCE_DEFINITION']
     }
   }
 ];
