@@ -14,8 +14,7 @@ export class K8sResolver implements Resolve<any> {
   ) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
-    return this.clusterService.mcGetCluster(route.params['clusterId']).pipe(
-      map(res => res?.data),
+    return this.clusterService.getCluster(route.params['clusterId']).pipe(
       catchError(err => {
         this.toastr.error(err['message'], 'Not Exist');
         this.router.navigate(['/clusters']);

@@ -10,12 +10,14 @@ import { IFormPermission, IPermission } from '../../access-role-interface';
 import { AccessRoleService } from '../../access-role.service';
 import icSearch from '@iconify/icons-ic/search';
 import { ToolbarService } from '@sdk-ui/services/toolbar.service';
+import { StrReplacePipe } from '@shared-ui/pipes';
 
 @Component({
   selector: 'kc-access-role-form',
   templateUrl: './access-role-form.component.html',
   styleUrls: ['./access-role-form.component.scss'],
-  animations: [fadeInUp400ms, fadeInRight400ms]
+  animations: [fadeInUp400ms, fadeInRight400ms],
+  providers: [StrReplacePipe]
 })
 export class AccessRoleFormComponent implements OnInit {
   @ViewChild('stepper') private stepper!: MatStepper;
@@ -41,7 +43,8 @@ export class AccessRoleFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-    private toolbarService: ToolbarService
+    private toolbarService: ToolbarService,
+    private strReplacePipe: StrReplacePipe
   ) {}
 
   ngOnInit() {
@@ -128,7 +131,11 @@ export class AccessRoleFormComponent implements OnInit {
       .getAccessPermissions()
       .pipe(
         map((permissionList: IPermission[]) => {
-          return permissionList.map(permission => ({ ...permission, checked: false }));
+          return permissionList.map(permission => ({
+            ...permission,
+            label: this.strReplacePipe.transform(permission.name, '_'),
+            checked: false
+          }));
         })
       )
       .subscribe({
