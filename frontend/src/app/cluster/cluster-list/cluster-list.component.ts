@@ -35,7 +35,7 @@ export class ClusterListComponent implements OnInit {
 
   getCluster(): void {
     this.dataLoading = true;
-    this.clusterService.mcGetClusters().subscribe({
+    this.clusterService.getClusters().subscribe({
       next: data => {
         this.clusterList = data || [];
         this.dataLoading = false;
