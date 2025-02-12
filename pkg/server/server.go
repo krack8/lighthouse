@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/controllers"
@@ -27,7 +26,6 @@ func Start() {
 
 	// Setting API Base Path for HTTP APIs
 	httpRouter := r.Group("api/v1")
-	fmt.Println(cfg.IsAuth())
 	if cfg.IsAuth() {
 		// Apply the AuthMiddleware to the / routes
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())

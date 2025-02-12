@@ -34,3 +34,15 @@ Run Mode
 ``` 
 "PRODUCTION"/"DEVELOP"
 ```
+
+Go Test
+```azure
+cd pkg/k8s_test
+go test
+--  for specific func
+go test -run TestFunctionA
+-- coverage
+go tool cover --html=coverage.out
+-- to view in browser 
+go tool cover --html=coverage.out
+```
