@@ -9,9 +9,9 @@ import (
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 )
@@ -26,54 +26,75 @@ func main() {
 	groupName := "GroupA"
 	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
-
-	// Dial the controller's gRPC server.
-	conn, err := grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("Failed to dial controller: %v", err)
-	}
+	var conn *grpc.ClientConn
+	var err error
 	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
+		err = conn.Close()
 		if err != nil {
 
 		}
 	}(conn)
-
+	// Dial the controller's gRPC server.
+	for {
+		conn, err = grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+		if err != nil {
+			_log.Logger.Warnw("Failed to dial controller", "error", err)
+			continue
+		}
+		time.Sleep(1 * time.Second)
+		break
+	}
+	var stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]
 	client := pb.NewControllerClient(conn)
 	// Open the bi-directional stream.
-	stream, err := client.TaskStream(context.Background())
-	if err != nil {
-		log.Fatalf("Failed to create TaskStream: %v", err)
+	for {
+		stream, err = client.TaskStream(context.Background())
+		if err != nil {
+			_log.Logger.Warnw("Failed to create TaskStream: %v", "err", err)
+			continue
+		}
+		time.Sleep(1 * time.Second)
+		break
 	}
 
 	//Agent Auth Process
 	// Fetch the secret
-	secretToken, err := utils.GetSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"))
-	if err != nil {
-		log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
+	var secretToken string
+	for {
+		secretToken, err = utils.GetSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"))
+		if err != nil {
+			_log.Logger.Warnw("Failed to get secret", "err", err)
+			continue
+		}
+		time.Sleep(5 * time.Second)
+		break
 	}
 
 	// Use the processed token
 	// 1) Send WorkerIdentification
-	err = stream.Send(&pb.TaskStreamRequest{
-		Payload: &pb.TaskStreamRequest_WorkerInfo{
-			WorkerInfo: &pb.WorkerIdentification{
-				GroupName: groupName,
-				AuthToken: secretToken,
+	for {
+		err = stream.Send(&pb.TaskStreamRequest{
+			Payload: &pb.TaskStreamRequest_WorkerInfo{
+				WorkerInfo: &pb.WorkerIdentification{
+					GroupName: groupName,
+					AuthToken: secretToken,
+				},
 			},
-		},
-	})
-	if err != nil {
-		log.Fatalf("Failed to send worker info: %v", err)
+		})
+		if err != nil {
+			_log.Logger.Warnw("Failed to send worker info", "err", err)
+			continue
+		}
+		time.Sleep(2 * time.Second)
+		break
 	}
-
 	// We'll handle incoming messages in a separate goroutine.
 	go func() {
 		for {
 			in, err := stream.Recv()
 			if err != nil {
-				log.Printf("Stream Recv error (worker): %v", err)
+				_log.Logger.Infow("Stream Recv error (worker)", "err", err)
 				return
 			}
 
@@ -81,7 +102,7 @@ func main() {
 
 			case *pb.TaskStreamResponse_NewTask:
 				task := payload.NewTask
-				log.Printf("Worker received a new task: ID=%s, payload=%s",
+				_log.Logger.Infow("Worker received a new task: ID=%s, payload=%s",
 					task.Id, task.Payload)
 				go func(taskID, taskPayload string, task *pb.Task) {
 					taskMutex.Lock()
@@ -108,16 +129,16 @@ func main() {
 					}
 
 					// Send the result back to the controller.
-					if err := stream.Send(resultMsg); err != nil {
-						log.Printf("Failed to send task result: %v", err)
+					if err = stream.Send(resultMsg); err != nil {
+						_log.Logger.Errorw("Failed to send task result", "err", err)
 					}
 				}(task.Id, task.Payload, task)
 
 			case *pb.TaskStreamResponse_Ack:
-				log.Printf("Worker received an ACK from server: %s", payload.Ack.Message)
+				_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
 			default:
-				log.Printf("Unknown payload from server.")
+				_log.Logger.Infow("Unknown payload from server.", "payload", "default")
 			}
 		}
 	}()
