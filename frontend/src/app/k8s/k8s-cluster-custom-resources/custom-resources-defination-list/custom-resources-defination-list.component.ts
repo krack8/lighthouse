@@ -148,9 +148,6 @@ export class CustomResourcesDefinationListComponent implements OnInit, OnDestroy
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                this.getCrdList();
-              }, 6000);
               this.getCrdList();
             }
           },
@@ -163,12 +160,16 @@ export class CustomResourcesDefinationListComponent implements OnInit, OnDestroy
   }
 
   onUpdate(item: any): void {
+    this.isLoading = true;
     let crdDetails: any = {};
+    console.log('item', item);
+    const temp = item.name;
+    console.log('temp', temp);
     this.CustomResourcesService.getCustomResourceDefinationDetails(item?.name).subscribe(
       res => {
         if (res.status === 'success') {
+          this.isLoading = false;
           crdDetails = res.data;
-
           if (crdDetails) {
             const dialog = this.dialog.open(K8sUpdateComponent, {
               minHeight: '300px',

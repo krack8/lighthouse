@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import icArrowBack from '@iconify/icons-ic/arrow-back';
 import icEdit from '@iconify/icons-ic/twotone-edit';
 import icDelete from '@iconify/icons-ic/twotone-delete';
@@ -27,6 +27,7 @@ export class K8sClusterRoleBindingDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private clusterRoleBindingService: K8sClusterRoleBindingService,
     private toolbarService: ToolbarService,
+    private router: Router,
     public dialog: MatDialog,
     private toastr: ToastrService
   ) {}
@@ -68,11 +69,8 @@ export class K8sClusterRoleBindingDetailsComponent implements OnInit {
         this.clusterRoleBindingService.deleteClusterRoleBinding(item?.metadata?.name).subscribe(
           res => {
             if (res.status === 'success') {
+              this.router.navigate(['../'], { relativeTo: this.route});
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                this.getDetails();
-              }, 6000);
-              this.getDetails();
             }
           },
           err => {
