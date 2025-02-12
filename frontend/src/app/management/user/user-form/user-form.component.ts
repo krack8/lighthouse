@@ -34,7 +34,7 @@ export class UserFormComponent implements OnInit {
   isRolesLoading!: boolean;
   searchRoleTerm: string = '';
 
-  readonly systemRoleUsername: string = "SYSTEM"; // For Role
+  readonly systemRoleUsername: string = 'SYSTEM'; // For Role
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -104,7 +104,7 @@ export class UserFormComponent implements OnInit {
     this.isSubmitting = true;
     if (this.data) {
       const formData = this.userForm.getRawValue();
-      
+
       this._userService.mcUpdateUser(this.data.id, formData).subscribe({
         next: _ => {
           this.toastr.success('User Updated.');
@@ -143,7 +143,7 @@ export class UserFormComponent implements OnInit {
         if (!this.data) {
           const systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
           if (systemRole.id) {
-            this.userForm.get("role_ids").setValue([systemRole.id])
+            this.userForm.get('role_ids').setValue([systemRole.id]);
           }
         }
       },

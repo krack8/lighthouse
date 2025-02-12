@@ -69,7 +69,7 @@ export class K8sClusterRoleBindingDetailsComponent implements OnInit {
         this.clusterRoleBindingService.deleteClusterRoleBinding(item?.metadata?.name).subscribe(
           res => {
             if (res.status === 'success') {
-              this.router.navigate(['../'], { relativeTo: this.route});
+              this.router.navigate(['../'], { relativeTo: this.route });
               this.toastr.success('Delete initiated');
             }
           },

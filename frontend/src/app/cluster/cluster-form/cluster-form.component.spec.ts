@@ -8,9 +8,8 @@ describe('ClusterFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ ClusterFormComponent ]
-    })
-    .compileComponents();
+      imports: [ClusterFormComponent]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ClusterFormComponent);
     component = fixture.componentInstance;

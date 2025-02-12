@@ -55,10 +55,7 @@ const matModules = [
 ];
 
 @NgModule({
-  declarations: [
-    ClusterListComponent,
-    ClusterIntroComponent,
-  ],
+  declarations: [ClusterListComponent, ClusterIntroComponent],
   imports: [
     CommonModule,
     ClusterRoutingModule,

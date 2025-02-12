@@ -15,8 +15,8 @@
             <mat-panel-title>
               <h4>
                 <span class="required-text" *ngIf="cluster?.cluster_status === 'PENDING'">Required:</span>
-                <span class="executed-text" *ngIf="cluster?.status === 'CONNECTED'">Executed:</span> To add your kubernetes cluster
-                with this platform, please apply this helm command in your desired kubernetes cluster
+                <span class="executed-text" *ngIf="cluster?.status === 'CONNECTED'">Executed:</span> To add your kubernetes cluster with
+                this platform, please apply this helm command in your desired kubernetes cluster
               </h4>
             </mat-panel-title>
           </mat-expansion-panel-header>
@@ -29,7 +29,7 @@
               </div>
             </div>
             <p class="mb-1 mt-4">Install Krack8 Lighthouse Helm Chart</p>
-            <div class="command-item flex justify-between overflow-auto relative ">
+            <div class="command-item flex justify-between overflow-auto relative">
               <pre>{{ getProcessedHelmCommand() }}</pre>
               <div class="sticky top-3 right-0 z-10">
                 <cdk-clipboard class="ml-2 _clipboard" [cbContent]="chartData?.helm_command"></cdk-clipboard>

@@ -68,7 +68,7 @@ export class PvDetailsComponent implements OnInit {
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              this.router.navigate(['../'], { relativeTo: this.route});
+              this.router.navigate(['../'], { relativeTo: this.route });
             }
           },
           err => {

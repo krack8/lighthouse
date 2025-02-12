@@ -67,7 +67,7 @@ export class K8sStorageClassDetailsComponent implements OnInit {
         this.storageClassService.deleteStorageClass(item?.metadata?.name).subscribe(
           res => {
             if (res.status === 'success') {
-              this.router.navigate(['../'], { relativeTo: this.route});
+              this.router.navigate(['../'], { relativeTo: this.route });
               this.toastr.success('Delete initiated');
             }
           },

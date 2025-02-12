@@ -31,11 +31,7 @@
           <div class="cluster_items" [ngClass]="viewStyle + '_view'">
             <ng-container *ngFor="let cluster of clusterList">
               <div *ngIf="cluster?.currentState !== 'DELETED'" class="cluster_wrap p-4 rounded border-dotted border-2 border-sky-900">
-                <div
-                  matRipple
-                  class="cluster_card cluster_card--master"
-                  (click)="routeToDetails(cluster)"
-                >
+                <div matRipple class="cluster_card cluster_card--master" (click)="routeToDetails(cluster)">
                   <div class="cluster_inner">
                     <div class="name_col flex items-center">
                       <img width="55px" src="assets/img/icons/cluster-icon-2.svg" alt="" />

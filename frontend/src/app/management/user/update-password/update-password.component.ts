@@ -97,7 +97,7 @@ export class UpdatePasswordComponent implements OnInit {
     const payload = {
       currentPassword: formData?.currentPassword,
       newPassword: formData?.newPassword
-    }
+    };
     this._userService.mcResetUserPassword(this.data?.id, payload).subscribe({
       next: _ => {
         this.toastr.success('Password updated successfully!');
