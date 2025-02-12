@@ -1,0 +1,65 @@
+<kc-page-layout>
+  <kc-page-layout-content>
+    <form [formGroup]="clusterForm" (ngSubmit)="createCluster()">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4">
+        <mat-form-field appearance="outline" class="custom-mat-form-field">
+          <mat-label>
+            <span>Cluster Name</span>
+            <mat-icon
+              class="info-icon"
+              [icIcon]="icInfo"
+              matTooltip="Provide a unique name to identify the cluster"
+              matTooltipPosition="above"
+            ></mat-icon>
+          </mat-label>
+          <input type="text" formControlName="name" matInput required />
+          <mat-hint>Cluster name should be letter lowercase, number, hyphen, and name start with letter.</mat-hint>
+          <mat-error *ngIf="clusterForm.get('name').touched && clusterForm.get('name').hasError('required')">
+            Cluster name is required!
+          </mat-error>
+          <mat-error
+            *ngIf="
+              clusterForm.get('name').touched &&
+              (clusterForm.get('name').hasError('minlength') ||
+                clusterForm.get('name').hasError('pattern') ||
+                clusterForm.get('name').hasError('whitespace'))
+            "
+          >
+            Cluster name should be
+            {{ clusterForm.get('name')?.errors?.minlength?.requiredLength }} or more character, no whitespace, and no special
+            characters except underscore (-)
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="custom-mat-form-field">
+          <mat-label>
+            <span>Namespace</span>
+            <mat-icon
+              class="info-icon"
+              [icIcon]="icInfo"
+              matTooltip="This Kubernetes namespace will be used for deploying all necessary system components; the namespace will be created if it doesn't exist"
+              matTooltipPosition="above"
+            ></mat-icon>
+          </mat-label>
+          <input type="text" formControlName="namespace" matInput />
+          <mat-error
+            *ngIf="
+              clusterForm.get('namespace').touched &&
+              (clusterForm.get('namespace').hasError('minlength') ||
+                clusterForm.get('namespace').hasError('pattern') ||
+                clusterForm.get('namespace').hasError('whitespace'))
+            "
+          >
+            Namespace should be
+            {{ clusterForm.get('namespace')?.errors?.minlength?.requiredLength }} or more character, no whitespace, and no special
+            characters except underscore (-)
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <button class="submit-btn mt-4" color="primary" mat-raised-button type="submit" [disabled]="clusterForm.invalid">
+        <span *ngIf="!isSubmitting">Create Cluster</span>
+        <mat-progress-bar *ngIf="isSubmitting" mode="indeterminate" color="accent" class="max-w-20"></mat-progress-bar>
+      </button>
+    </form>
+  </kc-page-layout-content>
+</kc-page-layout>

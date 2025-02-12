@@ -77,7 +77,7 @@
                                   [value]="permission.id"
                                   [ngModelOptions]="{ standalone: true }"
                                   (ngModelChange)="updateAllComplete()"
-                                  ><span class="ml-2">{{ permission.name | strReplace: '_' }}</span></mat-checkbox
+                                  ><span class="ml-2">{{ permission.label }}</span></mat-checkbox
                                 >
                               </td>
                               <td>
@@ -112,7 +112,7 @@
                     <div class="prev-category__permission">
                       <span *ngFor="let __permission of permissions">
                         <div *ngIf="__permission.checked" class="permission-chip mt-2">
-                          {{ __permission.name | strReplace: '_' }}
+                          {{ __permission.label }}
                         </div>
                       </span>
                     </div>

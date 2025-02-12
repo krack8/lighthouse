@@ -1,0 +1,30 @@
+<kc-page-layout>
+  <kc-page-layout-content>
+
+    <mat-accordion class="helm-chart-accordion mt-5 rounded" *ngIf="!clusterDetails.is_active">
+      <mat-expansion-panel class="rounded bg-transparent" [expanded]="clusterDetails?.status === 'PENDING'">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <h4 class="text-lg">
+              <span class="required-text" *ngIf="clusterDetails?.status === 'PENDING'">Required:</span>
+              <span class="executed-text" *ngIf="clusterDetails?.status !== 'PENDING'">Executed:</span> To On-Board your kubernetes cluster with
+              this platform, please apply this helm command in your desired kubernetes cluster
+            </h4>
+          </mat-panel-title>
+          <!-- <mat-panel-description>
+            Currently I am {{panelOpenState ? 'open' : 'closed'}}
+        </mat-panel-description> -->
+        </mat-expansion-panel-header>
+        <div class="pt-4">
+          <div class="flex justify-between overflow-auto relative">
+            <!-- <pre>{{ getProcessedHelmCommand() }}</pre> -->
+            <div class="sticky top-3 right-0 z-10">
+              <cdk-clipboard class="ml-2" [cbContent]=""></cdk-clipboard>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+    
+  </kc-page-layout-content>
+</kc-page-layout>

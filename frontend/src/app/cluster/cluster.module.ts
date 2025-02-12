@@ -8,10 +8,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ClusterDetailsComponent } from './cluster-details/cluster-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { OverviewComponent } from './cluster-details/overview/overview.component';
-import { SettingsComponent } from './cluster-details/settings/settings.component';
 import { CdkStepperModule } from '@angular/cdk/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -22,7 +19,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
-import { LogsComponent } from './cluster-details/logs/logs.component';
 import { ClusterIntroComponent } from './cluster-intro/cluster-intro.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { Ng2SearchPipeModule } from 'ng2-search-filter';
@@ -33,12 +29,9 @@ import { IconModule } from '@visurel/iconify-angular';
 import { SafeHtmlModule } from '@sdk-ui/pipes/safe-html/safe-html.module';
 import { ClusterResolver } from './cluster.resolver';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ConfirmDeleteDialogueComponent } from './cluster-details/settings/confirm-delete-dialogue/confirm-delete-dialogue.component';
-import { ClusterUpdateFormComponent } from './cluster-details/settings/cluster-update-form/cluster-update-form.component';
 import { CdkHorizontalStepperModule } from '@cdk-ui/horizontal-stepper';
 import { CdkClipboardModule } from '@cdk-ui/clipboard';
 import { CdkIconModule } from '@cdk-ui/icon';
-import { ClusterReleaseNoteDialogComponent } from './cluster-details/overview/cluster-release-dialogs/cluster-release-note-dialog/cluster-release-note-dialog.component';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime-ex';
 import { CdkHintModule } from '@cdk-ui/hint';
@@ -64,14 +57,7 @@ const matModules = [
 @NgModule({
   declarations: [
     ClusterListComponent,
-    ClusterDetailsComponent,
-    OverviewComponent,
-    SettingsComponent,
-    LogsComponent,
     ClusterIntroComponent,
-    ConfirmDeleteDialogueComponent,
-    ClusterUpdateFormComponent,
-    ClusterReleaseNoteDialogComponent
   ],
   imports: [
     CommonModule,
