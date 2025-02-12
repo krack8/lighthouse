@@ -9,9 +9,17 @@ type Status string
 // Agent token Status represents
 type TokenStatus string
 
+// Mongo data Status represents
+type ClusterStatus string
+
 const (
 	MASTER ClusterType = "MASTER"
 	AGENT  ClusterType = "AGENT"
+)
+
+const (
+	PENDING   ClusterStatus = "PENDING"
+	CONNECTED ClusterStatus = "CONNECTED"
 )
 
 const (

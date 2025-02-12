@@ -6,6 +6,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/auth/enum"
 	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -155,23 +156,6 @@ func InitializeClusters() {
 	}
 
 	if clusterCount == 0 {
-		/*//Initialize crypto service using environment variable or generated keys
-		crypto, err := utils.NewCryptoImpl()
-		if err != nil {
-			fmt.Println("Error initializing crypto:", err)
-			return
-		}
-
-		storage := services.NewMongoTokenStorage()
-		// Create token manager
-		tokenManager := services.NewTokenManager(storage, crypto)
-		// Generate token for a new agent cluster ID
-		agentClusterID := primitive.NewObjectID()
-		token, err := tokenManager.CreateToken(agentClusterID)
-		if err != nil {
-			fmt.Println("Error generating token:", err)
-			return
-		}*/
 		agentClusterID := primitive.NewObjectID()
 		// Generate a raw token
 		crypto, _ := utils.NewCryptoImpl()
@@ -211,31 +195,32 @@ func InitializeClusters() {
 
 		// Create master cluster
 		masterCluster := models.Cluster{
-			ID:          primitive.NewObjectID(),
-			Name:        "master-cluster",
-			ClusterType: enum.MASTER,
-			Status:      enum.VALID,
-			CreatedBy:   string(enum.SYSTEM),
-			UpdatedBy:   string(enum.SYSTEM),
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			IsActive:    true,
+			ID:            primitive.NewObjectID(),
+			Name:          "master-cluster",
+			ClusterType:   enum.MASTER,
+			Status:        enum.VALID,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
+			ClusterStatus: enum.CONNECTED,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+			IsActive:      true,
 		}
 
 		// Create agent cluster
 		//agentToken := utils.GenerateSecureToken(32)
 		agentCluster := models.Cluster{
-			ID:                agentClusterID,
-			Name:              "agent-cluster",
-			ClusterType:       enum.AGENT,
-			Token:             agentToken,
-			Status:            enum.VALID,
-			ResourceNamespace: os.Getenv("AGENT_SECRET_NAMESPACE"),
-			CreatedBy:         string(enum.SYSTEM),
-			UpdatedBy:         string(enum.SYSTEM),
-			CreatedAt:         time.Now(),
-			UpdatedAt:         time.Now(),
-			IsActive:          true,
+			ID:            agentClusterID,
+			Name:          "agent-cluster",
+			ClusterType:   enum.AGENT,
+			Token:         agentToken,
+			Status:        enum.VALID,
+			ClusterStatus: enum.CONNECTED,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+			IsActive:      true,
 		}
 
 		masterCluster.MasterClusterId = masterCluster.ID.Hex()
@@ -246,6 +231,14 @@ func InitializeClusters() {
 		if err != nil {
 			log.Fatalf("Error creating default clusters: %v", err)
 		}
+
+		config.InitiateKubeClientSet()
+		// Fetch the secret
+		secretToken, err := utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
+		if err != nil {
+			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
+		}
+		log.Println("Agent Token.", secretToken)
 
 		log.Println("Default clusters and token validations created successfully")
 	} else {

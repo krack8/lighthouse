@@ -49,7 +49,7 @@ func main() {
 
 	//Agent Auth Process
 	// Fetch the secret
-	secretToken, err := utils.GetOrCreateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("AGENT_SECRET_NAMESPACE"), os.Getenv("AGENT_AUTH_TOKEN"))
+	secretToken, err := utils.GetSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"))
 	if err != nil {
 		log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 	}

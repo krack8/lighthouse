@@ -91,13 +91,13 @@ func UpdateClusterStatusToActive(clusterID primitive.ObjectID) error {
 	_, err := db.ClusterCollection.UpdateOne(
 		context.Background(),
 		bson.M{"_id": clusterID},
-		bson.M{"$set": bson.M{"is_active": true}},
+		bson.M{"$set": bson.M{"is_active": true, "cluster_status": enum.CONNECTED}},
 	)
 	return err
 }
 
 // CreateCluster creates a new cluster and inserts it into the database
-func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId string) (*models.Cluster, error) {
+func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*models.Cluster, error) {
 	agentClusterID := primitive.NewObjectID()
 
 	// Generate a raw token
@@ -136,18 +136,18 @@ func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId str
 
 	// Create a new cluster
 	cluster := &models.Cluster{
-		ID:                agentClusterID,
-		Name:              name,
-		ClusterType:       enum.AGENT, // Set default cluster type to Agent
-		Token:             agentToken,
-		MasterClusterId:   masterClusterId,
-		IsActive:          false,
-		ResourceNamespace: namespace,
-		Status:            enum.VALID,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
-		CreatedBy:         string(enum.SYSTEM),
-		UpdatedBy:         string(enum.SYSTEM),
+		ID:              agentClusterID,
+		Name:            name,
+		ClusterType:     enum.AGENT, // Set default cluster type to Agent
+		Token:           agentToken,
+		MasterClusterId: masterClusterId,
+		IsActive:        false,
+		Status:          enum.VALID,
+		ClusterStatus:   enum.PENDING,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		CreatedBy:       string(enum.SYSTEM),
+		UpdatedBy:       string(enum.SYSTEM),
 	}
 
 	// Insert the new cluster into the MongoDB collection
@@ -157,4 +157,20 @@ func (s *ClusterService) CreateAgentCluster(name, namespace, masterClusterId str
 	}
 
 	return cluster, nil
+}
+
+// GetMainCluster retrieves a cluster main cluster
+func (s *ClusterService) GetMainCluster() (*models.Cluster, error) {
+
+	var cluster models.Cluster
+	filter := bson.M{"cluster_type": enum.MASTER}
+	result := db.ClusterCollection.FindOne(context.Background(), filter)
+	if err := result.Decode(&cluster); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("cluster not found")
+		}
+		return nil, fmt.Errorf("failed to fetch cluster: %w", err)
+	}
+
+	return &cluster, nil
 }
