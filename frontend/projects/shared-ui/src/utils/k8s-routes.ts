@@ -55,7 +55,7 @@ export const k8sRoutesPermissionMap = new Map<string, string>([
   ['controller-revision', 'VIEW_NAMESPACE_CONTROLLER_REVISION'],
   ['PDB', 'VIEW_NAMESPACE_PDB'],
   ['replication-controller', 'VIEW_NAMESPACE_REPLICATION_CONTROLLER'],
-  ['endpoints', 'VIEW_NAMESPACE_ENDPOINT'],
+  ['endpoints', 'VIEW_NAMESPACE_ENDPOINTS'],
   ['endpoints-slice', 'VIEW_NAMESPACE_ENDPOINT_SLICE'],
   ['virtual-service', 'VIEW_NAMESPACE_VIRTUAL_SERVICE']
 ]);

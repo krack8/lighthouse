@@ -45,7 +45,7 @@ export class CustomResourcesDefinationListComponent implements OnInit, OnDestroy
   isLoading!: boolean;
   searchTerm = '';
   searchBy = 'name';
-  title: any = 'Custom Resource Defination';
+  title: any = 'Custom Resource Definition';
   queryParams: any;
   resourceToken: string = '';
   loadMoreData: boolean = false;
