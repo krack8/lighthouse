@@ -73,18 +73,18 @@ export class UserFormComponent implements OnInit {
         user_is_active: this.data.user_is_active
       };
 
-      if (this.data.user_type === 'USER') {
-        const _roleList = this.data.roles;
-        let roles = [];
-        if (_roleList && _roleList.length) {
-          roles = this.data.roles.map((item: any) => item.id);
-          payload['role_ids'] = roles;
-        }
-        this.userForm.addControl('role_ids', this.fb.control(roles));
-        this.getRoles();
-      } else {
-        this.userForm.removeControl('role_ids');
-      }
+      // if (this.data.user_type === 'USER') {
+      //   const _roleList = this.data.roles;
+      //   let roles = [];
+      //   if (_roleList && _roleList.length) {
+      //     roles = this.data.roles.map((item: any) => item.id);
+      //     payload['role_ids'] = roles;
+      //   }
+      //   this.userForm.addControl('role_ids', this.fb.control(roles));
+      //   this.getRoles();
+      // } else {
+      //   this.userForm.removeControl('role_ids');
+      // }
       this.userForm.patchValue(payload);
       this.userForm.get('username').disable();
     }
@@ -96,8 +96,8 @@ export class UserFormComponent implements OnInit {
       this.userForm.removeControl('role_ids');
       return;
     }
-    this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
-    if (!this.roleList?.length) this.getRoles();
+    // this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
+    // if (!this.roleList?.length) this.getRoles();
   }
 
   onSubmit(): void {

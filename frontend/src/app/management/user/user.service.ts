@@ -34,4 +34,8 @@ export class UserService {
   mcAssignRoles(payload: Record<string, any>): Observable<any> {
     return this._httpService.post(endpoints.ASSIGN_ROLE, payload);
   }
+
+  mcResetUserPassword(userId: string, payload: any): Observable<any> {
+    return this._httpService.post(Utils.formatString(endpoints.RESET_PASSWORD, userId), payload);
+  }
 }

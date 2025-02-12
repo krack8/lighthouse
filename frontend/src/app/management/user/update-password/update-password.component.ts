@@ -18,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { IconModule } from '@visurel/iconify-angular';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { RequesterService } from '@core-ui/services';
 
 @Component({
   selector: 'kc-update-password',
@@ -47,6 +48,8 @@ export class UpdatePasswordComponent implements OnInit {
   isSubmitting!: boolean;
   inputType = 'password';
   visible = false;
+  userData: any;
+  isAdmin: boolean = false;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -55,20 +58,26 @@ export class UpdatePasswordComponent implements OnInit {
     private _userService: UserService,
     public toastr: ToastrService,
     private cd: ChangeDetectorRef,
+    public requester: RequesterService,
     public dialogRef: MatDialogRef<UpdatePasswordComponent>
   ) {}
 
   ngOnInit(): void {
+    this.userData = this.requester.get();
     this.coreConfig = this.coreConfigService.generalInfoSnapshot;
     this.userForm = this.fb.group(
       {
-        password: ['', [Validators.required, Validators.minLength(this.coreConfig?.passwordLength || 8), PasswordValidator]],
+        currentPassword: ['', [Validators.required, Validators.minLength(this.coreConfig?.passwordLength || 8), PasswordValidator]],
+        newPassword: ['', [Validators.required, Validators.minLength(this.coreConfig?.passwordLength || 8), PasswordValidator]],
         passwordConfirm: ['', Validators.required]
       },
       {
-        validator: MustMatchValidator('password', 'passwordConfirm')
+        validator: MustMatchValidator('newPassword', 'passwordConfirm')
       }
     );
+    if (this.userData?.userInfo?.user_type === 'ADMIN') {
+      this.userForm.removeControl('currentPassword');
+    }
   }
   toggleVisibility() {
     if (this.visible) {
@@ -85,7 +94,11 @@ export class UpdatePasswordComponent implements OnInit {
   onSubmit() {
     this.isSubmitting = true;
     const formData = this.userForm.getRawValue();
-    this._userService.mcUpdateUser(this.data?.id, { password: formData?.password }).subscribe({
+    const payload = {
+      currentPassword: formData?.currentPassword,
+      newPassword: formData?.newPassword
+    }
+    this._userService.mcResetUserPassword(this.data?.id, payload).subscribe({
       next: _ => {
         this.toastr.success('Password updated successfully!');
         this.dialogRef.close(true);
