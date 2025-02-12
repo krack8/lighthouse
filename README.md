@@ -24,10 +24,15 @@ protoc --go_out=. --go-grpc_out=. pkg/common/pb/PROTO_FILE_NAME
 Noauth Mode
 ``` 
 environment variables
-// Noauth enabled 
-NO_AUTH="TRUE"
-// Noauth disabled
-NO_AUTH="FALSE"
+// auth enabled 
+AUTH_ENABLED="TRUE"
+// auth disabled
+AUTH_ENABLED="FALSE"
+```
+
+Run Mode
+``` 
+"PRODUCTION"/"DEVELOP"
 ```
 
 Go Test

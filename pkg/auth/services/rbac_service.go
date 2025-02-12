@@ -101,9 +101,14 @@ func (r *RbacService) AssignRole(username string, roleIds []string) error {
 func CheckPermission(permissions []string, route, method string) bool {
 	// Normalize the input
 	method = strings.ToUpper(method)
-	permissionKey := route + ":" + method
 
-	// Check for exact matches first
+	// Replace any path variables (e.g., :id) with @
+	normalizedRoute := normalizeRoute(route)
+	permissionKey := normalizedRoute + ":" + method
+
+	fmt.Printf("Incoming request permission key: %s\n", permissionKey)
+
+	// Check for exact matches or matches with normalized routes
 	for _, perm := range permissions {
 		if strings.EqualFold(perm, permissionKey) {
 			return true
@@ -111,6 +116,17 @@ func CheckPermission(permissions []string, route, method string) bool {
 	}
 
 	return false
+}
+
+// Helper function to normalize the route
+func normalizeRoute(route string) string {
+	segments := strings.Split(route, "/")
+	for i, segment := range segments {
+		if strings.HasPrefix(segment, ":") {
+			segments[i] = "@" // Replace path variables with @
+		}
+	}
+	return strings.Join(segments, "/")
 }
 
 // GetAllRoles retrieves all roles
@@ -265,14 +281,18 @@ func (r *RbacService) GetPermissionsByCategory(category string) ([]models.Permis
 	return permissions, nil
 }
 
-func (r *RbacService) GetPermissionsByUserType(username string) (*dto.PermissionResponse, error) {
+func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResponse, error) {
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
-	user, _ := GetUserByUsername(username)
 
+	// Fetch user from the database
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
+	}
 	if user == nil {
-		return nil, errors.New("user do not exists")
+		return nil, errors.New("user does not exist")
 	}
 
 	// Initialize response
@@ -281,51 +301,38 @@ func (r *RbacService) GetPermissionsByUserType(username string) (*dto.Permission
 		Cluster:    make([]dto.PermissionDTO, 0),
 		Management: make([]dto.PermissionDTO, 0),
 		HelmApps:   make([]dto.PermissionDTO, 0),
+		// Add new categories here as needed
 	}
 
-	// Create filter for Valid permissions
-	filter := bson.M{
-		"status": "V",
+	// Process roles and permissions
+	permissionMap := map[enum.PermissionCategory]*[]dto.PermissionDTO{
+		enum.DEFAULT:    &response.Default,
+		enum.CLUSTER:    &response.Cluster,
+		enum.MANAGEMENT: &response.Management,
+		enum.HELM:       &response.HelmApps,
+		// Map new categories here
 	}
 
-	// Fetch permissions from database
-	cursor, err := db.PermissionCollection.Find(context.Background(), filter)
-	if err != nil {
-		return nil, err
-	}
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
-		if err != nil {
+	seenPermissions := make(map[primitive.ObjectID]bool) // To avoid duplicates
 
+	for _, role := range user.Roles {
+		for _, perm := range role.Permissions {
+			// Skip invalid or duplicate permissions
+			if perm.Status != enum.VALID || seenPermissions[perm.ID] {
+				continue
+			}
+			seenPermissions[perm.ID] = true
+
+			// Create DTO and group by category
+			dtoRole := dto.PermissionDTO{
+				ID:          perm.ID,
+				Name:        perm.Name,
+				Description: perm.Description,
+			}
+			if categoryGroup, exists := permissionMap[perm.Category]; exists {
+				*categoryGroup = append(*categoryGroup, dtoRole)
+			}
 		}
-	}(cursor, context.Background())
-
-	// Process permissions
-	var permissions []models.Permission
-	if err := cursor.All(context.Background(), &permissions); err != nil {
-		return nil, err
-	}
-
-	// Group permissions by category
-	for _, perm := range permissions {
-		dto := dto.PermissionDTO{
-			ID:          perm.ID,
-			Name:        perm.Name,
-			Description: perm.Description,
-		}
-
-		switch perm.Category {
-		case enum.DEFAULT:
-			response.Default = append(response.Default, dto)
-		case enum.CLUSTER:
-			response.Cluster = append(response.Cluster, dto)
-		case enum.MANAGEMENT:
-			response.Management = append(response.Management, dto)
-		case enum.HELM:
-			response.HelmApps = append(response.HelmApps, dto)
-		}
-
-		//add category here
 	}
 
 	return response, nil
@@ -402,7 +409,12 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	if err != nil {
 		return nil, 0, err
 	}
-	defer countCursor.Close(ctx)
+	defer func(countCursor *mongo.Cursor, ctx context.Context) {
+		err := countCursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(countCursor, ctx)
 
 	// Get total count
 	var countResult []bson.M
@@ -426,7 +438,12 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	if err != nil {
 		return nil, 0, err
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Decode results
 	var users []models.User
@@ -435,4 +452,19 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	}
 
 	return users, total, nil
+}
+
+// GetRoleByName fetch roles
+func GetRoleByName(name string) ([]models.Role, error) {
+	var roles []models.Role
+	var singleRole models.Role
+	filter := bson.M{"name": name}
+	if err := db.RoleCollection.FindOne(context.Background(), filter).Decode(&singleRole); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("role not found")
+		}
+		return nil, fmt.Errorf("failed to fetch role: %w", err)
+	}
+	roles = append(roles, singleRole)
+	return roles, nil
 }

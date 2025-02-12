@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
@@ -22,16 +24,21 @@ func main() {
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
-	authToken := "my-secret"
+	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
 
 	// Dial the controller's gRPC server.
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to dial controller: %v", err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
 
 	client := pb.NewControllerClient(conn)
 	// Open the bi-directional stream.
@@ -40,12 +47,20 @@ func main() {
 		log.Fatalf("Failed to create TaskStream: %v", err)
 	}
 
+	//Agent Auth Process
+	// Fetch the secret
+	secretToken, err := utils.GetOrCreateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("AGENT_SECRET_NAMESPACE"), os.Getenv("AGENT_AUTH_TOKEN"))
+	if err != nil {
+		log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
+	}
+
+	// Use the processed token
 	// 1) Send WorkerIdentification
 	err = stream.Send(&pb.TaskStreamRequest{
 		Payload: &pb.TaskStreamRequest_WorkerInfo{
 			WorkerInfo: &pb.WorkerIdentification{
 				GroupName: groupName,
-				AuthToken: authToken,
+				AuthToken: secretToken,
 			},
 		},
 	})

@@ -293,7 +293,7 @@ func (rbac *RbacController) GetUserPermissionsHandler(c *gin.Context) {
 	// username is of type interface{}, so cast it to string
 	usernameStr := username.(string)
 	// Get permissions
-	permissions, err := rbac.RbacService.GetPermissionsByUserType(usernameStr)
+	permissions, err := rbac.RbacService.GetPermissionsByUser(usernameStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving permissions"})
 		return
