@@ -158,3 +158,19 @@ func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*mode
 
 	return cluster, nil
 }
+
+// GetMainCluster retrieves a cluster main cluster
+func (s *ClusterService) GetMainCluster() (*models.Cluster, error) {
+
+	var cluster models.Cluster
+	filter := bson.M{"cluster_type": enum.MASTER}
+	result := db.ClusterCollection.FindOne(context.Background(), filter)
+	if err := result.Decode(&cluster); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("cluster not found")
+		}
+		return nil, fmt.Errorf("failed to fetch cluster: %w", err)
+	}
+
+	return &cluster, nil
+}

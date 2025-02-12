@@ -100,3 +100,15 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
 }
+
+// GetClusterHandler handles fetching a Cluster by ID.
+func (uc *ClusterController) GetMainClusterHandler(c *gin.Context) {
+
+	Cluster, err := uc.ClusterService.GetMainCluster()
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, Cluster)
+}
