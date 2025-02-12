@@ -29,7 +29,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
 	httpRg.POST("/clusters", authApi.ClusterController.CreateAgentClusterHandler)
 	httpRg.GET("/clusters/:id/details", authApi.ClusterController.GetClusterHelmDetailsHandler)
-	httpRg.GET("/clusters/main", authApi.ClusterController.GetMainClusterHandler)
+	httpRg.GET("/clusters/master", authApi.ClusterController.GetMainClusterHandler)
 
 	// RBAC routes
 	httpRg.POST("/roles", authApi.RbacController.CreateRoleHandler)
