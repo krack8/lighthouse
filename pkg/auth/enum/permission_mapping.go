@@ -44,10 +44,10 @@ var PermissionDefinitions = map[PermissionName]PermissionDefinition{
 		Description: DELETE_NAMESPACE_DESCRIPTION,
 		Category:    CLUSTER,
 	},
-	MANAGE_NAMESPACE: {
+	/*MANAGE_NAMESPACE: {
 		Description: MANAGE_NAMESPACE_DESCRIPTION,
 		Category:    CLUSTER,
-	},
+	},*/
 	VIEW_DEPLOYMENT: {
 		Description: VIEW_DEPLOYMENT_DESCRIPTION,
 		Category:    CLUSTER,
@@ -272,10 +272,10 @@ var PermissionDefinitions = map[PermissionName]PermissionDefinition{
 		Description: VIEW_LOGS_DESCRIPTION,
 		Category:    CLUSTER,
 	},
-	VIEW_ENDPOINTS: {
+	/*VIEW_ENDPOINTS: {
 		Description: VIEW_ENDPOINTS_DESCRIPTION,
 		Category:    CLUSTER,
-	},
+	},*/
 	MANAGE_ENDPOINTS: {
 		Description: MANAGE_ENDPOINTS_DESCRIPTION,
 		Category:    CLUSTER,
