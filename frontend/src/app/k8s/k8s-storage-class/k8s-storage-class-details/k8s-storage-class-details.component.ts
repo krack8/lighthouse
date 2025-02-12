@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import icEdit from '@iconify/icons-ic/twotone-edit';
-import icDelete from '@iconify/icons-ic/twotone-delete';
-import icArrowBack from '@iconify/icons-ic/arrow-back';
-import { K8sStorageClassService } from '../k8s-storage-class.service';
-import { ToolbarService } from '@sdk-ui/services/toolbar.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ToastrService } from '@sdk-ui/ui';
+import { ActivatedRoute, Router } from '@angular/router';
+import icArrowBack from '@iconify/icons-ic/arrow-back';
+import icDelete from '@iconify/icons-ic/twotone-delete';
+import icEdit from '@iconify/icons-ic/twotone-edit';
 import { K8sUpdateComponent } from '@k8s/k8s-update/k8s-update.component';
+import { ToastrService } from '@sdk-ui/ui';
 import { ConfirmDialogStaticComponent } from '@shared-ui/ui';
+import { K8sStorageClassService } from '../k8s-storage-class.service';
 
 @Component({
   selector: 'kc-k8s-storage-class-details',
@@ -27,7 +26,6 @@ export class K8sStorageClassDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private storageClassService: K8sStorageClassService,
     private router: Router,
-    private toolbarService: ToolbarService,
     public dialog: MatDialog,
     private toastr: ToastrService
   ) {}
@@ -69,11 +67,8 @@ export class K8sStorageClassDetailsComponent implements OnInit {
         this.storageClassService.deleteStorageClass(item?.metadata?.name).subscribe(
           res => {
             if (res.status === 'success') {
+              this.router.navigate(['../'], { relativeTo: this.route });
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                this.getDetails();
-              }, 6000);
-              this.getDetails();
             }
           },
           err => {

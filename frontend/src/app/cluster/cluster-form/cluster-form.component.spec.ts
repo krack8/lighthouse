@@ -1,19 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SettingsComponent } from './settings.component';
+import { ClusterFormComponent } from './cluster-form.component';
 
-describe('SettingsComponent', () => {
-  let component: SettingsComponent;
-  let fixture: ComponentFixture<SettingsComponent>;
+describe('ClusterFormComponent', () => {
+  let component: ClusterFormComponent;
+  let fixture: ComponentFixture<ClusterFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SettingsComponent]
+      imports: [ClusterFormComponent]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(SettingsComponent);
+    fixture = TestBed.createComponent(ClusterFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

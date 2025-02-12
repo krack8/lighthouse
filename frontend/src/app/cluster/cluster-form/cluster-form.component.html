@@ -1,0 +1,87 @@
+<div class="flex items-center mb-2">
+  <h3 class="text-base">{{ cluster ? 'Helm Chart' : 'Add Agent Cluster' }}</h3>
+  <button class="ml-auto" mat-dialog-close><mat-icon [icIcon]="icClose"></mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  <ng-container *ngIf="cluster; else FormTemplate">
+    <div class="m-6" *ngIf="isHelmChartLoading">
+      <mat-progress-spinner mode="indeterminate" strokeWidth="2" diameter="40"></mat-progress-spinner>
+    </div>
+    <div *ngIf="!isHelmChartLoading">
+      <mat-accordion class="helm-chart-accordion mt-5 rounded" *ngIf="chartData">
+        <mat-expansion-panel class="rounded bg-transparent" [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <h4>
+                <span class="required-text" *ngIf="cluster?.cluster_status === 'PENDING'">Required:</span>
+                <span class="executed-text" *ngIf="cluster?.status === 'CONNECTED'">Executed:</span> To add your kubernetes cluster with
+                this platform, please apply this helm command in your desired kubernetes cluster
+              </h4>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="pt-4">
+            <p class="mb-1">Add Krack8 Helm Repository</p>
+            <div class="command-item flex justify-between overflow-auto relative">
+              <pre>{{ chartData?.helm_repo }}</pre>
+              <div class="sticky top-3 right-0 z-10">
+                <cdk-clipboard class="ml-2 _clipboard" [cbContent]="chartData?.helm_repo"></cdk-clipboard>
+              </div>
+            </div>
+            <p class="mb-1 mt-4">Install Krack8 Lighthouse Helm Chart</p>
+            <div class="command-item flex justify-between overflow-auto relative">
+              <pre>{{ getProcessedHelmCommand() }}</pre>
+              <div class="sticky top-3 right-0 z-10">
+                <cdk-clipboard class="ml-2 _clipboard" [cbContent]="chartData?.helm_command"></cdk-clipboard>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+  </ng-container>
+</mat-dialog-content>
+
+<!-- Form -->
+<ng-template #FormTemplate>
+  <div class="m-6" *ngIf="isMasterClusterLoading">
+    <mat-progress-spinner mode="indeterminate" strokeWidth="2" diameter="40"></mat-progress-spinner>
+  </div>
+  <form *ngIf="!isMasterClusterLoading" [formGroup]="clusterForm" (ngSubmit)="createCluster()">
+    <mat-form-field appearance="outline" class="custom-mat-form-field">
+      <mat-label>
+        <span>Cluster Name</span>
+        <mat-icon
+          class="info-icon"
+          [icIcon]="icInfo"
+          matTooltip="Provide a unique name to identify the cluster"
+          matTooltipPosition="above"
+        ></mat-icon>
+      </mat-label>
+      <input type="text" formControlName="name" matInput required />
+      <mat-hint>Cluster name should be letter lowercase, number, hyphen, and name start with letter.</mat-hint>
+      <mat-error *ngIf="clusterForm.get('name').touched && clusterForm.get('name').hasError('required')">
+        Cluster name is required!
+      </mat-error>
+      <mat-error
+        *ngIf="
+          clusterForm.get('name').touched &&
+          (clusterForm.get('name').hasError('minlength') ||
+            clusterForm.get('name').hasError('pattern') ||
+            clusterForm.get('name').hasError('whitespace'))
+        "
+      >
+        Cluster name should be
+        {{ clusterForm.get('name')?.errors?.minlength?.requiredLength }} or more character, no whitespace, and no special characters except
+        underscore (-)
+      </mat-error>
+    </mat-form-field>
+
+    <div class="flex justify-end">
+      <button class="submit-btn px-5" color="primary" mat-raised-button type="submit" [disabled]="clusterForm.invalid">
+        <span *ngIf="!isSubmitting">Add Cluster</span>
+        <mat-progress-bar *ngIf="isSubmitting" mode="indeterminate" color="accent" class="max-w-20"></mat-progress-bar>
+      </button>
+    </div>
+  </form>
+</ng-template>

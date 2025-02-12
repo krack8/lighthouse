@@ -1,0 +1,55 @@
+.info-icon {
+  pointer-events: auto;
+  margin-left: 3px;
+  vertical-align: middle !important;
+}
+
+h4 {
+  font-size: 0.875rem;
+  line-height: 1.3rem;
+}
+
+.required-text {
+  color: var(--color-warn);
+}
+
+.executed-text {
+  color: var(--color-success);
+}
+
+.command-item {
+  background: var(--background-base);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+._clipboard {
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+::ng-deep {
+  .helm-chart-accordion {
+    background: var(--background-kc-stepper);
+    display: block;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+
+    .mat-expansion-panel .mat-expansion-panel-header {
+      height: 55px !important;
+
+      &.mat-expanded,
+      &:hover {
+        background: var(--background-1);
+      }
+    }
+
+    .mat-expansion-panel-body {
+      background: var(--background-base);
+      padding: 0 14px 16px;
+    }
+  }
+}

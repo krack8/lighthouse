@@ -14,17 +14,20 @@
 ```
 
 ### Install Dependencies
+
 ```sh
 cd frontend
 npm install --force
 ```
 
 ### Run App
+
 ```
 npm run start
 ```
 
 ### Build App
+
 ```
 npm run build
 ```
