@@ -14,7 +14,7 @@ RUN npm i -f
 
 COPY . .
 
-RUN npm run build:prod
+RUN npm run build
 
 ### STAGE 2: Setup ###
 FROM nginx:1.21
