@@ -1,0 +1,54 @@
+<mat-card>
+  <mat-tab-group
+    [(selectedIndex)]="selectedTabIndex"
+    #tabGroup
+    class="k8s-update-tab-group"
+    (selectedTabChange)="changeType($event)"
+    (click)="isClicked()"
+  >
+    <mat-tab label="YAML">
+      <kc-ace-editor [(text)]="inputData" [mode]="'yaml'" class="k8s-ace-editor-host"></kc-ace-editor>
+    </mat-tab>
+    <mat-tab label="JSON">
+      <kc-ace-editor [(text)]="inputData" [mode]="'json'" class="k8s-ace-editor-host"></kc-ace-editor>
+    </mat-tab>
+  </mat-tab-group>
+  <div class="flex mt-4">
+    <button
+      type="button"
+      (click)="update()"
+      [disabled]="!this.inputData || this.inputData.length === 0 || this.isSubmitting || this.inputData == this.originalInputData"
+      color="primary"
+      mat-raised-button
+    >
+      <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Apply' }}</span>
+      <div *ngIf="isSubmitting" class="align-middle" fxFlex="auto" fxLayout="column" fxLayoutAlign="center center">
+        <mat-progress-bar mode="indeterminate" color="primary" class="my-4 px-6"></mat-progress-bar>
+      </div>
+    </button>
+    <div>
+      <button *ngIf="!isEditMode" type="button" [disabled]="!this.inputData" (click)="cancel()" color="warn" class="ml-4" mat-flat-button>
+        Clear
+      </button>
+    </div>
+
+    <button
+      [disabled]="this.inputData == this.originalInputData"
+      *ngIf="isEditMode"
+      (click)="reset()"
+      class="ml-4"
+      type="button"
+      mat-flat-button
+    >
+      Reset
+    </button>
+
+    <button *ngIf="isEditMode" (click)="exportFile()" class="ml-4" type="button" mat-flat-button>Export</button>
+
+    <button *ngIf="!isEditMode" (click)="file.click()" class="ml-4" type="button" mat-flat-button>Upload</button>
+
+    <input #file type="file" id="myFileInput" class="hidden" [accept]="acceptedFileTypes" (change)="onFileSelected($event)" />
+
+    <button class="ml-4" mat-dialog-close type="button" mat-flat-button>Cancel</button>
+  </div>
+</mat-card>

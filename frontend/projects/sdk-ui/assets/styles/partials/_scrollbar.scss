@@ -1,0 +1,22 @@
+body.is-blink {
+  ::-webkit-scrollbar {
+    background-color: rgba(0, 0, 0, 0);
+    height: var(--blink-scrollbar-width);
+    width: var(--blink-scrollbar-width);
+  }
+
+  ::-webkit-scrollbar:hover {
+    background-color: rgba(0, 0, 0, 0.12);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: var(--blink-scrollbar-width);
+    box-shadow: inset 0 0 0 12px rgba(0, 0, 0, 0.37);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    border-radius: var(--blink-scrollbar-width);
+    box-shadow: inset 0 0 0 12px rgba(0, 0, 0, 0.54);
+  }
+}

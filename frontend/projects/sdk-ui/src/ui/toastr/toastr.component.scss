@@ -1,0 +1,121 @@
+.kc-toastr-container {
+  position: fixed;
+  z-index: 10000;
+  bottom: 24px;
+  left: 24px;
+}
+
+.kc-toastr {
+  transition: 0.3s all cubic-bezier(0.39, 0.575, 0.565, 1);
+  box-shadow: 0 0 10px 5px rgba(114, 135, 171, 0.2);
+  animation: fadeInFromBellow 0.5s;
+  background: var(--background);
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, var(--box-container-bg), var(--background));
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, var(--box-container-bg), var(--background));
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  border-radius: 4px;
+  color: var(--text-color);
+  position: relative;
+  margin-top: 8px;
+  padding: 27px;
+  // height: 100px;
+  max-width: 450px;
+  min-width: 300px;
+  width: 100%;
+}
+
+.kc-toastr-icon {
+  margin-right: 16px;
+  display: flex;
+
+  img {
+    max-width: 60px;
+    min-width: 60px;
+  }
+}
+
+.kc-toastr-msg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  strong {
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: var(--text-color);
+  }
+
+  p {
+    color: var(--text-color);
+  }
+}
+
+.kc-toastr-close {
+  position: absolute;
+  text-align: center;
+  line-height: 16px;
+  color: #7a8eb2;
+  font-size: 13px;
+  display: block;
+  right: 10px;
+  top: 10px;
+
+  &:hover {
+    border-radius: 2px;
+    cursor: pointer;
+  }
+}
+
+.fadeOutBellow {
+  animation: fadeOutBellow 0.5s 1;
+}
+
+@-webkit-keyframes fadeInFromBellow {
+  0% {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInFromBellow {
+  0% {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeOutBellow {
+  0% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOutBellow {
+  0% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}

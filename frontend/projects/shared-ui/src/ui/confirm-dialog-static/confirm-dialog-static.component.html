@@ -1,0 +1,40 @@
+<div mat-dialog-content>
+  <button class="text-secondary float-right" mat-dialog-close mat-icon-button type="button">
+    <i class="kc-close"></i>
+  </button>
+  <div class="modal__content">
+    <img class="modal__img" [src]="config.icon" />
+    <div class="dialog1">
+      <h3 class="modal__title">{{ config.message }}</h3>
+      <p class="modal__note mt-4" *ngIf="config.note" [ngStyle]="config.noteStyle">
+        {{ config.note }}
+      </p>
+      <div class="modal__btns mt-5 mb-5">
+        <button
+          type="button"
+          mat-raised-button
+          class="modal__btn modal__btn--cancel"
+          [mat-dialog-close]="config.cancelBtnValue"
+          cdkFocusInitial
+        >
+          {{ config.cancelBtnText }}
+        </button>
+        <button
+          type="button"
+          mat-raised-button
+          class="modal__btn modal__btn--success ml-5"
+          [ngClass]="{ 'modal__btn--danger': config.type === 'delete' }"
+          (click)="onSuccess()"
+        >
+          <span *ngIf="!isSubmitting; else loaderTemplate">{{ config.successBtnText || 'Delete' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loaderTemplate>
+  <div *ngIf="isSubmitting" class="align-middle">
+    <mat-progress-bar mode="indeterminate" color="primary" class="my-4"></mat-progress-bar>
+  </div>
+</ng-template>

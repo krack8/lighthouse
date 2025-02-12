@@ -1,0 +1,343 @@
+@use '@angular/material' as mat;
+@import './partials/_mixins.scss';
+
+$sidenav-background: #1a202e;
+
+$config: mat.define-typography-config(
+  $font-family: var(--font),
+  $display-4: mat.define-typography-level(112px, 112px, 300, $letter-spacing: -0.05em),
+  $display-3: mat.define-typography-level(56px, 56px, 400, $letter-spacing: -0.02em),
+  $display-2: mat.define-typography-level(45px, 48px, 400, $letter-spacing: -0.005em),
+  $display-1: mat.define-typography-level(34px, 40px, 400),
+  $headline: mat.define-typography-level(24px, 32px, 400),
+  $title: mat.define-typography-level(18px, 26px, 500),
+  $subheading-2: mat.define-typography-level(16px, 28px, 400),
+  $subheading-1: mat.define-typography-level(15px, 24px, 400),
+  $body-2: mat.define-typography-level(14px, 24px, 500),
+  $body-1: mat.define-typography-level(14px, 20px, 400),
+  $caption: mat.define-typography-level(12px, 20px, 400),
+  $button: mat.define-typography-level(14px, 14px, 500),
+  $input: mat.define-typography-level(14px, 1.125, 400)
+);
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+$kc-primary: mat.define-palette(
+  (
+    50: #e8eaf6,
+    100: #c5cae9,
+    200: #9fa8da,
+    300: #7986cb,
+    400: #5c6bc0,
+    500: #3f51b5,
+    600: #3949ab,
+    700: #303f9f,
+    800: #283593,
+    900: #1a237e,
+    A100: #8c9eff,
+    A200: #536dfe,
+    A400: #3d5afe,
+    A700: #304ffe,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #ffffff,
+      400: #ffffff,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+      A100: #000000,
+      A200: #ffffff,
+      A400: #ffffff,
+      A700: #ffffff
+    )
+  )
+);
+
+$kc-success: mat.define-palette(
+  (
+    50: #e0f8ea,
+    100: #b3efcb,
+    200: #80e4a8,
+    300: #4dd985,
+    400: #26d06b,
+    500: #00c851,
+    600: #00c24a,
+    700: #00bb40,
+    800: #00b437,
+    900: #00a727,
+    A100: #d1ffd8,
+    A200: #9effae,
+    A400: #6bff83,
+    A700: #52ff6d,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+      A100: #000000,
+      A200: #000000,
+      A400: #000000,
+      A700: #000000
+    )
+  )
+);
+
+$kc-warn: mat.define-palette(
+  (
+    50: #fff7e7,
+    100: #ffebc2,
+    200: #ffdd99,
+    300: #ffcf70,
+    400: #ffc552,
+    500: #ffbb33,
+    600: #ffb52e,
+    700: #ffac27,
+    800: #ffa420,
+    900: #ff9614,
+    A100: #ffffff,
+    A200: #fffdfb,
+    A400: #ffe4c8,
+    A700: #ffd8ae,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #000000,
+      600: #000000,
+      700: #000000,
+      800: #000000,
+      900: #000000,
+      A100: #000000,
+      A200: #000000,
+      A400: #000000,
+      A700: #000000
+    )
+  )
+);
+
+$kc-accent: mat.define-palette(
+  (
+    50: #ebf8fa,
+    100: #cdeef3,
+    200: #ace3ec,
+    300: #8ad8e4,
+    400: #71cfde,
+    500: #58c7d8,
+    600: #50c1d4,
+    700: #47bace,
+    800: #3db3c8,
+    900: #2da6bf,
+    A100: #ffffff,
+    A200: #cef6ff,
+    A400: #9bedff,
+    A700: #81e9ff,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #000000,
+      600: #000000,
+      700: #000000,
+      800: #000000,
+      900: #000000,
+      A100: #000000,
+      A200: #000000,
+      A400: #000000,
+      A700: #000000
+    )
+  )
+);
+
+$kc-danger: mat.define-palette(
+  (
+    50: #fde0f1,
+    100: #f9b3dd,
+    200: #f680c6,
+    300: #f24daf,
+    400: #ef269d,
+    500: #ec008c,
+    600: #ea0084,
+    700: #e70079,
+    800: #e4006f,
+    900: #df005c,
+    A100: #ffffff,
+    A200: #ffd3e2,
+    A400: #ffa0c1,
+    A700: #ff86b0,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #ffffff,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+      A100: #000000,
+      A200: #000000,
+      A400: #000000,
+      A700: #000000
+    )
+  )
+);
+
+/* Theme Pink */
+$kc-primary-pink: mat.define-palette(
+  (
+    50: #fde0f1,
+    100: #f9b3dd,
+    200: #f680c6,
+    300: #f24daf,
+    400: #ef269d,
+    500: #ec008c,
+    600: #ea0084,
+    700: #e70079,
+    800: #e4006f,
+    900: #df005c,
+    A100: #ffffff,
+    A200: #ffd3e2,
+    A400: #ffa0c1,
+    A700: #ff86b0,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #ffffff,
+      400: #ffffff,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+      A100: #000000,
+      A200: #ffffff,
+      A400: #ffffff,
+      A700: #ffffff
+    )
+  )
+);
+
+$kc-accent-pink: mat.define-palette(
+  (
+    50: #e8f6fc,
+    100: #c5e9f7,
+    200: #9edbf2,
+    300: #77cdec,
+    400: #5ac2e8,
+    500: #3db7e4,
+    // Main Color
+    600: #37b0e1,
+    700: #2fa7dd,
+    800: #279fd9,
+    900: #1a90d1,
+    A100: #ffffff,
+    A200: #d2eeff,
+    A400: #9fdaff,
+    A700: #85d1ff,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #000000,
+      600: #000000,
+      700: #000000,
+      800: #000000,
+      900: #ffffff,
+      A100: #000000,
+      A200: #000000,
+      A400: #000000,
+      A700: #000000
+    )
+  )
+);
+
+// The warn palette is optional (defaults to red).
+$kc-warn: mat.define-palette(mat.$red-palette);
+
+$kc-theme-foreground: (
+  elevation: #000,
+  divider: rgba(82, 63, 105, 0.06)
+);
+
+$kc-theme-background: (
+  app-bar: #ebebee
+);
+
+// Create the theme object (a Sass map containing all of the palettes).
+// 01. Light Theme
+$kc-theme: (
+  primary: $kc-primary,
+  accent: $kc-accent,
+  success: $kc-success,
+  warn: $kc-warn,
+  danger: $kc-danger,
+  is-dark: false,
+  foreground: map_merge(mat.$light-theme-foreground-palette, $kc-theme-foreground),
+  background: map_merge(mat.$light-theme-background-palette, $kc-theme-background)
+);
+
+// 02. Dark Theme
+$kc-dark-theme-background: (
+  background: lighten($sidenav-background, 5),
+  card: $sidenav-background,
+  app-bar: darken($sidenav-background, 5),
+  dialog: $sidenav-background,
+  status-bar: darken($sidenav-background, 5)
+);
+
+$kc-dark-theme: (
+  primary: $kc-primary,
+  accent: $kc-accent,
+  success: $kc-success,
+  warn: $kc-warn,
+  danger: $kc-danger,
+  is-dark: true,
+  foreground: mat.$dark-theme-foreground-palette,
+  background: map_merge(mat.$dark-theme-background-palette, $kc-dark-theme-background)
+);
+
+// 03. pink Theme
+$kc-light-pink-theme: mat.define-light-theme($kc-primary-pink, $kc-accent-pink);
+
+// Extend Material varibles that was remove on 13 version
+$swift-ease-in-out-duration: 500ms;
+$swift-ease-in-out-timing-function: cubic-bezier(0.35, 0, 0.25, 1);
+$swift-ease-out-duration: 400ms;
+$swift-ease-out-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+$swift-ease-in-duration: 300ms;
+$swift-ease-in-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+$dark-primary-text: rgba(0, 0, 0, 0.87);
+$light-primary-text: #fff;
+$dark-secondary-text: rgba(0, 0, 0, 0.54);
+$light-secondary-text: hsla(0, 0%, 100%, 0.7);
+$dark-disabled-text: rgba(0, 0, 0, 0.38);
+$light-disabled-text: hsla(0, 0%, 100%, 0.5);
+
+.kc-style-dark {
+  $dark-primary-text: #fff;
+  $light-primary-text: rgba(0, 0, 0, 0.87);
+  $dark-secondary-text: rgba(0, 0, 0, 0.54);
+  $light-secondary-text: hsla(0, 0%, 100%, 0.7);
+  $dark-disabled-text: rgba(0, 0, 0, 0.38);
+  $light-disabled-text: hsla(0, 0%, 100%, 0.5);
+}

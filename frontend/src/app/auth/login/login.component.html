@@ -1,0 +1,91 @@
+<div class="w-full h-full grid grid-cols-1 lg:grid-cols-2" kcContainer>
+  <div @fadeInUp class="left-side-bg" fxLayout="column" fxLayoutAlign="end center">
+    <div class="illustration-container">
+      <div class="login-left-1"></div>
+      <div class="login-left-2"></div>
+      <div class="login-left-3"></div>
+      <div class="login-left-4"></div>
+      <div class="login-left-5"></div>
+      <div class="login-left-6"></div>
+      <div class="login-left-7"></div>
+    </div>
+    <kc-img
+      class="ls-infographic"
+      src="assets/img/illustrations/login-ls-dark-illustration.svg"
+      lightSrc="assets/img/illustrations/login-ls-light-illustration.svg"
+    ></kc-img>
+  </div>
+  <div class="pt-10 pb-10 relative right-side-bg" @fadeInUp fxLayout="column" fxLayoutAlign="center center">
+    <div class="illustration-container">
+      <div class="login-right-1"></div>
+      <div class="login-right-2"></div>
+      <div class="login-right-3"></div>
+    </div>
+    <div class="rs-form-box" fxLayout="column">
+      <div class="login-back-1"></div>
+      <div class="login-back-2"></div>
+      <div class="login-back-3"></div>
+
+      <div fxLayout="column" fxLayoutAlign="center center">
+        <kc-logo logoWidth="10rem" [showPowerBy]="true"></kc-logo>
+      </div>
+      <p class="txt-semi-lg txt-semi-bold line-h-27 mt-6">Welcome Back!</p>
+      <p class="txt-semi-lg line-h-27"><span class="txt-semi-bold">Sign in</span> with your credential below</p>
+
+      <form [formGroup]="form" class="mt-6" fxLayout="column" (ngSubmit)="submit()">
+        <div fxFlex="auto" fxLayout="column">
+          <mat-form-field appearance="outline" class="custom-mat-form-field">
+            <mat-label><span>Email</span></mat-label>
+            <input [formControlName]="'username'" id="username" matInput required autocomplete="email username" />
+            <mat-error *ngIf="form.get('username').hasError('required') && form.get('username').touched">
+              We need an email address to log you in
+            </mat-error>
+            <mat-error *ngIf="form.get('username').hasError('email') && form.get('username').touched">
+              Please Provide a valid email address
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="-mt-1 custom-mat-form-field">
+            <mat-label><span>Password</span></mat-label>
+            <input [type]="inputType" [formControlName]="'password'" id="password" matInput required autocomplete="current-password" />
+            <button
+              class="-mt-3"
+              (click)="toggleVisibility()"
+              mat-icon-button
+              matSuffix
+              matTooltip="Toggle Visibility"
+              matTooltipPosition="above"
+              type="button"
+            >
+              <mat-icon class="password-visible-toggler" [icIcon]="visible ? icVisibility : icVisibilityOff"></mat-icon>
+            </button>
+            <mat-error *ngIf="form.get('password').hasError('required') && form.get('password').touched">
+              We need a password to log you in
+            </mat-error>
+            <mat-error *ngIf="form.get('password').hasError('minLength') && form.get('password').touched">
+              Please provide a valid password
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- <div class="mt-0" fxLayout="row" fxLayoutAlign="end center">
+          <a [routerLink]="['/auth/forgot-password']" class="txt-semi-md" id="forget-password">Forgot Password?</a>
+        </div> -->
+
+        <button
+          [ngClass]="{ 'pointer-events-none': isSubmitting }"
+          mat-stroke-button
+          class="mt-5 w-full text-center kc-btn kc-btn-primary btn-auth"
+          type="submit"
+          color="primary"
+          id="sign-in"
+        >
+          <div fxLayout="row" fxLayoutAlign="center center">
+            <span *ngIf="!isSubmitting" class="mx-auto text-center">Sign In</span>
+            <mat-progress-bar *ngIf="isSubmitting" mode="indeterminate" color="accent" class="w-40"></mat-progress-bar>
+          </div>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+//Tooltip
+.mat-tooltip {
+  color: var(--text-color) !important;
+  background: var(--background-info-name-box) !important;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.3px;
+  padding: 11px !important;
+}
+
+.custom-tooltip {
+  border: 1px solid var(--border) !important;
+}

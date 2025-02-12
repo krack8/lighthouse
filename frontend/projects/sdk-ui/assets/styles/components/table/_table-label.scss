@@ -1,0 +1,52 @@
+/*
+* Table Label is for preview inner table data
+*/
+
+.table-label {
+  &__container {
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 5px;
+  }
+
+  width: 100%;
+  background-color: var(--background-table);
+  text-align: left;
+  border-radius: 4px;
+  overflow: hidden;
+
+  th {
+    background: var(--background-table-th);
+
+    &.border-left {
+      position: relative;
+
+      &::after {
+        content: '';
+        height: 12px;
+        width: 1px;
+        background: var(--text-color);
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+
+  th,
+  td {
+    padding: 10px 16px;
+    font-weight: 400;
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border);
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+  }
+}
