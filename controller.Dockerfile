@@ -13,5 +13,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 WORKDIR /app
 COPY --from=builder /app/bin /app
 EXPOSE 8080
+EXPOSE 50051
 USER klovercloud
 CMD ["./lighthouse"]

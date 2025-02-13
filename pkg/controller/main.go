@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"github.com/krack8/lighthouse/pkg/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/auth/config"
 	cfg "github.com/krack8/lighthouse/pkg/config"
@@ -17,10 +16,6 @@ func main() {
 	worker.StartGrpcServer()
 	cfg.InitEnvironmentVariables()
 
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	// Connect to the database
 	client, ctx, err := config.ConnectDB()
 	if err != nil {
