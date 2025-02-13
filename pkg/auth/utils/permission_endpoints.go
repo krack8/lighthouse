@@ -10,6 +10,7 @@ func GetDefaultEndpoints() []models.Endpoint {
 		{Method: "GET", Route: "/api/v1/clusters"},
 		{Method: "GET", Route: "/api/v1/clusters/@"},
 		{Method: "GET", Route: "/api/v1/users/profile"},
+		{Method: "GET", Route: "/api/v1/users/@/reset-password"},
 		{Method: "GET", Route: "/api/v1/permissions"},
 		{Method: "GET", Route: "/api/v1/permissions/@"},
 		{Method: "GET", Route: "/api/v1/permissions/users"},
@@ -44,9 +45,20 @@ func GetRolesEndpoints() []models.Endpoint {
 func GetManageRolesEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/roles"},
+		{Method: "GET", Route: "/api/v1/roles"},
+		{Method: "GET", Route: "/api/v1/roles/@"},
+		{Method: "PUT", Route: "/api/v1/roles/@"},
 		{Method: "DELETE", Route: "/api/v1/roles/@"},
 		{Method: "GET", Route: "/api/v1/roles/@/users"},
 		{Method: "POST", Route: "/api/v1/assign-roles"},
+	}
+}
+
+// GetManageClustersEndpoints returns endpoints for creating  cluster
+func GetAddClustersEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "POST", Route: "/api/v1/clusters"},
+		{Method: "GET", Route: "/api/v1/clusters/@/details"},
 	}
 }
 
