@@ -181,49 +181,48 @@ func InitializeClusters() {
 
 		// Create token validations
 		agentToken := models.TokenValidation{
-			ID:          primitive.NewObjectID(),
-			ClusterID:   agentClusterID,
-			TokenHash:   combinedToken,
-			IsValid:     true,
-			ExpiresAt:   time.Now().AddDate(1, 0, 0), // Token valid for 1 year
-			Status:      enum.VALID,
-			TokenStatus: enum.TokenStatusValid,
-			CreatedBy:   string(enum.SYSTEM),
-			UpdatedBy:   string(enum.SYSTEM),
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			ID:            primitive.NewObjectID(),
+			ClusterID:     agentClusterID,
+			RawTokenHash:  utils.HashPassword(rawToken),
+			CombinedToken: combinedToken,
+			IsValid:       true,
+			ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+			Status:        enum.VALID,
+			TokenStatus:   enum.TokenStatusValid,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		}
 
 		_, err = TokenCollection.InsertOne(context.Background(), agentToken)
 		if err != nil {
 			log.Fatalf("Error creating token validations: %v", err)
 		}
-		// Validate token
-		//valid, _ := tokenManager.ValidateToken(context.Background(), token.RawToken, token.Signature, token.ClusterID)
 
-		// Create master cluster
-		masterCluster := models.Cluster{
-			ID:            primitive.NewObjectID(),
-			Name:          "master-cluster",
-			ClusterType:   enum.MASTER,
-			Status:        enum.VALID,
-			CreatedBy:     string(enum.SYSTEM),
-			UpdatedBy:     string(enum.SYSTEM),
-			ClusterStatus: enum.CONNECTED,
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
-			IsActive:      true,
-		}
+		/*		// Create master cluster
+				groupCluster := models.Cluster{
+					ID:          primitive.NewObjectID(),
+					Name:        "master-cluster",
+					ClusterType: enum.MASTER,
+					Status:      enum.VALID,
+					CreatedBy:   string(enum.SYSTEM),
+					UpdatedBy:   string(enum.SYSTEM),
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+					IsActive:    true,
+				}*/
 
-		// Create agent cluster
-		//agentToken := utils.GenerateSecureToken(32)
+		// Create worker cluster
 		agentCluster := models.Cluster{
 			ID:            agentClusterID,
 			Name:          "agent-cluster",
-			ClusterType:   enum.AGENT,
+			ClusterType:   enum.WORKER,
+			WorkerGroup:   primitive.NewObjectID().Hex(),
 			Token:         agentToken,
 			Status:        enum.VALID,
-			ClusterStatus: enum.CONNECTED,
+			ClusterStatus: enum.PENDING,
+			ControllerURL: os.Getenv("CONTROLLER_URL"),
 			CreatedBy:     string(enum.SYSTEM),
 			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),
@@ -231,10 +230,8 @@ func InitializeClusters() {
 			IsActive:      true,
 		}
 
-		masterCluster.MasterClusterId = masterCluster.ID.Hex()
-		agentCluster.MasterClusterId = masterCluster.ID.Hex()
 		// Insert clusters
-		clusters := []interface{}{masterCluster, agentCluster}
+		clusters := []interface{}{agentCluster}
 		_, err = ClusterCollection.InsertMany(context.Background(), clusters)
 		if err != nil {
 			log.Fatalf("Error creating default clusters: %v", err)
