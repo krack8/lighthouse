@@ -71,7 +71,7 @@ func (m *MongoStorage) UpdateLastUsed(ctx context.Context, token string) error {
 func (m *MongoStorage) GetToken(ctx context.Context, token string) (*models.TokenValidation, error) {
 	// Query MongoDB for the token
 	var result models.TokenValidation
-	err := db.TokenCollection.FindOne(ctx, bson.M{"token": token}).Decode(&result)
+	err := db.TokenCollection.FindOne(ctx, bson.M{"auth_token": token, "status": enum.VALID}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Token not found
@@ -113,11 +113,21 @@ func ValidateToken(combinedToken string, validator *models.TokenValidation) (boo
 	// Parse the combined token (encrypted raw token + cluster ID + signature)
 
 	crypto, _ := utils.NewCryptoImpl()
-	clusterID, _, err := crypto.ParseCombinedToken(combinedToken)
+	clusterID, rawToken, err := crypto.ParseCombinedToken(combinedToken)
 	if err != nil {
 		fmt.Printf("Error decoding combined token: %v\n", err)
 		return false, primitive.NilObjectID, err
 	}
+
+	fmt.Println("Raw Token Print", rawToken)
+
+	//TODO:enable this checking
+	/*// Check if the decoded token matches the db token
+	err = bcrypt.CompareHashAndPassword([]byte(validator.RawTokenHash), []byte(rawToken))
+	if err != nil {
+		fmt.Println("Token not matched. Unauthorized worker.")
+		return false, primitive.NilObjectID, err
+	}*/
 
 	// Check if the decoded cluster ID matches the stored cluster ID
 	if validator.ClusterID != clusterID {

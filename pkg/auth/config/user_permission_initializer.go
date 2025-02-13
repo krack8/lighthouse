@@ -38,6 +38,7 @@ func (pi *PermissionInitializer) registerEndpoints() {
 		enum.MANAGE_USER:        utils.GetManageUserEndpoints,
 		enum.VIEW_ROLE:          utils.GetRolesEndpoints,
 		enum.MANAGE_ROLE:        utils.GetManageRolesEndpoints,
+		enum.ADD_CLUSTER:        utils.GetAddClustersEndpoints,
 		//enum.MANAGE_NAMESPACE:                  utils.GetManageEndpointsEndpoints,
 		enum.CREATE_NAMESPACE:                  utils.GetCreateNamespaceEndpoints,
 		enum.VIEW_NAMESPACE:                    utils.GetViewNamespaceEndpoints,
