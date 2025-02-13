@@ -28,6 +28,10 @@ var PermissionDefinitions = map[PermissionName]PermissionDefinition{
 		Description: MANAGE_ROLE_DESCRIPTION,
 		Category:    MANAGEMENT,
 	},
+	ADD_CLUSTER: {
+		Description: ADD_CLUSTER_DESCRIPTION,
+		Category:    CLUSTER,
+	},
 	CREATE_NAMESPACE: {
 		Description: CREATE_NAMESPACE_DESCRIPTION,
 		Category:    CLUSTER,

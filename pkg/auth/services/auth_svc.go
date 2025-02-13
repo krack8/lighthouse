@@ -18,7 +18,7 @@ func Login(username string, password string) (string, string, error) {
 	}
 
 	if !utils.CheckPassword(password, user.Password) {
-		return "", "", errors.New("invalid credentials")
+		return "", "", errors.New("wrong password")
 	}
 
 	// Load expiry durations from environment variables
@@ -69,13 +69,13 @@ func IsAgentAuthTokenValid(authToken string) bool {
 	}
 
 	if tokenValidation == nil {
-		log.Logger.Errorw("Invalid Token", nil)
+		log.Logger.Errorw("Token Not Found in DB", nil)
 		return false
 	}
 
 	_, clusterID, err := ValidateToken(authToken, tokenValidation)
 	if err != nil {
-		log.Logger.Errorw("token not valid", "err", err.Error())
+		log.Logger.Errorw("Token not valid", "err", err.Error())
 		return false
 	}
 

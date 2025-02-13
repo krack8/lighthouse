@@ -9,6 +9,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"time"
@@ -173,17 +174,22 @@ func InitializeClusters() {
 
 		config.InitiateKubeClientSet()
 		// create the secret
-		secretToken, err := utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
+		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
 		if err != nil {
 			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 		}
-		log.Println("Agent Token.", secretToken)
+
+		// Generate a bcrypt hash of the raw token with a default cost
+		hashRawToken, err := bcrypt.GenerateFromPassword([]byte(rawToken), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatalf("error generating token hash", "err", err.Error())
+		}
 
 		// Create token validations
 		agentToken := models.TokenValidation{
 			ID:            primitive.NewObjectID(),
 			ClusterID:     agentClusterID,
-			RawTokenHash:  utils.HashPassword(rawToken),
+			RawTokenHash:  string(hashRawToken),
 			CombinedToken: combinedToken,
 			IsValid:       true,
 			ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year

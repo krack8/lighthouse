@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/config"
@@ -59,31 +58,6 @@ func GenerateResetToken() string {
 	return fmt.Sprintf("%x", b)
 }
 
-func GetSecret(name, namespace string) (string, error) {
-	// Try to retrieve the secret
-	secret, err := config.GetKubeClientSet().CoreV1().Secrets(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return "", fmt.Errorf("secret %s not found in namespace %s", name, namespace)
-		}
-		return "", fmt.Errorf("failed to fetch secret: %w", err)
-	}
-
-	// Extract the encoded token
-	encodedToken, exists := secret.Data["AUTH_TOKEN"]
-	if !exists {
-		return "", fmt.Errorf("key 'AUTH_TOKEN' not found in the secret")
-	}
-
-	// Decode the base64-encoded token
-	rawToken, err := base64.StdEncoding.DecodeString(string(encodedToken))
-	if err != nil {
-		return "", fmt.Errorf("failed to decode base64 value for AUTH_TOKEN: %w", err)
-	}
-
-	return string(rawToken), nil
-}
-
 func CreateNamespaceIfNotExists(namespace string) error {
 	clientSet := config.GetKubeClientSet()
 	namespaceClient := clientSet.CoreV1().Namespaces()
@@ -115,26 +89,53 @@ func CreateNamespaceIfNotExists(namespace string) error {
 	return nil
 }
 
+// GetSecret retrieves and decodes a secret
+func GetSecret(name, namespace string) (string, error) {
+	secret, err := config.GetKubeClientSet().CoreV1().Secrets(namespace).Get(
+		context.Background(),
+		name,
+		metav1.GetOptions{},
+	)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return "", fmt.Errorf("secret %s not found in namespace %s", name, namespace)
+		}
+		return "", fmt.Errorf("failed to fetch secret: %w", err)
+	}
+
+	// Get token directly from secret.Data (already decoded)
+	tokenBytes, exists := secret.Data["AUTH_TOKEN"]
+	if !exists {
+		return "", fmt.Errorf("key 'AUTH_TOKEN' not found in the secret")
+	}
+
+	return string(tokenBytes), nil
+}
+
+// CreateOrUpdateSecret creates or updates a secret with the given auth token
 func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
-	// Prepare secret data (base64 encoding the authToken)
-	encodedToken := base64.StdEncoding.EncodeToString([]byte(authToken))
+	// Prepare secret data (no need to base64 encode, Kubernetes will do it)
 	secretData := map[string][]byte{
-		"AUTH_TOKEN": []byte(encodedToken), // Store the base64 encoded token
+		"AUTH_TOKEN": []byte(authToken),
 	}
 
 	clientSet := config.GetKubeClientSet()
+
+	// Create namespace if it doesn't exist
 	err := CreateNamespaceIfNotExists(namespace)
 	if err != nil {
 		return "", err
 	}
+
 	secretClient := clientSet.CoreV1().Secrets(namespace)
 
-	// Check if the secret exists
+	// Check if secret exists
 	_, err = secretClient.Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Secret does not exist, create it
-			log.Logger.Infow("secret "+name+" not found in namespace "+namespace+". creating a new one...", "info", "secret-create")
+			// Create new secret
+			log.Logger.Infow(fmt.Sprintf("secret %s not found in namespace %s. creating a new one...", name, namespace),
+				"info", "secret-create")
 
 			secret := &v1.Secret{
 				TypeMeta: metav1.TypeMeta{
@@ -149,19 +150,21 @@ func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
 				Type: v1.SecretTypeOpaque,
 			}
 
-			secret, err = secretClient.Create(context.Background(), secret, metav1.CreateOptions{})
+			_, err = secretClient.Create(context.Background(), secret, metav1.CreateOptions{})
 			if err != nil {
 				return "", fmt.Errorf("failed to create secret: %w", err)
 			}
 
-			log.Logger.Infow("secret "+name+" successfully created in namespace "+namespace+".", "info", "secret-create")
+			log.Logger.Infow(fmt.Sprintf("secret %s successfully created in namespace %s", name, namespace),
+				"info", "secret-create")
 			return authToken, nil
 		}
 		return "", fmt.Errorf("failed to fetch secret: %w", err)
 	}
 
-	// If the secret exists, update it with the new token
-	log.Logger.Infow("Secret "+name+" exists in namespace "+namespace+". Updating it...", "info", "secret-update")
+	// Update existing secret
+	log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),
+		"info", "secret-update")
 
 	_, err = secretClient.Update(context.Background(), &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -176,6 +179,8 @@ func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
 		return "", fmt.Errorf("failed to update secret: %w", err)
 	}
 
-	log.Logger.Infow("secret "+name+" successfully updated in namespace"+namespace+".", "info", "secret-update")
+	log.Logger.Infow(fmt.Sprintf("secret %s successfully updated in namespace %s", name, namespace),
+		"info", "secret-update")
+
 	return authToken, nil
 }

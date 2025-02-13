@@ -21,7 +21,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.PUT("/users/:id", authApi.UserController.UpdateUserHandler)
 	httpRg.DELETE("/users/:id", authApi.UserController.DeleteUserHandler)
 	httpRg.GET("/users/profile", authApi.UserController.GetUserProfileInfoHandler)
-	httpRg.POST("/:id/reset-password", authApi.UserController.ResetPasswordHandler)
+	httpRg.POST("/users/:id/reset-password", authApi.UserController.ResetPasswordHandler)
 	//httpRg.POST("/forgot-password", authApi.UserController.ForgotPasswordHandler) 	//TODO: need to integrate mail server
 
 	// Cluster routes

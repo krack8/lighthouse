@@ -18,6 +18,7 @@ const (
 
 	//CLUSTER Permission names
 	DEFAULT_PERMISSION                PermissionName = "DEFAULT_PERMISSION"
+	ADD_CLUSTER                       PermissionName = "ADD_CLUSTER"
 	MANAGE_NAMESPACE                  PermissionName = "MANAGE_NAMESPACE_ENDPOINTS"
 	CREATE_NAMESPACE                  PermissionName = "CREATE_K8S_NAMESPACE"
 	VIEW_NAMESPACE                    PermissionName = "VIEW_K8S_NAMESPACE"
@@ -99,6 +100,7 @@ const (
 
 	//CLUSTER Permission descriptions
 	DEFAULT_PERMISSION_DESCRIPTION                PermissionDescription = "Default permission for basic access"
+	ADD_CLUSTER_DESCRIPTION                       PermissionDescription = "Permission to add cluster with the control plane"
 	MANAGE_NAMESPACE_DESCRIPTION                  PermissionDescription = "Permission to manage namespace endpoints"
 	CREATE_NAMESPACE_DESCRIPTION                  PermissionDescription = "Permission to create Kubernetes namespaces"
 	VIEW_NAMESPACE_DESCRIPTION                    PermissionDescription = "Permission to view Kubernetes namespaces"
