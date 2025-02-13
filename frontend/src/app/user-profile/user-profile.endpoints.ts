@@ -1,1 +1,1 @@
-export const RESET_PASSWORD = '/v1/{0}/reset-password';
+export const RESET_PASSWORD = '/v1/users/{0}/reset-password';
