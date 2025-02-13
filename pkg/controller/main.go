@@ -16,7 +16,7 @@ func main() {
 	worker.StartGrpcServer()
 	cfg.InitEnvironmentVariables()
 
-	// Connect to the database
+	// Connect to the database ..
 	client, ctx, err := config.ConnectDB()
 	if err != nil {
 		log.Fatalf("Error connecting to DB: %v", err)
