@@ -54,7 +54,6 @@ export class ClusterFormComponent implements OnInit {
 
   clusterForm = this._fb.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-z][a-z0-9-]+$/)]],
-    masterClusterId: ['', Validators.required]
   });
   isSubmitting = false;
 
@@ -62,12 +61,11 @@ export class ClusterFormComponent implements OnInit {
   chartData!: { helm_command: string; helm_repo: string };
 
   isMasterClusterLoading = false;
+  isCreated: boolean = false;
 
   ngOnInit(): void {
     if (this.cluster) {
       this.getClusterHelmChart();
-    } else {
-      this.getMasterCluster();
     }
   }
 
@@ -76,26 +74,13 @@ export class ClusterFormComponent implements OnInit {
     this._clusterService.createCluster(this.clusterForm.value).subscribe(
       cluster => {
         this.isSubmitting = false;
+        this.isCreated = true;
         this.cluster = cluster;
         this.cluster['cluster_status'] = 'PENDING';
         this.getClusterHelmChart();
       },
       err => {
         this.isSubmitting = false;
-        this._toastrService.error(err.message);
-      }
-    );
-  }
-
-  getMasterCluster(): void {
-    this.isMasterClusterLoading = true;
-    this._clusterService.getMasterCluster().subscribe(
-      _cluster => {
-        this.isMasterClusterLoading = false;
-        this.clusterForm.get('masterClusterId').patchValue(_cluster.id);
-      },
-      err => {
-        this.isMasterClusterLoading = false;
         this._toastrService.error(err.message);
       }
     );

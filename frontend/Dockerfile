@@ -19,7 +19,7 @@ RUN npm run build
 ### STAGE 2: Setup ###
 FROM nginx:1.21
 
-ENV KLOVERCLOUD_API_ENDPOINT=''
+ENV LIGHTHOUSE_API_ENDPOINT=''
 
 ## Copy our default nginx config
 COPY nginx/default.conf /etc/nginx/conf.d/
