@@ -56,7 +56,7 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 
 func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
 	// Filter for AGENT clusters
-	filter := bson.M{"cluster_type": bson.M{"$eq": enum.AGENT}}
+	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}}
 
 	cursor, err := db.ClusterCollection.Find(context.Background(), filter)
 	if err != nil {
@@ -97,7 +97,7 @@ func UpdateClusterStatusToActive(clusterID primitive.ObjectID) error {
 }
 
 // CreateCluster creates a new cluster and inserts it into the database
-func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*models.Cluster, error) {
+func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models.Cluster, error) {
 	agentClusterID := primitive.NewObjectID()
 
 	// Generate a raw token
@@ -116,17 +116,18 @@ func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*mode
 
 	// Create token validations
 	agentToken := models.TokenValidation{
-		ID:          primitive.NewObjectID(),
-		ClusterID:   agentClusterID,
-		TokenHash:   combinedToken,
-		IsValid:     true,
-		ExpiresAt:   time.Now().AddDate(1, 0, 0), // Token valid for 1 year
-		Status:      enum.VALID,
-		TokenStatus: enum.TokenStatusValid,
-		CreatedBy:   string(enum.SYSTEM),
-		UpdatedBy:   string(enum.SYSTEM),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:            primitive.NewObjectID(),
+		ClusterID:     agentClusterID,
+		RawTokenHash:  utils.HashPassword(rawToken),
+		CombinedToken: combinedToken,
+		IsValid:       true,
+		ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+		Status:        enum.VALID,
+		TokenStatus:   enum.TokenStatusValid,
+		CreatedBy:     string(enum.SYSTEM),
+		UpdatedBy:     string(enum.SYSTEM),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	_, err = db.TokenCollection.InsertOne(context.Background(), agentToken)
@@ -136,18 +137,19 @@ func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*mode
 
 	// Create a new cluster
 	cluster := &models.Cluster{
-		ID:              agentClusterID,
-		Name:            name,
-		ClusterType:     enum.AGENT, // Set default cluster type to Agent
-		Token:           agentToken,
-		MasterClusterId: masterClusterId,
-		IsActive:        false,
-		Status:          enum.VALID,
-		ClusterStatus:   enum.PENDING,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
-		CreatedBy:       string(enum.SYSTEM),
-		UpdatedBy:       string(enum.SYSTEM),
+		ID:            agentClusterID,
+		Name:          name,
+		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
+		Token:         agentToken,
+		WorkerGroup:   primitive.NewObjectID().Hex(),
+		IsActive:      false,
+		ControllerURL: controllerURL,
+		Status:        enum.VALID,
+		ClusterStatus: enum.PENDING,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+		CreatedBy:     string(enum.SYSTEM),
+		UpdatedBy:     string(enum.SYSTEM),
 	}
 
 	// Insert the new cluster into the MongoDB collection
@@ -157,20 +159,4 @@ func (s *ClusterService) CreateAgentCluster(name, masterClusterId string) (*mode
 	}
 
 	return cluster, nil
-}
-
-// GetMainCluster retrieves a cluster main cluster
-func (s *ClusterService) GetMainCluster() (*models.Cluster, error) {
-
-	var cluster models.Cluster
-	filter := bson.M{"cluster_type": enum.MASTER}
-	result := db.ClusterCollection.FindOne(context.Background(), filter)
-	if err := result.Decode(&cluster); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New("cluster not found")
-		}
-		return nil, fmt.Errorf("failed to fetch cluster: %w", err)
-	}
-
-	return &cluster, nil
 }

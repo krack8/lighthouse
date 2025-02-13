@@ -14,7 +14,7 @@ type ClusterStatus string
 
 const (
 	MASTER ClusterType = "MASTER"
-	AGENT  ClusterType = "AGENT"
+	WORKER ClusterType = "WORKER"
 )
 
 const (
