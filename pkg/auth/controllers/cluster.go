@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type ClusterController struct {
@@ -79,6 +81,28 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 
 	// Respond with the newly created cluster
 	utils.RespondWithJSON(c, http.StatusCreated, response)
+}
+
+// DeleteRoleHandler handles the deletion of a role by its ID
+func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
+	roleID := c.Param("id")
+	if roleID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cluster ID is required"})
+		return
+	}
+
+	// Call the service to delete the role
+	err := uc.ClusterService.DeleteClusterByID(roleID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no cluster found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting cluster"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s deleted successfully", roleID)})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
