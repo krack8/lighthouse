@@ -40,7 +40,4 @@ export class ClusterService {
     return this.httpService.get(Utils.formatString(endpoint.GET_HELM_CHART, clusterId));
   }
 
-  getMasterCluster(): Observable<any> {
-    return this.httpService.get(endpoint.GET_MASTER_CLUSTER);
-  }
 }

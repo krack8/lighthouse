@@ -69,10 +69,13 @@ export class ClusterListComponent implements OnInit {
     }
 
     import('../cluster-form/cluster-form.component').then(m => {
-      this._dialog.open(m.ClusterFormComponent, {
+    const dialog = this._dialog.open(m.ClusterFormComponent, {
         width: '800px',
         data: cluster
       });
+      dialog.afterClosed().subscribe((result) => {
+        if (result) this.getCluster();
+      })
     });
   }
 }

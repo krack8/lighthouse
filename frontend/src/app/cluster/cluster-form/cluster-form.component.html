@@ -1,6 +1,6 @@
 <div class="flex items-center mb-2">
-  <h3 class="text-base">{{ cluster ? 'Helm Chart' : 'Add Agent Cluster' }}</h3>
-  <button class="ml-auto" mat-dialog-close><mat-icon [icIcon]="icClose"></mat-icon></button>
+  <h3 class="text-base">{{ cluster ? 'Helm Chart' : 'Add Cluster' }}</h3>
+  <button class="ml-auto" [mat-dialog-close]="isCreated"><mat-icon [icIcon]="icClose"></mat-icon></button>
 </div>
 
 <mat-dialog-content>
