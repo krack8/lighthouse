@@ -15,6 +15,9 @@ var PageLimit = int64(10)
 var isK8 = "False"
 var KubeConfigFile = "dev-config.yaml"
 var Auth = false
+var InternalServer = false
+var TlsInsecureSkipVerify = false
+var TlsServerCustomCa = ""
 
 func InitEnvironmentVariables() {
 	RunMode = os.Getenv("RUN_MODE")
@@ -35,8 +38,21 @@ func InitEnvironmentVariables() {
 	} else {
 		log.Logger.Infow("Started with AUTH disabled", "[AUTH]", Auth)
 	}
+	if os.Getenv("IS_INTERNAL_SERVER") == "TRUE" {
+		InternalServer = true
+		log.Logger.Infow("Server is internal. Skipping tls config", "[Internal-Server]", InternalServer)
+	} else {
+		log.Logger.Infow("Server is external. Using tls config", "[Internal-Server]", InternalServer)
+	}
+	if os.Getenv("TLS_INSECURE_SKIP_VERIFY") == "TRUE" {
+		TlsInsecureSkipVerify = true
+		log.Logger.Infow("Server is skipping tls verification.", "[TLS-Skip-Verify]", TlsInsecureSkipVerify)
+	} else {
+		log.Logger.Infow("Server is verifying tls.", "[TLS-Skip-Verify]", TlsInsecureSkipVerify)
+	}
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 	isK8 = os.Getenv("IS_K8")
+	TlsServerCustomCa = os.Getenv("TLS_SERVER_CUSTOM_CA")
 }
 
 func IsK8() bool {
@@ -48,4 +64,12 @@ func IsK8() bool {
 
 func IsAuth() bool {
 	return Auth
+}
+
+func IsInternalServer() bool {
+	return InternalServer
+}
+
+func IsTlsInsecureSkipVerify() bool {
+	return TlsInsecureSkipVerify
 }

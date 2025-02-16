@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/json"
 	"github.com/krack8/lighthouse/pkg/agent/server"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -26,13 +28,25 @@ func main() {
 	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")
 	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
+	var caCertPool *x509.CertPool
+	if config.TlsServerCustomCa != "" {
+		caCert := []byte(config.TlsServerCustomCa)
+
+		// Create a new certificate pool
+		caCertPool = x509.NewCertPool()
+
+		// Append the certificate to the pool
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			log.Fatalf("Failed to append CA certificate to pool")
+		}
+	}
 	streamRecoveryMaxAttempt := 10
 	streamRecoveryInterval := 5 * time.Second
 	for streamRecoveryAttempt := 0; streamRecoveryAttempt < streamRecoveryMaxAttempt; streamRecoveryAttempt++ {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel() // Cancel the context when the program exits
 
-		conn, stream, err := server.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName)
+		conn, stream, err := server.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
 			_log.Logger.Fatalw("Failed to connect and identify worker", "error", err)
 			continue
