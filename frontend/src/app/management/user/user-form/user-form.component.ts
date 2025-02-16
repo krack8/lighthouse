@@ -34,7 +34,7 @@ export class UserFormComponent implements OnInit {
   isRolesLoading!: boolean;
   searchRoleTerm: string = '';
 
-  readonly systemRoleUsername: string = "SYSTEM"; // For Role
+  readonly systemRoleUsername: string = 'SYSTEM'; // For Role
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -73,18 +73,18 @@ export class UserFormComponent implements OnInit {
         user_is_active: this.data.user_is_active
       };
 
-      if (this.data.user_type === 'USER') {
-        const _roleList = this.data.roles;
-        let roles = [];
-        if (_roleList && _roleList.length) {
-          roles = this.data.roles.map((item: any) => item.id);
-          payload['role_ids'] = roles;
-        }
-        this.userForm.addControl('role_ids', this.fb.control(roles));
-        this.getRoles();
-      } else {
-        this.userForm.removeControl('role_ids');
-      }
+      // if (this.data.user_type === 'USER') {
+      //   const _roleList = this.data.roles;
+      //   let roles = [];
+      //   if (_roleList && _roleList.length) {
+      //     roles = this.data.roles.map((item: any) => item.id);
+      //     payload['role_ids'] = roles;
+      //   }
+      //   this.userForm.addControl('role_ids', this.fb.control(roles));
+      //   this.getRoles();
+      // } else {
+      //   this.userForm.removeControl('role_ids');
+      // }
       this.userForm.patchValue(payload);
       this.userForm.get('username').disable();
     }
@@ -96,15 +96,15 @@ export class UserFormComponent implements OnInit {
       this.userForm.removeControl('role_ids');
       return;
     }
-    this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
-    if (!this.roleList?.length) this.getRoles();
+    // this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
+    // if (!this.roleList?.length) this.getRoles();
   }
 
   onSubmit(): void {
     this.isSubmitting = true;
     if (this.data) {
       const formData = this.userForm.getRawValue();
-      
+
       this._userService.mcUpdateUser(this.data.id, formData).subscribe({
         next: _ => {
           this.toastr.success('User Updated.');
@@ -143,7 +143,7 @@ export class UserFormComponent implements OnInit {
         if (!this.data) {
           const systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
           if (systemRole.id) {
-            this.userForm.get("role_ids").setValue([systemRole.id])
+            this.userForm.get('role_ids').setValue([systemRole.id]);
           }
         }
       },

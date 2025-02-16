@@ -3,3 +3,4 @@
 /dist
 /coverage
 nodes_modules
+.angular

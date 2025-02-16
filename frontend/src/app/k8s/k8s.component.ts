@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Params, PRIMARY_OUTLET, Router, UrlSegment } from '@angular/router';
 import icKeyboardBackspace from '@iconify/icons-ic/keyboard-backspace';
-import { ToastrService } from '@sdk-ui/ui';
 import { filter, map, takeWhile } from 'rxjs/operators';
 import { K8sService } from './k8s.service';
 import icAdd from '@iconify/icons-ic/twotone-add';
@@ -9,6 +8,7 @@ import { K8sUpdateComponent } from './k8s-update/k8s-update.component';
 import { MatDialog } from '@angular/material/dialog';
 import { k8sRoutesMap, k8sRoutesPermissionMap } from '@shared-ui/utils';
 import icDown from '@iconify/icons-ic/twotone-keyboard-arrow-down';
+import { ICluster } from '@cluster/cluster.model';
 
 interface IBreadcrumb {
   label: string;
@@ -61,8 +61,8 @@ export class K8sComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.getClusterId();
     this._k8sService.changeClusterId(this.route.snapshot.params['clusterId']);
+    this.getClusterId();
   }
 
   ngOnDestroy(): void {
@@ -73,9 +73,9 @@ export class K8sComponent implements OnInit, OnDestroy {
   // GET CLUSTER ID FROM Query Params or API
   getClusterId(): void {
     this.isLoading = true;
-    this.route.data.subscribe((clusterData: any) => {
-      this.clusterId = clusterData.masterClusterId;
-      this._k8sService.changeClusterInfo(clusterData);
+    this.route.data.subscribe(({ cluster }: { cluster: ICluster }) => {
+      this.clusterId = cluster.id;
+      this._k8sService.changeClusterInfo(cluster);
       this.isLoading = false;
     });
   }

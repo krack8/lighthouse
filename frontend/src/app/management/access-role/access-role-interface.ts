@@ -29,5 +29,6 @@ export interface IPermission {
 }
 
 export interface IFormPermission extends IPermission {
+  label: string;
   checked: boolean;
 }

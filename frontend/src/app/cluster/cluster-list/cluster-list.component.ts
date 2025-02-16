@@ -3,6 +3,9 @@ import icAddCircleOutline from '@iconify/icons-ic/twotone-add';
 import { ToastrService } from '@sdk-ui/ui';
 import { ClusterService } from '../cluster.service';
 import { ToolbarService } from '@sdk-ui/services/toolbar.service';
+import { ICluster } from '@cluster/cluster.model';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 
 enum View {
   GRID = 'grid',
@@ -25,7 +28,9 @@ export class ClusterListComponent implements OnInit {
   constructor(
     private clusterService: ClusterService,
     private toastrService: ToastrService,
-    private toolbarService: ToolbarService
+    private toolbarService: ToolbarService,
+    private router: Router,
+    private _dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -35,7 +40,7 @@ export class ClusterListComponent implements OnInit {
 
   getCluster(): void {
     this.dataLoading = true;
-    this.clusterService.mcGetClusters().subscribe({
+    this.clusterService.getClusters().subscribe({
       next: data => {
         this.clusterList = data || [];
         this.dataLoading = false;
@@ -55,5 +60,22 @@ export class ClusterListComponent implements OnInit {
     } else {
       this.viewStyle = View.LIST;
     }
+  }
+
+  routeToDetails(cluster?: ICluster): void {
+    if (cluster && cluster.is_active) {
+      this.router.navigate(['/clusters', cluster?.id, 'k8s']);
+      return;
+    }
+
+    import('../cluster-form/cluster-form.component').then(m => {
+    const dialog = this._dialog.open(m.ClusterFormComponent, {
+        width: '800px',
+        data: cluster
+      });
+      dialog.afterClosed().subscribe((result) => {
+        if (result) this.getCluster();
+      })
+    });
   }
 }
