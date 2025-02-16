@@ -308,6 +308,21 @@ var srv = &serverImpl{
 	groups: make(map[string][]*workerConnection),
 }
 
+// Function to remove a worker group name
+func (s *serverImpl) RemoveWorkerByGroupName(groupName string) bool {
+	w := s.pickWorker(groupName)
+	if w != nil {
+		s.removeWorker(w)
+		return true
+	}
+	return false
+}
+
+// Add a getter for the server instance
+func GetServerInstance() *serverImpl {
+	return srv
+}
+
 func StartGrpcServer() {
 	// Start gRPC server
 	go func() {

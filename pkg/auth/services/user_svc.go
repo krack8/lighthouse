@@ -203,15 +203,11 @@ func (s *UserService) DeleteUser(userID string) error {
 		return fmt.Errorf("invalid user ID format: %w", err)
 	}
 
-	filter := bson.M{"_id": objectID}
-	result, err := db.UserCollection.DeleteOne(context.Background(), filter)
-	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
-	}
-
-	if result.DeletedCount == 0 {
-		return errors.New("user not found")
-	}
+	_, err = db.UserCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED}},
+	)
 
 	return nil
 }

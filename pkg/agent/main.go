@@ -20,7 +20,7 @@ func main() {
 	config.InitEnvironmentVariables()
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
-	groupName := "GroupA"
+	groupName := os.Getenv("WORKER_GROUP")
 	controllerURL := os.Getenv("CONTROLLER_URL")
 	secretName := os.Getenv("AGENT_SECRET_NAME")
 	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")

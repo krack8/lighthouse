@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strings"
 	"time"
 )
 
@@ -135,13 +136,15 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 		log.Logger.Errorw("Error creating token validations:", "err", err.Error())
 	}
 
+	groupName := strings.ReplaceAll(name, " ", "-") + primitive.NewObjectID().Hex()
+	clusterGroupName := strings.ReplaceAll(groupName, "--", "-")
 	// Create a new cluster
 	cluster := &models.Cluster{
 		ID:            agentClusterID,
 		Name:          name,
 		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
 		Token:         agentToken,
-		WorkerGroup:   primitive.NewObjectID().Hex(),
+		WorkerGroup:   clusterGroupName,
 		IsActive:      false,
 		ControllerURL: controllerURL,
 		Status:        enum.VALID,
@@ -161,27 +164,29 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 	return cluster, nil
 }
 
-// DeleteRoleByID deletes a role by its ID
+// DeleteClusterByID deletes a cluster by its ID
 func (s *ClusterService) DeleteClusterByID(clusterId string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	// Convert string ID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(clusterId)
 	if err != nil {
 		return fmt.Errorf("invalid cluster ID format: %v", err)
 	}
 
-	// Delete the role
-	result, err := db.ClusterCollection.DeleteOne(ctx, bson.M{"_id": objectID})
+	_, err = db.ClusterCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED, "cluster_status": enum.DISCONNECTED}},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete cluster: %v", err)
 	}
-
-	// Check if a role was actually deleted
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("no cluster found with ID: %s", clusterId)
+	_, err = db.TokenCollection.UpdateOne(
+		context.Background(),
+		bson.M{"cluster_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED, "updated_at": time.Now()}},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete token: %v", err)
 	}
-
 	return nil
 }

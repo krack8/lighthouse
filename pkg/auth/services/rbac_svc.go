@@ -180,25 +180,17 @@ func (r *RbacService) GetRoleByID(roleID string) (*models.Role, error) {
 
 // DeleteRoleByID deletes a role by its ID
 func (r *RbacService) DeleteRoleByID(roleID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	// Convert string ID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(roleID)
 	if err != nil {
 		return fmt.Errorf("invalid role ID format: %v", err)
 	}
 
-	// Delete the role
-	result, err := db.RoleCollection.DeleteOne(ctx, bson.M{"_id": objectID})
-	if err != nil {
-		return fmt.Errorf("failed to delete role: %v", err)
-	}
-
-	// Check if a role was actually deleted
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("no role found with ID: %s", roleID)
-	}
+	_, err = db.RoleCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED}},
+	)
 
 	return nil
 }

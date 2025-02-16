@@ -206,25 +206,12 @@ func InitializeClusters() {
 			log.Fatalf("Error creating token validations: %v", err)
 		}
 
-		/*		// Create master cluster
-				groupCluster := models.Cluster{
-					ID:          primitive.NewObjectID(),
-					Name:        "master-cluster",
-					ClusterType: enum.MASTER,
-					Status:      enum.VALID,
-					CreatedBy:   string(enum.SYSTEM),
-					UpdatedBy:   string(enum.SYSTEM),
-					CreatedAt:   time.Now(),
-					UpdatedAt:   time.Now(),
-					IsActive:    true,
-				}*/
-
 		// Create worker cluster
 		agentCluster := models.Cluster{
 			ID:            agentClusterID,
-			Name:          "agent-cluster",
+			Name:          os.Getenv("DEFAULT_CLUSTER_NAME"),
 			ClusterType:   enum.WORKER,
-			WorkerGroup:   primitive.NewObjectID().Hex(),
+			WorkerGroup:   os.Getenv("WORKER_GROUP"),
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,
