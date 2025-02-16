@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/agent/server"
+	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"os"
 	"sync"
 	"time"
-
-	"github.com/krack8/lighthouse/pkg/common/pb" // Import the generated proto package
 )
 
 var taskMutex sync.Mutex
@@ -24,125 +21,222 @@ func main() {
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := "GroupA"
+	controllerURL := os.Getenv("CONTROLLER_URL")
+	secretName := os.Getenv("AGENT_SECRET_NAME")
+	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")
 	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
-	var conn *grpc.ClientConn
-	var err error
-	defer func(conn *grpc.ClientConn) {
-		err = conn.Close()
-		if err != nil {
+	streamRecoveryMaxAttempt := 10
+	streamRecoveryInterval := 5 * time.Second
+	for streamRecoveryAttempt := 0; streamRecoveryAttempt < streamRecoveryMaxAttempt; streamRecoveryAttempt++ {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel() // Cancel the context when the program exits
 
-		}
-	}(conn)
-	// Dial the controller's gRPC server.
-	for {
-		conn, err = grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
-		//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+		conn, stream, err := server.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName)
 		if err != nil {
-			_log.Logger.Warnw("Failed to dial controller", "error", err)
+			_log.Logger.Fatalw("Failed to connect and identify worker", "error", err)
 			continue
 		}
-		time.Sleep(1 * time.Second)
-		break
-	}
-	var stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]
-	client := pb.NewControllerClient(conn)
-	// Open the bi-directional stream.
-	for {
-		stream, err = client.TaskStream(context.Background())
-		if err != nil {
-			_log.Logger.Warnw("Failed to create TaskStream: %v", "err", err)
-			continue
-		}
-		time.Sleep(1 * time.Second)
-		break
-	}
+		streamErrorChan := make(chan error)
+		// handle incoming messages in a separate goroutine.
+		go func() {
+			for {
+				in, err := stream.Recv()
+				if err != nil {
+					_log.Logger.Infow("Stream Recv error (worker)", "err", err)
+					streamErrorChan <- err
+					return
+				}
 
-	//Agent Auth Process
-	// Fetch the secret
-	var secretToken string
-	for {
-		secretToken, err = utils.GetSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"))
-		if err != nil {
-			_log.Logger.Warnw("Failed to get secret", "err", err)
-			continue
-		}
-		time.Sleep(5 * time.Second)
-		break
-	}
+				switch payload := in.Payload.(type) {
 
-	// Use the processed token
-	// 1) Send WorkerIdentification
-	for {
-		err = stream.Send(&pb.TaskStreamRequest{
-			Payload: &pb.TaskStreamRequest_WorkerInfo{
-				WorkerInfo: &pb.WorkerIdentification{
-					GroupName: groupName,
-					AuthToken: secretToken,
-				},
-			},
-		})
-		if err != nil {
-			_log.Logger.Warnw("Failed to send worker info", "err", err)
-			continue
-		}
-		time.Sleep(2 * time.Second)
-		break
-	}
-	// We'll handle incoming messages in a separate goroutine.
-	go func() {
-		for {
-			in, err := stream.Recv()
-			if err != nil {
-				_log.Logger.Infow("Stream Recv error (worker)", "err", err)
-				return
-			}
-
-			switch payload := in.Payload.(type) {
-
-			case *pb.TaskStreamResponse_NewTask:
-				task := payload.NewTask
-				_log.Logger.Infow("Worker received a new task: ID=%s, payload=%s",
-					task.Id, task.Payload)
-				go func(taskID, taskPayload string, task *pb.Task) {
-					taskMutex.Lock()
-					defer taskMutex.Unlock()
-					TaskResult := &pb.TaskResult{}
-					res, err := tasks.TaskSelector(task)
-					if err != nil {
-						TaskResult.Success = false
-						TaskResult.Output = err.Error()
-					} else {
-						output, err := json.Marshal(res)
+				case *pb.TaskStreamResponse_NewTask:
+					task := payload.NewTask
+					_log.Logger.Infow("Worker received a new task: ID=%s, payload=%s",
+						task.Id, task.Payload)
+					go func(taskID, taskPayload string, task *pb.Task) {
+						taskMutex.Lock()
+						defer taskMutex.Unlock()
+						TaskResult := &pb.TaskResult{}
+						res, err := tasks.TaskSelector(task)
 						if err != nil {
 							TaskResult.Success = false
 							TaskResult.Output = err.Error()
+						} else {
+							output, err := json.Marshal(res)
+							if err != nil {
+								TaskResult.Success = false
+								TaskResult.Output = err.Error()
+							}
+							TaskResult.Success = true
+							TaskResult.Output = string(output)
 						}
-						TaskResult.Success = true
-						TaskResult.Output = string(output)
-					}
-					TaskResult.TaskId = taskID
-					resultMsg := &pb.TaskStreamRequest{
-						Payload: &pb.TaskStreamRequest_TaskResult{
-							TaskResult: TaskResult,
-						},
-					}
+						TaskResult.TaskId = taskID
+						resultMsg := &pb.TaskStreamRequest{
+							Payload: &pb.TaskStreamRequest_TaskResult{
+								TaskResult: TaskResult,
+							},
+						}
 
-					// Send the result back to the controller.
-					if err = stream.Send(resultMsg); err != nil {
-						_log.Logger.Errorw("Failed to send task result", "err", err)
-					}
-				}(task.Id, task.Payload, task)
+						// Send the result back to the controller.
+						if err = stream.Send(resultMsg); err != nil {
+							_log.Logger.Errorw("Failed to send task result", "err", err)
+						}
+					}(task.Id, task.Payload, task)
 
-			case *pb.TaskStreamResponse_Ack:
-				_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+				case *pb.TaskStreamResponse_Ack:
+					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
-			default:
-				_log.Logger.Infow("Unknown payload from server.", "payload", "default")
+				default:
+					_log.Logger.Infow("Unknown payload from server.", "payload", "default")
+				}
 			}
-		}
-	}()
+		}()
 
-	// Keep the worker alive.
-	select {}
+		// Keep the worker alive.
+		select {
+		case <-ctx.Done(): // Context cancelled (e.g., shutdown)
+			_log.Logger.Infow("Context cancelled")
+			break // Exit outer loop
+		case err := <-streamErrorChan: // Stream error received
+			_log.Logger.Warnw("Stream error detected", "error", err)
+			if err := conn.Close(); err != nil { // Close connection immediately
+				_log.Logger.Warnw("Failed to close controller connection", "error", err)
+			}
+			time.Sleep(streamRecoveryInterval)
+			continue // Retry connecting
+		}
+	}
 }
+
+//
+//var taskMutex sync.Mutex
+//
+//func main() {
+//	_log.InitializeLogger()
+//	config.InitEnvironmentVariables()
+//	config.InitiateKubeClientSet()
+//	// For demonstration, we'll just run a single worker that belongs to "GroupA".
+//	groupName := "GroupA"
+//	//authToken := "my-secret"
+//	tasks.InitTaskRegistry()
+//	var conn *grpc.ClientConn
+//	var err error
+//	defer func(conn *grpc.ClientConn) {
+//		err = conn.Close()
+//		if err != nil {
+//
+//		}
+//	}(conn)
+//	// Dial the controller's gRPC server.
+//	for {
+//		conn, err = grpc.NewClient(os.Getenv("CONTROLLER_URL"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+//		//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+//		if err != nil {
+//			_log.Logger.Warnw("Failed to dial controller", "error", err)
+//			continue
+//		}
+//		time.Sleep(1 * time.Second)
+//		break
+//	}
+//	var stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]
+//	client := pb.NewControllerClient(conn)
+//	// Open the bi-directional stream.
+//	for {
+//		stream, err = client.TaskStream(context.Background())
+//		if err != nil {
+//			_log.Logger.Warnw("Failed to create TaskStream: %v", "err", err)
+//			continue
+//		}
+//		time.Sleep(1 * time.Second)
+//		break
+//	}
+//
+//	//Agent Auth Process
+//	// Fetch the secret
+//	var secretToken string
+//	for {
+//		secretToken, err = utils.GetSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"))
+//		if err != nil {
+//			_log.Logger.Warnw("Failed to get secret", "err", err)
+//			continue
+//		}
+//		time.Sleep(5 * time.Second)
+//		break
+//	}
+//
+//	// Use the processed token
+//	// 1) Send WorkerIdentification
+//	for {
+//		err = stream.Send(&pb.TaskStreamRequest{
+//			Payload: &pb.TaskStreamRequest_WorkerInfo{
+//				WorkerInfo: &pb.WorkerIdentification{
+//					GroupName: groupName,
+//					AuthToken: secretToken,
+//				},
+//			},
+//		})
+//		if err != nil {
+//			_log.Logger.Warnw("Failed to send worker info", "err", err)
+//			continue
+//		}
+//		time.Sleep(2 * time.Second)
+//		break
+//	}
+//	// We'll handle incoming messages in a separate goroutine.
+//	go func() {
+//		for {
+//			in, err := stream.Recv()
+//			if err != nil {
+//				_log.Logger.Infow("Stream Recv error (worker)", "err", err)
+//				return
+//			}
+//
+//			switch payload := in.Payload.(type) {
+//
+//			case *pb.TaskStreamResponse_NewTask:
+//				task := payload.NewTask
+//				_log.Logger.Infow("Worker received a new task: ID=%s, payload=%s",
+//					task.Id, task.Payload)
+//				go func(taskID, taskPayload string, task *pb.Task) {
+//					taskMutex.Lock()
+//					defer taskMutex.Unlock()
+//					TaskResult := &pb.TaskResult{}
+//					res, err := tasks.TaskSelector(task)
+//					if err != nil {
+//						TaskResult.Success = false
+//						TaskResult.Output = err.Error()
+//					} else {
+//						output, err := json.Marshal(res)
+//						if err != nil {
+//							TaskResult.Success = false
+//							TaskResult.Output = err.Error()
+//						}
+//						TaskResult.Success = true
+//						TaskResult.Output = string(output)
+//					}
+//					TaskResult.TaskId = taskID
+//					resultMsg := &pb.TaskStreamRequest{
+//						Payload: &pb.TaskStreamRequest_TaskResult{
+//							TaskResult: TaskResult,
+//						},
+//					}
+//
+//					// Send the result back to the controller.
+//					if err = stream.Send(resultMsg); err != nil {
+//						_log.Logger.Errorw("Failed to send task result", "err", err)
+//					}
+//				}(task.Id, task.Payload, task)
+//
+//			case *pb.TaskStreamResponse_Ack:
+//				_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+//
+//			default:
+//				_log.Logger.Infow("Unknown payload from server.", "payload", "default")
+//			}
+//		}
+//	}()
+//
+//	// Keep the worker alive.
+//	select {}
+//}
