@@ -62,7 +62,7 @@ export class SecureDeleteDialogComponent implements OnInit {
           if (res.status === 'error') {
             this.toastr.error(res.message || 'Cannot delete' + this.data.module);
           }
-          this.dialogRef.close(res.status);
+          this.dialogRef.close(res.status || "success");
         },
         error: (err: any) => {
           this.isSubmitting = false;

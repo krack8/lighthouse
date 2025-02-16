@@ -6,6 +6,7 @@ import { ToolbarService } from '@sdk-ui/services/toolbar.service';
 import { ICluster } from '@cluster/cluster.model';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import icCircle from '@iconify/icons-ic/twotone-lens';
 
 enum View {
   GRID = 'grid',
@@ -19,6 +20,7 @@ enum View {
 })
 export class ClusterListComponent implements OnInit {
   icAddCircleOutline = icAddCircleOutline;
+  icCircle = icCircle;
   clusterList: any = [];
   dataLoading!: boolean;
   serverError: boolean = false;

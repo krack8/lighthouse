@@ -12,6 +12,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"net/http"
@@ -328,6 +329,7 @@ func StartGrpcServer() {
 	go func() {
 		grpcServer := grpc.NewServer()
 		pb.RegisterControllerServer(grpcServer, srv)
+		reflection.Register(grpcServer)
 
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {

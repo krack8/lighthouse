@@ -5,12 +5,12 @@
   <div class="modal-wrapper">
     <img src="/assets/img/bin.svg" />
     <div class="dialog1">
-      <h2>Delete permanently</h2>
+      <h2>Remove permanently</h2>
       <p class="bg-red-100 border text-grey border-grey-400 px-4 py-3 mt-5 mb-5">
-        Please read it carefully, otherwise unexpected bad things will happen!
+        This will permanently Remove the {{ data?.module }}, <b>{{ data?.name }}</b> from the system.
       </p>
       <p class="mt-5 mb-5">
-        Please type: <b>{{ data?.name }}</b> to permanently delete this {{ data?.module }}
+        Please type: <b>{{ data?.name }}</b> to permanently remove this {{ data?.module }}
       </p>
       <div class="form-control">
         <input type="text" #inp (input)="onChange(inp.value)" (paste)="onChange(inp.value)" placeholder="Type here..." />
