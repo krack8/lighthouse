@@ -527,21 +527,33 @@
         </div>
 
         <div *hasAnyAuthority="''">
-          <button
-            id="create-btn"
-            matTooltip="Apply Any Manifest"
-            matTooltipPosition="above"
-            mat-raised-button
-            color="primary"
-            type="button"
-            class="px-6 text-base mr-4"
-            (click)="onCreate()"
-          >
-            <div class="flex items-center">
-              <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="20px"></ic-icon>
-              <span>Create</span>
-            </div>
-          </button>
+          <div class="flex float-right">
+            <button
+              id="create-btn"
+              matTooltip="Apply Any Manifest"
+              matTooltipPosition="above"
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="px-6 text-base mr-4"
+              (click)="onCreate()"
+            >
+              <div class="flex items-center">
+                <ic-icon [icon]="icAdd" class="hidden sm:inline-block mr-1" size="20px"></ic-icon>
+                <span>Create</span>
+              </div>
+            </button>
+
+            <button [matMenuTriggerFor]="menu" mat-button  mat-icon-button>
+              <mat-icon [icIcon]="icMoreVert"></mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="deleteCluster()">
+                <mat-icon class="text-red-600" [icIcon]="icDelete"></mat-icon>
+                <span>Delete Cluster</span>
+              </button>
+            </mat-menu>
+          </div>
         </div>
       </div>
 

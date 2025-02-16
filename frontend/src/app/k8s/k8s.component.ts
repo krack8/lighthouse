@@ -9,6 +9,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { k8sRoutesMap, k8sRoutesPermissionMap } from '@shared-ui/utils';
 import icDown from '@iconify/icons-ic/twotone-keyboard-arrow-down';
 import { ICluster } from '@cluster/cluster.model';
+import icMoreVert from '@iconify/icons-ic/twotone-more-vert';
+import icDelete from '@iconify/icons-ic/twotone-delete';
+import { SecureDeleteDialogComponent } from '@shared-ui/ui';
+import { ClusterService } from '@cluster/cluster.service';
+import { ToastrService } from '@sdk-ui/ui';
 
 interface IBreadcrumb {
   label: string;
@@ -27,6 +32,8 @@ export class K8sComponent implements OnInit, OnDestroy {
   icAdd = icAdd;
   icDown = icDown;
   icKeyboardBackspace = icKeyboardBackspace;
+  icMoreVert = icMoreVert;
+  icDelete = icDelete;
   isAlive: boolean = true;
   isLoading!: boolean;
   clusterId!: string;
@@ -42,7 +49,10 @@ export class K8sComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private _k8sService: K8sService,
     private router: Router,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _clusterService: ClusterService,
+    private toastr: ToastrService,
+    private _router: Router
   ) {
     this.router.events
       .pipe(
@@ -142,6 +152,28 @@ export class K8sComponent implements OnInit, OnDestroy {
     const path = '/' + urlSegments[3] + '/' + urlSegments[4] + '/' + urlSegments[5] + '/namespaces/' + resource;
     this.router.navigate([path], {
       queryParams: { namespace: 'default' }
+    });
+  }
+
+  deleteCluster(): void {
+    const cluster = this._k8sService.clusterInfoSnapshot;
+    const deleteDialog = this.dialog.open(SecureDeleteDialogComponent, {
+      width: '600px',
+      minHeight: '350px',
+      data: {
+        module: 'CLUSTER',
+        route: '/clusters',
+        id: cluster?.id,
+        name: cluster?.name,
+        method: this._clusterService.deleteCluster(cluster?.id),
+      },
+    });
+    deleteDialog.afterClosed().subscribe((status: string) => {
+      console.log('status', status);
+      if (status === 'success') {
+        this.toastr.success('Cluster deleted successfully');
+        this._router.navigate(['/clusters']);
+      }
     });
   }
 }

@@ -141,7 +141,7 @@
 .failed,
 .deleting {
   color: #b1122a;
-}
+  }
 
 .pending {
   color: #ffbb33;
@@ -176,4 +176,26 @@
       background: #4a2440;
     }
   }
+}
+
+//cluster status indicator
+
+.border-status-CONNECTED {
+  border-left: 5px solid #2ea100d8 !important;
+}
+.status-CONNECTED {
+  color: #3aca01c2;
+}
+
+.border-status-DISCONNECTED {
+  border-left: 5px solid rgba(177, 18, 42, 0.747) !important;
+}
+.status-DISCONNECTED {
+  color: #b1122a;
+}
+.border-status-PENDING{
+  border-left: 5px solid #e48100 !important;
+}
+.status-PENDING {
+  color: #e48100;
 }
