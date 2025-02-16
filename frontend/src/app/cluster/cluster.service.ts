@@ -40,4 +40,7 @@ export class ClusterService {
     return this.httpService.get(Utils.formatString(endpoint.GET_HELM_CHART, clusterId));
   }
 
+  deleteCluster(id: string): Observable<any> {
+    return this.httpService.delete(endpoint.DELETE_CLUSTER + id);
+  }
 }

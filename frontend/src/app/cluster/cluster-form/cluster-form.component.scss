@@ -53,3 +53,13 @@ h4 {
     }
   }
 }
+
+.delete-cluster-btn{
+  background: var(--color-danger);
+
+  &:hover{
+    background: var(--color-danger);
+    opacity: 0.8;
+  }
+}
+

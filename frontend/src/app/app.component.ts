@@ -61,7 +61,7 @@ export class AppComponent implements OnInit {
         mergeMap(route => route.data)
       )
       .subscribe(event => {
-        this.titleService.setTitle('KloverCloud' + ' | ' + event['title']);
+        this.titleService.setTitle('Lighthouse' + ' | ' + event['title']);
       });
   }
 }

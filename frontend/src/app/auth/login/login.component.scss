@@ -366,3 +366,8 @@ select:-webkit-autofill:focus {
 .password-visible-toggler {
   color: var(--text-color);
 }
+
+.project-banner {
+  margin-bottom: 160px;
+  z-index: 1000;
+}
