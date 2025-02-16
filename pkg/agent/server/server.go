@@ -2,13 +2,14 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"time"
 )
@@ -18,8 +19,13 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerURL, secretName, re
 	retryInterval := 2 * time.Second
 	var conn *grpc.ClientConn
 	var err error
+
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		if err != nil {
 			_log.Logger.Warnw(fmt.Sprintf("Failed to dial controller. Retrying %d", attempt+1), "error", err)
 			time.Sleep(retryInterval)
