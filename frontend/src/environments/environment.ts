@@ -5,5 +5,4 @@ export const environment = {
 
   apiEndPoint: LIGHTHOUSE_API_ENDPOINT + '/api',
   multiClusterWsEndpoint: LIGHTHOUSE_API_ENDPOINT + '/clusterlog'
-};
-docker 
+}; 
