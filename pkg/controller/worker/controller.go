@@ -16,6 +16,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -53,6 +54,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 	defer func() {
 		if currentWorker != nil {
 			s.removeWorker(currentWorker)
+			//s.disconnectWorker(currentWorker)
 		}
 	}()
 
@@ -252,9 +254,8 @@ func (s *serverImpl) Process(groupName string, payload string, taskName string, 
 }
 
 func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input []byte) (*pb.TaskResult, error) {
-	groupName := "GroupA"
 	payload := taskName
-	resultCh, err := srv.Process(groupName, payload, taskName, input)
+	resultCh, err := srv.Process(os.Getenv("WORKER_GROUP"), payload, taskName, input)
 	if err != nil {
 		return nil, err
 	}
@@ -309,19 +310,80 @@ var srv = &serverImpl{
 	groups: make(map[string][]*workerConnection),
 }
 
-// Function to remove a worker group name
+var workerConn = &workerConnection{
+	stream:      nil,
+	groupName:   "",
+	resultChMap: make(map[string]chan *pb.TaskResult),
+}
+
+// RemoveWorkerByGroupName removes all workers in a group
 func (s *serverImpl) RemoveWorkerByGroupName(groupName string) bool {
-	w := s.pickWorker(groupName)
-	if w != nil {
-		s.removeWorker(w)
-		return true
+	s.mu.Lock()
+	workers, exists := s.groups[groupName]
+	if !exists || len(workers) == 0 {
+		s.mu.Unlock()
+		return false
 	}
-	return false
+
+	// First disconnect all workers
+	for _, worker := range workers {
+		go func(w *workerConnection) {
+			s.disconnectWorker(w)
+		}(worker)
+	}
+
+	// Remove the group
+	delete(s.groups, groupName)
+	s.mu.Unlock()
+
+	log.Printf("Removed group %s and disconnected all workers", groupName)
+	return true
+}
+
+// disconnectWorker handles graceful worker disconnection
+func (s *serverImpl) disconnectWorker(w *workerConnection) {
+	if w == nil || w.stream == nil {
+		return
+	}
+
+	// Send disconnect message directly through the stream
+	disconnectMsg := &pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_Ack{
+			Ack: &pb.Ack{
+				Message: "disconnect_requested",
+			},
+		},
+	}
+
+	// Try to send disconnect message first
+	err := w.stream.Send(disconnectMsg)
+	if err != nil {
+		log.Printf("Failed to send disconnect message: %v", err)
+	} else {
+		log.Printf("Successfully sent disconnect message to worker in group %s", w.groupName)
+	}
+
+	// Clean up channels
+	s.mu.Lock()
+	for taskID, ch := range w.resultChMap {
+		close(ch)
+		delete(w.resultChMap, taskID)
+	}
+	s.mu.Unlock()
+
+	// Remove from groups
+	s.removeWorker(w)
+
+	log.Printf("Worker disconnected from group %s", w.groupName)
 }
 
 // Add a getter for the server instance
 func GetServerInstance() *serverImpl {
 	return srv
+}
+
+func GetWorkerConnection() *workerConnection {
+	return workerConn
 }
 
 func StartGrpcServer() {

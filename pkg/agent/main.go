@@ -23,7 +23,7 @@ func main() {
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := os.Getenv("WORKER_GROUP")
-	controllerURL := os.Getenv("CONTROLLER_URL")
+	controllerURL := os.Getenv("SERVER_URL")
 	secretName := os.Getenv("AGENT_SECRET_NAME")
 	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")
 	//authToken := "my-secret"
@@ -100,6 +100,21 @@ func main() {
 
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+
+					if payload.Ack.Message == "disconnect_requested" {
+						_log.Logger.Infow("Disconnect requested, starting shutdown")
+						// Close the gRPC connection
+						if err := conn.Close(); err != nil {
+							_log.Logger.Warnw("Failed to close gRPC connection", "error", err)
+						}
+
+						// Cancel the context to stop any ongoing operations
+						cancel()
+
+						// Close the error channel to signal disconnect
+						close(streamErrorChan)
+						return
+					}
 
 				default:
 					_log.Logger.Infow("Unknown payload from server.", "payload", "default")

@@ -77,7 +77,7 @@ func (r *RbacService) AssignRole(username string, roleIds []string) error {
 	for _, roleId := range roleIds {
 		objectID, err := primitive.ObjectIDFromHex(roleId)
 		var role models.Role
-		err = db.RoleCollection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&role)
+		err = db.RoleCollection.FindOne(context.Background(), bson.M{"_id": objectID, "status": enum.VALID}).Decode(&role)
 		if err != nil {
 			return fmt.Errorf("role '%s' not found with Id", objectID)
 		}
@@ -170,7 +170,7 @@ func (r *RbacService) GetRoleByID(roleID string) (*models.Role, error) {
 
 	// Find the role by ID
 	var role models.Role
-	err = db.RoleCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&role)
+	err = db.RoleCollection.FindOne(ctx, bson.M{"_id": objectID, "status": enum.VALID}).Decode(&role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve role: %v", err)
 	}
@@ -450,7 +450,7 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 func GetRoleByName(name string) ([]models.Role, error) {
 	var roles []models.Role
 	var singleRole models.Role
-	filter := bson.M{"name": name}
+	filter := bson.M{"name": name, "status": enum.VALID}
 	if err := db.RoleCollection.FindOne(context.Background(), filter).Decode(&singleRole); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("role not found")

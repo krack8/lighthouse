@@ -43,7 +43,7 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 	}
 
 	var cluster models.Cluster
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	result := db.ClusterCollection.FindOne(context.Background(), filter)
 	if err := result.Decode(&cluster); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -57,7 +57,7 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 
 func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
 	// Filter for AGENT clusters
-	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}}
+	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}, "status": bson.M{"$eq": enum.VALID}}
 
 	cursor, err := db.ClusterCollection.Find(context.Background(), filter)
 	if err != nil {

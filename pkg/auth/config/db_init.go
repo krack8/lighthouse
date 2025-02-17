@@ -118,7 +118,7 @@ func InitRBAC() {
 		log.Fatalf("Default permission not found: %v", err)
 	}
 
-	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{})
+	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting documents in users collection: %v", err)
 	}
@@ -151,7 +151,7 @@ func InitRBAC() {
 
 // InitializeClusters creates default clusters if none exist
 func InitializeClusters() {
-	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{})
+	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting clusters: %v", err)
 	}
@@ -215,7 +215,7 @@ func InitializeClusters() {
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,
-			ControllerURL: os.Getenv("CONTROLLER_URL"),
+			ControllerURL: os.Getenv("SERVER_URL"),
 			CreatedBy:     string(enum.SYSTEM),
 			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),

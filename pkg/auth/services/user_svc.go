@@ -76,7 +76,7 @@ func (s *UserService) GetUser(userID string) (*models.User, error) {
 	}
 
 	var user models.User
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	result := db.UserCollection.FindOne(context.Background(), filter)
 	if err := result.Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -130,7 +130,7 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 
 	// First fetch the existing user
 	var existingUser models.User
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	err = db.UserCollection.FindOne(context.Background(), filter).Decode(&existingUser)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -219,7 +219,7 @@ func GetUserByUsername(username string) (*models.User, error) {
 	}
 
 	var user models.User
-	filter := bson.M{"username": username}
+	filter := bson.M{"username": username, "status": enum.VALID}
 	if err := db.UserCollection.FindOne(context.Background(), filter).Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("user not found")

@@ -38,7 +38,7 @@ func (uc *ClusterController) GetClusterHandler(c *gin.Context) {
 func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
 	ClusterList, err := uc.ClusterService.GetAllClusters()
 	if err != nil {
-		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
 		return
 	}
 
@@ -131,7 +131,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set controller.url=" + os.Getenv("CONTROLLER_URL"),
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set server.url=" + os.Getenv("SERVER_URL"),
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
