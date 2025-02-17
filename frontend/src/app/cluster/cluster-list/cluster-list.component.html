@@ -39,8 +39,8 @@
                         {{ cluster?.name }}
                       </div>
                     </div>
-                    <div class="flex items-center justify-center p-3 xl:col-start-6">
-                      <mat-icon matTooltip="{{cluster?.cluster_status === 'PENDING'? 'Please apply the Helm to connect' : cluster?.cluster_status }}" [icIcon]="icCircle" class="text-sm status-{{cluster?.cluster_status}}"></mat-icon>
+                    <div class="flex items-center justify-end p-3 xl:col-start-6">
+                      <mat-icon matTooltip="{{cluster?.cluster_status === 'PENDING'? 'Please apply the Helm to connect' : cluster?.cluster_status }}" [icIcon]="icCircle" class="status-icon status-{{cluster?.cluster_status}}"></mat-icon>
                     </div>
                   </div>
                 </div>

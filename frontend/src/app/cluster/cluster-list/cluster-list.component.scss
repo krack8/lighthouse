@@ -180,22 +180,28 @@
 
 //cluster status indicator
 
+.status-icon{
+  box-shadow: 0 0 10px 0 #ffffff57;
+  border-radius: 50%;
+  font-size: large;
+}
+
 .border-status-CONNECTED {
-  border-left: 5px solid #2ea100d8 !important;
+  border-left: 5px solid #66fd2ac2 !important;
 }
 .status-CONNECTED {
-  color: #3aca01c2;
+  color: #66fd2ac2;
 }
 
 .border-status-DISCONNECTED {
   border-left: 5px solid rgba(177, 18, 42, 0.747) !important;
 }
 .status-DISCONNECTED {
-  color: #b1122a;
+  color: #df1231e1;
 }
 .border-status-PENDING{
-  border-left: 5px solid #e48100 !important;
+  border-left: 5px solid #e6a312 !important;
 }
 .status-PENDING {
-  color: #e48100;
+  color: #e6a312;
 }
