@@ -16,8 +16,12 @@ var isK8 = "False"
 var KubeConfigFile = "dev-config.yaml"
 var Auth = false
 var InternalServer = false
-var TlsInsecureSkipVerify = false
+var SkipServerTlsVerification = false
 var TlsServerCustomCa = ""
+var WorkerGroup string
+var ServerUrl string
+var AgentSecretName string
+var ResourceNamespace string
 
 func InitEnvironmentVariables() {
 	RunMode = os.Getenv("RUN_MODE")
@@ -44,15 +48,19 @@ func InitEnvironmentVariables() {
 	} else {
 		log.Logger.Infow("Server is external. Using tls config", "[Internal-Server]", InternalServer)
 	}
-	if os.Getenv("TLS_INSECURE_SKIP_VERIFY") == "TRUE" {
-		TlsInsecureSkipVerify = true
-		log.Logger.Infow("Server is skipping tls verification.", "[TLS-Skip-Verify]", TlsInsecureSkipVerify)
+	if os.Getenv("SKIP_SERVER_TLS_VERIFICATION") == "TRUE" {
+		SkipServerTlsVerification = true
+		log.Logger.Infow("Server is skipping tls verification.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
 	} else {
-		log.Logger.Infow("Server is verifying tls.", "[TLS-Skip-Verify]", TlsInsecureSkipVerify)
+		log.Logger.Infow("Server is verifying tls.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
 	}
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 	isK8 = os.Getenv("IS_K8")
 	TlsServerCustomCa = os.Getenv("TLS_SERVER_CUSTOM_CA")
+	WorkerGroup = os.Getenv("WORKER_GROUP")
+	ServerUrl = os.Getenv("SERVER_URL")
+	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
+	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")
 }
 
 func IsK8() bool {
@@ -70,6 +78,6 @@ func IsInternalServer() bool {
 	return InternalServer
 }
 
-func IsTlsInsecureSkipVerify() bool {
-	return TlsInsecureSkipVerify
+func IsSkipServerTlsVerification() bool {
+	return SkipServerTlsVerification
 }
