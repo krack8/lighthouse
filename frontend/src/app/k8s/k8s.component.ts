@@ -166,6 +166,7 @@ export class K8sComponent implements OnInit, OnDestroy {
         id: cluster?.id,
         name: cluster?.name,
         method: this._clusterService.deleteCluster(cluster?.id),
+        clusterStatus: cluster.cluster_status
       },
     });
     deleteDialog.afterClosed().subscribe((status: string) => {
