@@ -63,13 +63,13 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 
 func IsAgentAuthTokenValid(authToken string) bool {
 	tokenValidation, err := mongoUpdate.GetToken(context.Background(), authToken)
-	if err != nil {
-		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
+	if tokenValidation == nil {
+		log.Logger.Warnw("Unauthorized !!..Token not found in DB", "err", err.Error())
 		return false
 	}
 
-	if tokenValidation == nil {
-		log.Logger.Errorw("Token Not Found in DB", "err", err.Error())
+	if err != nil {
+		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
 		return false
 	}
 

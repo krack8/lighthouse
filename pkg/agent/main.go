@@ -113,6 +113,7 @@ func main() {
 
 						// Close the error channel to signal disconnect
 						close(streamErrorChan)
+						log.Fatalf("Detached from server. Disconnected !!")
 						return
 					}
 

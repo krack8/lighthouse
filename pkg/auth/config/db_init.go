@@ -67,6 +67,42 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil
 }
+func ResetCollections(client *mongo.Client, ctx context.Context) error {
+	// Get the DB name from environment variables
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		return fmt.Errorf("DB_NAME not set")
+	}
+
+	// List of collections to reset
+	collections := []enum.TableName{
+		enum.UsersTable,
+		enum.PermissionsTable,
+		enum.RolesTable,
+		enum.ClusterTable,
+		enum.TokenTable,
+	}
+
+	// Drop each collection
+	for _, collName := range collections {
+		err := client.Database(dbName).Collection(string(collName)).Drop(ctx)
+		if err != nil {
+			log.Printf("Failed to drop collection %s: %v", collName, err)
+			return fmt.Errorf("failed to drop collection %s: %v", collName, err)
+		}
+		log.Printf("Successfully dropped collection: %s", collName)
+	}
+
+	// Reinitialize collections
+	UserCollection = client.Database(dbName).Collection(string(enum.UsersTable))
+	PermissionCollection = client.Database(dbName).Collection(string(enum.PermissionsTable))
+	RoleCollection = client.Database(dbName).Collection(string(enum.RolesTable))
+	ClusterCollection = client.Database(dbName).Collection(string(enum.ClusterTable))
+	TokenCollection = client.Database(dbName).Collection(string(enum.TokenTable))
+
+	log.Println("Successfully reset all collections")
+	return nil
+}
 
 // InitializeDefaultUser creates a default user if no users exist.
 func InitializeDefaultUser() {
@@ -174,7 +210,7 @@ func InitializeClusters() {
 
 		config.InitiateKubeClientSet()
 		// create the secret
-		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
+		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
 		if err != nil {
 			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 		}
@@ -211,7 +247,7 @@ func InitializeClusters() {
 			ID:            agentClusterID,
 			Name:          os.Getenv("DEFAULT_CLUSTER_NAME"),
 			ClusterType:   enum.WORKER,
-			WorkerGroup:   os.Getenv("WORKER_GROUP"),
+			WorkerGroup:   agentClusterID.Hex(),
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,

@@ -102,7 +102,6 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 	if removed := serverInstance.RemoveWorkerByGroupName(cluster.WorkerGroup); !removed {
 		_ = fmt.Errorf("failed to remove worker group: %s", cluster.WorkerGroup)
 	}
-
 	// Call the service to delete the role
 	err = uc.ClusterService.DeleteClusterByID(id)
 	if err != nil {

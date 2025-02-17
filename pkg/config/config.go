@@ -26,7 +26,7 @@ func InitEnvironmentVariables() {
 	}
 	log.Logger.Infow("RUN MODE:", "value", RunMode)
 	if RunMode != PRODUCTION {
-		err := godotenv.Load("../.env-example")
+		err := godotenv.Load("../.env")
 		if err != nil {
 			log.Logger.Errorw("Failed to Load environment file", "err", err.Error())
 			os.Exit(1)

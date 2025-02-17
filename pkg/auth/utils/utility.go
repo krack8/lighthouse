@@ -113,10 +113,11 @@ func GetSecret(name, namespace string) (string, error) {
 }
 
 // CreateOrUpdateSecret creates or updates a secret with the given auth token
-func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
+func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string, error) {
 	// Prepare secret data (no need to base64 encode, Kubernetes will do it)
 	secretData := map[string][]byte{
-		"AUTH_TOKEN": []byte(authToken),
+		"AUTH_TOKEN":   []byte(authToken),
+		"WORKER_GROUP": []byte(clusterId),
 	}
 
 	clientSet := config.GetKubeClientSet()

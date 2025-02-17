@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/enum"
@@ -74,9 +73,6 @@ func (m *MongoStorage) GetToken(ctx context.Context, token string) (*models.Toke
 	var result models.TokenValidation
 	err := db.TokenCollection.FindOne(ctx, bson.M{"auth_token": token, "status": enum.VALID}).Decode(&result)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil // Token not found
-		}
 		return nil, err
 	}
 	return &result, nil
