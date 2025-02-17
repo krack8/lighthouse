@@ -37,6 +37,12 @@ func (ctrl *istioGatewayController) GetIstioGatewayList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -62,7 +68,7 @@ func (ctrl *istioGatewayController) GetIstioGatewayList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -87,6 +93,12 @@ func (ctrl *istioGatewayController) GetIstioGatewayDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.IstioGatewayService().GetIstioGatewayDetails)
 	logRequestedTaskController("istio-gateway", taskName)
@@ -94,7 +106,7 @@ func (ctrl *istioGatewayController) GetIstioGatewayDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -115,6 +127,12 @@ func (ctrl *istioGatewayController) DeployIstioGateway(ctx *gin.Context) {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 
 	input := new(k8s.DeployIstioGatewayInputParams)
 	input.IstioGateway = payload
@@ -129,7 +147,7 @@ func (ctrl *istioGatewayController) DeployIstioGateway(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -147,6 +165,12 @@ func (ctrl *istioGatewayController) DeleteIstioGateway(ctx *gin.Context) {
 	input := new(k8s.DeleteIstioGatewayInputParams)
 	input.IstioGatewayName = ctx.Param("name")
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	queryNamespace := ctx.Query("namespace")
 	if queryNamespace == "" {
 		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
@@ -160,7 +184,7 @@ func (ctrl *istioGatewayController) DeleteIstioGateway(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

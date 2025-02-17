@@ -34,6 +34,12 @@ func (ctrl *eventController) GetEventList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 
@@ -60,7 +66,7 @@ func (ctrl *eventController) GetEventList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -85,6 +91,12 @@ func (ctrl *eventController) GetEventDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.EventService().GetEventDetails)
 	logRequestedTaskController("event", taskName)
@@ -92,7 +104,7 @@ func (ctrl *eventController) GetEventDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

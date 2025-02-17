@@ -37,6 +37,12 @@ func (ctrl *serviceAccountController) GetServiceAccountList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -62,7 +68,7 @@ func (ctrl *serviceAccountController) GetServiceAccountList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -87,6 +93,12 @@ func (ctrl *serviceAccountController) GetServiceAccountDetails(ctx *gin.Context)
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ServiceAccountService().GetServiceAccountDetails)
 	logRequestedTaskController("service-account", taskName)
@@ -94,7 +106,7 @@ func (ctrl *serviceAccountController) GetServiceAccountDetails(ctx *gin.Context)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -116,6 +128,13 @@ func (ctrl *serviceAccountController) DeployServiceAccount(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input := new(k8s.DeployServiceAccountInputParams)
 	input.ServiceAccount = payload
 	if input.ServiceAccount.Namespace == "" {
@@ -129,7 +148,7 @@ func (ctrl *serviceAccountController) DeployServiceAccount(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -153,6 +172,12 @@ func (ctrl *serviceAccountController) DeleteServiceAccount(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ServiceAccountService().DeleteServiceAccount)
 	logRequestedTaskController("service-account", taskName)
@@ -160,7 +185,7 @@ func (ctrl *serviceAccountController) DeleteServiceAccount(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

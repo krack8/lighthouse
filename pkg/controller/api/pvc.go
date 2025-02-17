@@ -37,6 +37,12 @@ func (ctrl *pvcController) GetPvcList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -62,7 +68,7 @@ func (ctrl *pvcController) GetPvcList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -87,6 +93,12 @@ func (ctrl *pvcController) GetPvcDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.PvcService().GetPvcDetails)
 	logRequestedTaskController("pvc", taskName)
@@ -94,7 +106,7 @@ func (ctrl *pvcController) GetPvcDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -116,6 +128,12 @@ func (ctrl *pvcController) DeployPvc(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployPvcInputParams)
 	input.Pvc = payload
 	if input.Pvc.Namespace == "" {
@@ -129,7 +147,7 @@ func (ctrl *pvcController) DeployPvc(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -153,6 +171,12 @@ func (ctrl *pvcController) DeletePvc(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.PvcService().DeletePvc)
 	logRequestedTaskController("pvc", taskName)
@@ -160,7 +184,7 @@ func (ctrl *pvcController) DeletePvc(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

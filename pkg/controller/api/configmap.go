@@ -36,6 +36,14 @@ func (ctrl *configMapController) GetConfigMapList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -61,7 +69,7 @@ func (ctrl *configMapController) GetConfigMapList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -85,6 +93,14 @@ func (ctrl *configMapController) GetConfigMapDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ConfigMapService().GetConfigMapDetails)
 	logRequestedTaskController("config-map", taskName)
@@ -92,7 +108,7 @@ func (ctrl *configMapController) GetConfigMapDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -121,13 +137,21 @@ func (ctrl *configMapController) DeployConfigMap(ctx *gin.Context) {
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	taskName := tasks.GetTaskName(k8s.ConfigMapService().DeployConfigMap)
 	logRequestedTaskController("config-map", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -151,6 +175,13 @@ func (ctrl *configMapController) DeleteConfigMap(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ConfigMapService().DeleteConfigMap)
 	logRequestedTaskController("config-map", taskName)
@@ -158,7 +189,7 @@ func (ctrl *configMapController) DeleteConfigMap(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

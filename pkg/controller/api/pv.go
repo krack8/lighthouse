@@ -46,6 +46,12 @@ func (ctrl *pvController) GetPvList(ctx *gin.Context) {
 			log.Logger.Info("Filter by param for Pv List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
@@ -55,7 +61,7 @@ func (ctrl *pvController) GetPvList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -73,13 +79,19 @@ func (ctrl *pvController) GetPvDetails(ctx *gin.Context) {
 
 	input := new(k8s.GetPvDetailsInputParams)
 	input.PvName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.PvService().GetPvDetails)
 	logRequestedTaskController("pv", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -101,6 +113,12 @@ func (ctrl *pvController) DeployPv(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployPvInputParams)
 	input.Pv = payload
 	taskName := tasks.GetTaskName(k8s.PvService().DeployPv)
@@ -109,7 +127,7 @@ func (ctrl *pvController) DeployPv(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -126,13 +144,19 @@ func (ctrl *pvController) DeletePv(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.DeletePvInputParams)
 	input.PvName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.PvService().DeletePv)
 	logRequestedTaskController("pv", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

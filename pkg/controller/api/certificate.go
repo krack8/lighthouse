@@ -36,6 +36,12 @@ func (ctrl *certificateController) GetCertificateList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -61,7 +67,7 @@ func (ctrl *certificateController) GetCertificateList(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateList)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -84,6 +90,14 @@ func (ctrl *certificateController) GetCertificateDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input.NamespaceName = queryNamespace
 	inputTask, err := json.Marshal(input)
 	if err != nil {
@@ -91,7 +105,7 @@ func (ctrl *certificateController) GetCertificateDetails(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateDetails)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -119,13 +133,19 @@ func (ctrl *certificateController) DeployCertificate(ctx *gin.Context) {
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal DeployCertificate Task input ", "err", err.Error())
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateDetails)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -148,6 +168,12 @@ func (ctrl *certificateController) DeleteCertificate(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	inputTask, err := json.Marshal(input)
 	if err != nil {
@@ -155,7 +181,7 @@ func (ctrl *certificateController) DeleteCertificate(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().DeleteCertificate)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}

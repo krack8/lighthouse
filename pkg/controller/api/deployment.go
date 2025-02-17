@@ -39,6 +39,12 @@ func (ctrl *deploymentController) GetDeploymentList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -64,7 +70,7 @@ func (ctrl *deploymentController) GetDeploymentList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -88,6 +94,12 @@ func (ctrl *deploymentController) GetDeploymentDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.DeploymentService().GetDeploymentDetails)
 	logRequestedTaskController("deployment", taskName)
@@ -95,7 +107,7 @@ func (ctrl *deploymentController) GetDeploymentDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -124,13 +136,19 @@ func (ctrl *deploymentController) DeployDeployment(ctx *gin.Context) {
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.DeploymentService().DeployDeployment)
 	logRequestedTaskController("deployment", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -154,6 +172,12 @@ func (ctrl *deploymentController) DeleteDeployment(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.DeploymentService().DeleteDeployment)
 	logRequestedTaskController("deployment", taskName)
@@ -161,7 +185,7 @@ func (ctrl *deploymentController) DeleteDeployment(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -182,6 +206,13 @@ func (ctrl *deploymentController) GetDeploymentStats(ctx *gin.Context) {
 	if queryNamespace == "" {
 		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
 		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
 		return
 	}
 	input.NamespaceName = queryNamespace
@@ -207,7 +238,7 @@ func (ctrl *deploymentController) GetDeploymentStats(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -230,6 +261,12 @@ func (ctrl *deploymentController) GetDeploymentPodList(ctx *gin.Context) {
 	if queryNamespace == "" {
 		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
 		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
 		return
 	}
 	input.NamespaceName = queryNamespace
@@ -261,7 +298,7 @@ func (ctrl *deploymentController) GetDeploymentPodList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

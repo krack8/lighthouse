@@ -69,7 +69,7 @@ func IsAgentAuthTokenValid(authToken string) bool {
 	}
 
 	if tokenValidation == nil {
-		log.Logger.Errorw("Token Not Found in DB", nil)
+		log.Logger.Errorw("Token Not Found in DB", "err", err.Error())
 		return false
 	}
 

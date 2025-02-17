@@ -42,6 +42,12 @@ func (ctrl *svcController) GetSvcList(ctx *gin.Context) {
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	queryLabel := ctx.Query("labels")
 	if queryLabel != "" {
 		jsonLabel := []byte(queryLabel)
@@ -62,7 +68,7 @@ func (ctrl *svcController) GetSvcList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -87,6 +93,12 @@ func (ctrl *svcController) GetSvcDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.SvcService().GetSvcDetails)
 	logRequestedTaskController("svc", taskName)
@@ -94,7 +106,7 @@ func (ctrl *svcController) GetSvcDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -117,6 +129,12 @@ func (ctrl *svcController) DeploySVC(ctx *gin.Context) {
 	}
 	log.Logger.Debugw("deploy service payload ", payload)
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeploySvcInputParams)
 	input.Svc = payload
 	if input.Svc.Namespace == "" {
@@ -130,7 +148,7 @@ func (ctrl *svcController) DeploySVC(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -154,6 +172,12 @@ func (ctrl *svcController) DeleteSvc(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.SvcService().DeleteSvc)
 	logRequestedTaskController("svc", taskName)
@@ -161,7 +185,7 @@ func (ctrl *svcController) DeleteSvc(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

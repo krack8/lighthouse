@@ -37,6 +37,12 @@ func (ctrl *endpointsController) GetEndpointsList(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	queryLabel := ctx.Query("labels")
 	if queryLabel != "" {
 		jsonLabel := []byte(queryLabel)
@@ -61,7 +67,7 @@ func (ctrl *endpointsController) GetEndpointsList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -85,6 +91,13 @@ func (ctrl *endpointsController) GetEndpointsDetails(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Namespace = ctx.Query("namespace")
 	taskName := tasks.GetTaskName(k8s.EndpointsService().GetEndpointsDetails)
 	logRequestedTaskController("endpoint", taskName)
@@ -92,7 +105,7 @@ func (ctrl *endpointsController) GetEndpointsDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -114,6 +127,12 @@ func (ctrl *endpointsController) DeployEndpoints(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployEndpointsInputParams)
 	input.Endpoints = payload
 	queryNamespace := ctx.Query("namespace")
@@ -128,7 +147,7 @@ func (ctrl *endpointsController) DeployEndpoints(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -152,13 +171,19 @@ func (ctrl *endpointsController) DeleteEndpoints(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.EndpointsService().DeleteEndpoints)
 	logRequestedTaskController("endpoint", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

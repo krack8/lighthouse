@@ -37,6 +37,12 @@ func (ctrl *podDisruptionBudgetsController) GetPodDisruptionBudgetsList(ctx *gin
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -62,7 +68,7 @@ func (ctrl *podDisruptionBudgetsController) GetPodDisruptionBudgetsList(ctx *gin
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -87,6 +93,12 @@ func (ctrl *podDisruptionBudgetsController) GetPodDisruptionBudgetsDetails(ctx *
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.PodDisruptionBudgetsService().GetPodDisruptionBudgetsDetails)
 	logRequestedTaskController("pod-disruption-budget", taskName)
@@ -94,7 +106,7 @@ func (ctrl *podDisruptionBudgetsController) GetPodDisruptionBudgetsDetails(ctx *
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -115,7 +127,12 @@ func (ctrl *podDisruptionBudgetsController) DeployPodDisruptionBudgets(ctx *gin.
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
-
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployPodDisruptionBudgetsInputParams)
 	input.PodDisruptionBudgets = payload
 	if input.PodDisruptionBudgets.Namespace == "" {
@@ -129,7 +146,7 @@ func (ctrl *podDisruptionBudgetsController) DeployPodDisruptionBudgets(ctx *gin.
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -153,6 +170,12 @@ func (ctrl *podDisruptionBudgetsController) DeletePodDisruptionBudgets(ctx *gin.
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.PodDisruptionBudgetsService().DeletePodDisruptionBudgets)
 	logRequestedTaskController("pod-disruption-budget", taskName)
@@ -160,7 +183,7 @@ func (ctrl *podDisruptionBudgetsController) DeletePodDisruptionBudgets(ctx *gin.
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

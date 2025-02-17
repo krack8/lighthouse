@@ -12,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"strings"
 	"time"
 )
 
@@ -136,15 +135,13 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 		log.Logger.Errorw("Error creating token validations:", "err", err.Error())
 	}
 
-	groupName := strings.ReplaceAll(name, " ", "-") + primitive.NewObjectID().Hex()
-	clusterGroupName := strings.ReplaceAll(groupName, "--", "-")
 	// Create a new cluster
 	cluster := &models.Cluster{
 		ID:            agentClusterID,
 		Name:          name,
 		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
 		Token:         agentToken,
-		WorkerGroup:   clusterGroupName,
+		WorkerGroup:   agentClusterID.Hex(),
 		IsActive:      false,
 		ControllerURL: controllerURL,
 		Status:        enum.VALID,

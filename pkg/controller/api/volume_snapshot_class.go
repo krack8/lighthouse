@@ -42,6 +42,12 @@ func (ctrl *volumeSnapshotClassController) GetVolumeSnapshotClassList(ctx *gin.C
 			log.Logger.Info("Filter by param for VolumeSnapshotClass List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Search = ctx.Query("q")
 	taskName := tasks.GetTaskName(k8s.VolumeSnapshotClassService().GetVolumeSnapshotClassList)
 	logRequestedTaskController("volume-snapshot-class", taskName)
@@ -49,7 +55,7 @@ func (ctrl *volumeSnapshotClassController) GetVolumeSnapshotClassList(ctx *gin.C
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -67,13 +73,19 @@ func (ctrl *volumeSnapshotClassController) GetVolumeSnapshotClassDetails(ctx *gi
 
 	input := new(k8s.GetVolumeSnapshotClassDetailsInputParams)
 	input.VolumeSnapshotClassName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.VolumeSnapshotClassService().GetVolumeSnapshotClassDetails)
 	logRequestedTaskController("volume-snapshot-class", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

@@ -62,9 +62,15 @@ func (ctrl *namespaceController) GetNamespaceList(ctx *gin.Context) {
 	////	k8s.SendErrorResponse(ctx, "Missing group or payload param")
 	////	return
 	////}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.NamespaceService().GetNamespaceList)
 	logRequestedTaskController("namespace", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 		return
@@ -80,13 +86,19 @@ func (ctrl *namespaceController) GetNamespaceList(ctx *gin.Context) {
 func (ctrl *namespaceController) GetNamespaceNameList(ctx *gin.Context) {
 	var result ResponseDTO
 	var input = new(k8s.GetNamespaceNamesInputParams)
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal GetNamespaceNameList Task input ", "err", err.Error())
 	}
 	taskName := tasks.GetTaskName(k8s.NamespaceService().GetNamespaceNameList)
 	logRequestedTaskController("namespace", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -109,6 +121,13 @@ func (ctrl *namespaceController) DeployNamespace(ctx *gin.Context) {
 	}
 	log.Logger.Debugw("deploy namespace payload ", payload)
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input := new(k8s.DeployNamespaceInputParams)
 	input.Namespace = payload
 	inputTask, err := json.Marshal(input)
@@ -117,7 +136,7 @@ func (ctrl *namespaceController) DeployNamespace(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.NamespaceService().DeployNamespace)
 	logRequestedTaskController("namespace", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -136,11 +155,17 @@ func (ctrl *namespaceController) GetNamespaceDetails(ctx *gin.Context) {
 	taskName := tasks.GetTaskName(k8s.NamespaceService().GetNamespaceDetails)
 	logRequestedTaskController("namespace", taskName)
 	input.NamespaceName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -160,11 +185,17 @@ func (ctrl *namespaceController) DeleteNamespace(ctx *gin.Context) {
 	taskName := tasks.GetTaskName(k8s.NamespaceService().DeleteNamespace)
 	logRequestedTaskController("namespace", taskName)
 	input.NamespaceName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

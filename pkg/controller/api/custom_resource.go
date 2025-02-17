@@ -38,6 +38,13 @@ func (ctrl *customResourceController) GetCustomResourceList(ctx *gin.Context) {
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	queryLabel := ctx.Query("labels")
 	if queryLabel != "" {
 		jsonLabel := []byte(queryLabel)
@@ -59,7 +66,7 @@ func (ctrl *customResourceController) GetCustomResourceList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -82,13 +89,21 @@ func (ctrl *customResourceController) GetCustomResourceDetails(ctx *gin.Context)
 	input.CustomResourceSGVR.Resource = ctx.Query("resource")
 	input.CustomResourceSGVR.Group = ctx.Query("group")
 	input.CustomResourceSGVR.Version = ctx.Query("version")
+
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	taskName := tasks.GetTaskName(k8s.CustomResourceService().GetCustomResourceDetails)
 	logRequestedTaskController("custom-resource", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -117,13 +132,21 @@ func (ctrl *customResourceController) DeployCustomResource(ctx *gin.Context) {
 	input.CustomResourceSGVR.Resource = ctx.Query("resource")
 	input.CustomResourceSGVR.Version = ctx.Query("version")
 	input.CustomResourceSGVR.Group = ctx.Query("group")
+
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	taskName := tasks.GetTaskName(k8s.CustomResourceService().DeployCustomResource)
 	logRequestedTaskController("custom-resource", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -145,13 +168,20 @@ func (ctrl *customResourceController) DeleteCustomResource(ctx *gin.Context) {
 	input.CustomResourceSGVR.Resource = ctx.Query("resource")
 	input.CustomResourceSGVR.Version = ctx.Query("version")
 	input.CustomResourceSGVR.Group = ctx.Query("group")
+
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.CustomResourceService().DeleteCustomResource)
 	logRequestedTaskController("custom-resource", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

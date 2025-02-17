@@ -43,6 +43,12 @@ func (ctrl *crdController) GetCrdList(ctx *gin.Context) {
 			log.Logger.Info("Filter by param for Crd List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Continue = ctx.Query("continue")
 	input.Search = ctx.Query("q")
 	input.Limit = ctx.Query("limit")
@@ -52,7 +58,7 @@ func (ctrl *crdController) GetCrdList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -69,13 +75,19 @@ func (ctrl *crdController) GetCrdDetails(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.GetCrdDetailsInputParams)
 	input.CrdName = ctx.Param("name")
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.CrdService().GetCrdDetails)
 	logRequestedTaskController("crd", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -96,6 +108,12 @@ func (ctrl *crdController) DeployCrd(ctx *gin.Context) {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployCrdInputParams)
 	input.Crd = payload
 	taskName := tasks.GetTaskName(k8s.CrdService().DeployCrd)
@@ -104,7 +122,7 @@ func (ctrl *crdController) DeployCrd(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -121,13 +139,19 @@ func (ctrl *crdController) DeleteCrd(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.DeleteCrdInputParams)
 	input.CrdName = ctx.Param("name")
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.CrdService().DeleteCrd)
 	logRequestedTaskController("crd", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

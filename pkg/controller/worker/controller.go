@@ -253,9 +253,13 @@ func (s *serverImpl) Process(groupName string, payload string, taskName string, 
 	return resultCh, nil
 }
 
-func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input []byte) (*pb.TaskResult, error) {
+func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error) {
 	payload := taskName
-	resultCh, err := srv.Process(os.Getenv("WORKER_GROUP"), payload, taskName, input)
+	runMode := os.Getenv("RUN_MODE")
+	if runMode == "" || runMode == "DEVELOP" {
+		groupName = os.Getenv("WORKER_GROUP")
+	}
+	resultCh, err := srv.Process(groupName, payload, taskName, input)
 	if err != nil {
 		return nil, err
 	}
