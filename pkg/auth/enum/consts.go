@@ -18,8 +18,9 @@ const (
 )
 
 const (
-	PENDING   ClusterStatus = "PENDING"
-	CONNECTED ClusterStatus = "CONNECTED"
+	PENDING      ClusterStatus = "PENDING"
+	CONNECTED    ClusterStatus = "CONNECTED"
+	DISCONNECTED ClusterStatus = "DISCONNECTED"
 )
 
 const (

@@ -37,6 +37,12 @@ func (ctrl *volumeSnapshotController) GetVolumeSnapshotList(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 
@@ -60,7 +66,7 @@ func (ctrl *volumeSnapshotController) GetVolumeSnapshotList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -85,6 +91,12 @@ func (ctrl *volumeSnapshotController) GetVolumeSnapshotDetails(ctx *gin.Context)
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().GetVolumeSnapshotDetails)
 	logRequestedTaskController("volume-snapshot", taskName)
@@ -92,7 +104,7 @@ func (ctrl *volumeSnapshotController) GetVolumeSnapshotDetails(ctx *gin.Context)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -113,7 +125,12 @@ func (ctrl *volumeSnapshotController) DeployVolumeSnapshot(ctx *gin.Context) {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
-
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployVolumeSnapshotInputParams)
 	input.VolumeSnapshot = payload
 	if input.VolumeSnapshot.Namespace == "" {
@@ -127,7 +144,7 @@ func (ctrl *volumeSnapshotController) DeployVolumeSnapshot(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -151,6 +168,12 @@ func (ctrl *volumeSnapshotController) DeleteVolumeSnapshot(ctx *gin.Context) {
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.VolumeSnapshotService().DeleteVolumeSnapshot)
 	logRequestedTaskController("volume-snapshot", taskName)
@@ -158,7 +181,7 @@ func (ctrl *volumeSnapshotController) DeleteVolumeSnapshot(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

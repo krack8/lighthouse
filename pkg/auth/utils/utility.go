@@ -11,6 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 )
 
 func HashPassword(password string) string {
@@ -113,10 +114,11 @@ func GetSecret(name, namespace string) (string, error) {
 }
 
 // CreateOrUpdateSecret creates or updates a secret with the given auth token
-func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
+func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string, error) {
 	// Prepare secret data (no need to base64 encode, Kubernetes will do it)
 	secretData := map[string][]byte{
-		"AUTH_TOKEN": []byte(authToken),
+		"AUTH_TOKEN":   []byte(authToken),
+		"WORKER_GROUP": []byte(clusterId),
 	}
 
 	clientSet := config.GetKubeClientSet()
@@ -162,25 +164,28 @@ func CreateOrUpdateSecret(name, namespace, authToken string) (string, error) {
 		return "", fmt.Errorf("failed to fetch secret: %w", err)
 	}
 
-	// Update existing secret
-	log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),
-		"info", "secret-update")
+	runMode := os.Getenv("RUN_MODE")
+	if runMode != "PRODUCTION" {
+		// Update existing secret
+		log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),
+			"info", "secret-update")
 
-	_, err = secretClient.Update(context.Background(), &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Data: secretData,
-		Type: v1.SecretTypeOpaque,
-	}, metav1.UpdateOptions{})
+		_, err = secretClient.Update(context.Background(), &v1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Data: secretData,
+			Type: v1.SecretTypeOpaque,
+		}, metav1.UpdateOptions{})
 
-	if err != nil {
-		return "", fmt.Errorf("failed to update secret: %w", err)
+		if err != nil {
+			return "", fmt.Errorf("failed to update secret: %w", err)
+		}
+
+		log.Logger.Infow(fmt.Sprintf("secret %s successfully updated in namespace %s", name, namespace),
+			"info", "secret-update")
 	}
-
-	log.Logger.Infow(fmt.Sprintf("secret %s successfully updated in namespace %s", name, namespace),
-		"info", "secret-update")
 
 	return authToken, nil
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/worker"
 	"net/http"
 	"os"
 	"strings"
@@ -37,7 +38,7 @@ func (uc *ClusterController) GetClusterHandler(c *gin.Context) {
 func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
 	ClusterList, err := uc.ClusterService.GetAllClusters()
 	if err != nil {
-		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
 		return
 	}
 
@@ -85,14 +86,24 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 
 // DeleteRoleHandler handles the deletion of a role by its ID
 func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
-	roleID := c.Param("id")
-	if roleID == "" {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cluster ID is required"})
 		return
 	}
 
+	cluster, err := uc.ClusterService.GetCluster(id)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	serverInstance := worker.GetServerInstance()
+	if removed := serverInstance.RemoveWorkerByGroupName(cluster.WorkerGroup); !removed {
+		_ = fmt.Errorf("failed to remove worker group: %s", cluster.WorkerGroup)
+	}
 	// Call the service to delete the role
-	err := uc.ClusterService.DeleteClusterByID(roleID)
+	err = uc.ClusterService.DeleteClusterByID(id)
 	if err != nil {
 		if strings.Contains(err.Error(), "no cluster found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -102,7 +113,7 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s deleted successfully", roleID)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s deleted successfully", id)})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
@@ -119,7 +130,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set controller.url=" + os.Getenv("CONTROLLER_URL"),
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set server.url=" + os.Getenv("SERVER_URL"),
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)

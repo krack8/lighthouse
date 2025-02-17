@@ -40,6 +40,12 @@ func (ctrl *manifestController) DeployManifest(ctx *gin.Context) {
 		SendErrorResponse(ctx, "kind required in query")
 		return
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	if err := ctx.Bind(payload); err != nil {
 		log.Logger.Errorw("Failed to bind deploy Manifest payload", "err", err.Error())
 		SendErrorResponse(ctx, err.Error())
@@ -56,7 +62,7 @@ func (ctrl *manifestController) DeployManifest(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

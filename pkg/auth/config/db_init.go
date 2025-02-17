@@ -50,8 +50,7 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 		return nil, nil, err
 	}
 
-	// Get the DB name from environment variables
-	dbName := os.Getenv("DB_NAME")
+	dbName := SetEnvWithDefault("DB_NAME", "lighthouse")
 	if dbName == "" {
 		log.Fatal("DB_NAME environment variable is not set")
 		return nil, nil, fmt.Errorf("DB_NAME not set")
@@ -75,12 +74,14 @@ func InitializeDefaultUser() {
 		log.Fatalf("Error counting documents in users collection: %v", err)
 	}
 
+	defaultUserName := SetEnvWithDefault("USER_EMAIL", "admin@default.com")
+	defaultPassword := SetEnvWithDefault("PASSWORD", "lighthouse")
 	if count == 0 {
 		defaultUser := models.User{
-			Username:     os.Getenv("USER_EMAIL"),
+			Username:     defaultUserName,
 			FirstName:    "Admin",
 			LastName:     "User",
-			Password:     utils.HashPassword(os.Getenv("PASSWORD")), // Use a hashed password here
+			Password:     utils.HashPassword(defaultPassword), // Use a hashed password here
 			UserType:     "ADMIN",
 			Roles:        []models.Role{},
 			UserIsActive: true,
@@ -118,7 +119,7 @@ func InitRBAC() {
 		log.Fatalf("Default permission not found: %v", err)
 	}
 
-	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{})
+	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting documents in users collection: %v", err)
 	}
@@ -151,7 +152,7 @@ func InitRBAC() {
 
 // InitializeClusters creates default clusters if none exist
 func InitializeClusters() {
-	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{})
+	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting clusters: %v", err)
 	}
@@ -174,7 +175,7 @@ func InitializeClusters() {
 
 		config.InitiateKubeClientSet()
 		// create the secret
-		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken)
+		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
 		if err != nil {
 			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 		}
@@ -206,29 +207,18 @@ func InitializeClusters() {
 			log.Fatalf("Error creating token validations: %v", err)
 		}
 
-		/*		// Create master cluster
-				groupCluster := models.Cluster{
-					ID:          primitive.NewObjectID(),
-					Name:        "master-cluster",
-					ClusterType: enum.MASTER,
-					Status:      enum.VALID,
-					CreatedBy:   string(enum.SYSTEM),
-					UpdatedBy:   string(enum.SYSTEM),
-					CreatedAt:   time.Now(),
-					UpdatedAt:   time.Now(),
-					IsActive:    true,
-				}*/
-
+		clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
+		serverURL := SetEnvWithDefault("SERVER_URL", "localhost:50051")
 		// Create worker cluster
 		agentCluster := models.Cluster{
 			ID:            agentClusterID,
-			Name:          "agent-cluster",
+			Name:          clusterName,
 			ClusterType:   enum.WORKER,
-			WorkerGroup:   primitive.NewObjectID().Hex(),
+			WorkerGroup:   agentClusterID.Hex(),
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,
-			ControllerURL: os.Getenv("CONTROLLER_URL"),
+			ControllerURL: serverURL,
 			CreatedBy:     string(enum.SYSTEM),
 			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),
@@ -247,4 +237,14 @@ func InitializeClusters() {
 	} else {
 		log.Println("Clusters already exist. No default clusters created.")
 	}
+}
+
+func SetEnvWithDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		// Set the environment variable with the default value
+		os.Setenv(key, defaultValue)
+		return defaultValue
+	}
+	return value
 }

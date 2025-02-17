@@ -22,6 +22,11 @@ func main() {
 		log.Fatalf("Error connecting to DB: %v", err)
 		return
 	}
+	/*// Add this if you want to reset collections on startup
+	if err := config.ResetCollections(client, ctx); err != nil {
+		log.Printf("Failed to reset collections: %v", err)
+		return
+	}*/
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Fatalf("Error disconnecting from DB: %v", err)

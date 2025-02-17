@@ -36,6 +36,12 @@ func (ctrl *controllerRevisionController) GetControllerRevisionList(ctx *gin.Con
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
@@ -61,7 +67,7 @@ func (ctrl *controllerRevisionController) GetControllerRevisionList(ctx *gin.Con
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -85,6 +91,14 @@ func (ctrl *controllerRevisionController) GetControllerRevisionDetails(ctx *gin.
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ControllerRevisionService().GetControllerRevisionDetails)
 	logRequestedTaskController("controller-revision", taskName)
@@ -92,7 +106,7 @@ func (ctrl *controllerRevisionController) GetControllerRevisionDetails(ctx *gin.
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -121,13 +135,20 @@ func (ctrl *controllerRevisionController) DeployControllerRevision(ctx *gin.Cont
 		SendErrorResponse(ctx, ErrNamespaceEmpty)
 		return
 	}
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.ControllerRevisionService().DeployControllerRevision)
 	logRequestedTaskController("controller-revision", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -151,6 +172,12 @@ func (ctrl *controllerRevisionController) DeleteControllerRevision(ctx *gin.Cont
 		SendErrorResponse(ctx, "Namespace required in query params")
 		return
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.NamespaceName = queryNamespace
 	taskName := tasks.GetTaskName(k8s.ControllerRevisionService().DeleteControllerRevision)
 	logRequestedTaskController("controller-revision", taskName)
@@ -158,7 +185,7 @@ func (ctrl *controllerRevisionController) DeleteControllerRevision(ctx *gin.Cont
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

@@ -42,7 +42,7 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 	}
 
 	var cluster models.Cluster
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	result := db.ClusterCollection.FindOne(context.Background(), filter)
 	if err := result.Decode(&cluster); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -56,7 +56,7 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 
 func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
 	// Filter for AGENT clusters
-	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}}
+	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}, "status": bson.M{"$eq": enum.VALID}}
 
 	cursor, err := db.ClusterCollection.Find(context.Background(), filter)
 	if err != nil {
@@ -141,7 +141,7 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 		Name:          name,
 		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
 		Token:         agentToken,
-		WorkerGroup:   primitive.NewObjectID().Hex(),
+		WorkerGroup:   agentClusterID.Hex(),
 		IsActive:      false,
 		ControllerURL: controllerURL,
 		Status:        enum.VALID,
@@ -161,27 +161,29 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 	return cluster, nil
 }
 
-// DeleteRoleByID deletes a role by its ID
+// DeleteClusterByID deletes a cluster by its ID
 func (s *ClusterService) DeleteClusterByID(clusterId string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	// Convert string ID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(clusterId)
 	if err != nil {
 		return fmt.Errorf("invalid cluster ID format: %v", err)
 	}
 
-	// Delete the role
-	result, err := db.ClusterCollection.DeleteOne(ctx, bson.M{"_id": objectID})
+	_, err = db.ClusterCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED, "cluster_status": enum.DISCONNECTED}},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete cluster: %v", err)
 	}
-
-	// Check if a role was actually deleted
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("no cluster found with ID: %s", clusterId)
+	_, err = db.TokenCollection.UpdateOne(
+		context.Background(),
+		bson.M{"cluster_id": objectID},
+		bson.M{"$set": bson.M{"status": enum.DELETED, "updated_at": time.Now()}},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete token: %v", err)
 	}
-
 	return nil
 }

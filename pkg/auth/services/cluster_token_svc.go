@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/auth/config"
 	"github.com/krack8/lighthouse/pkg/auth/enum"
@@ -11,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -73,9 +73,6 @@ func (m *MongoStorage) GetToken(ctx context.Context, token string) (*models.Toke
 	var result models.TokenValidation
 	err := db.TokenCollection.FindOne(ctx, bson.M{"auth_token": token, "status": enum.VALID}).Decode(&result)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil // Token not found
-		}
 		return nil, err
 	}
 	return &result, nil
@@ -119,15 +116,12 @@ func ValidateToken(combinedToken string, validator *models.TokenValidation) (boo
 		return false, primitive.NilObjectID, err
 	}
 
-	fmt.Println("Raw Token Print", rawToken)
-
-	//TODO:enable this checking
-	/*// Check if the decoded token matches the db token
+	// Check if the decoded token matches the db token
 	err = bcrypt.CompareHashAndPassword([]byte(validator.RawTokenHash), []byte(rawToken))
 	if err != nil {
 		fmt.Println("Token not matched. Unauthorized worker.")
 		return false, primitive.NilObjectID, err
-	}*/
+	}
 
 	// Check if the decoded cluster ID matches the stored cluster ID
 	if validator.ClusterID != clusterID {

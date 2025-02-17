@@ -45,6 +45,12 @@ func (ctrl *clusterRoleController) GetClusterRoleList(ctx *gin.Context) {
 			log.Logger.Info("Filter by param for ClusterRole List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
@@ -54,7 +60,7 @@ func (ctrl *clusterRoleController) GetClusterRoleList(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().GetClusterRoleList)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -69,6 +75,13 @@ func (ctrl *clusterRoleController) GetClusterRoleList(ctx *gin.Context) {
 
 func (ctrl *clusterRoleController) GetClusterRoleDetails(ctx *gin.Context) {
 	var result ResponseDTO
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input := new(k8s.GetClusterRoleDetailsInputParams)
 	input.ClusterRoleName = ctx.Param("name")
 	inputTask, err := json.Marshal(input)
@@ -77,7 +90,7 @@ func (ctrl *clusterRoleController) GetClusterRoleDetails(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().GetClusterRoleDetails)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -99,6 +112,13 @@ func (ctrl *clusterRoleController) DeployClusterRole(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input := new(k8s.DeployClusterRoleInputParams)
 	input.ClusterRole = payload
 	inputTask, err := json.Marshal(input)
@@ -107,7 +127,7 @@ func (ctrl *clusterRoleController) DeployClusterRole(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().DeployClusterRole)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -130,7 +150,15 @@ func (ctrl *clusterRoleController) DeleteClusterRole(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().DeleteClusterRole)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

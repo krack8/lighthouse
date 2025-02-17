@@ -45,6 +45,12 @@ func (ctrl *storageClassController) GetStorageClassList(ctx *gin.Context) {
 			log.Logger.Info("Filter by param for StorageClass List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
@@ -54,7 +60,7 @@ func (ctrl *storageClassController) GetStorageClassList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -72,13 +78,19 @@ func (ctrl *storageClassController) GetStorageClassDetails(ctx *gin.Context) {
 
 	input := new(k8s.GetStorageClassDetailsInputParams)
 	input.StorageClassName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.StorageClassService().GetStorageClassDetails)
 	logRequestedTaskController("storage-class", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -100,6 +112,12 @@ func (ctrl *storageClassController) DeployStorageClass(ctx *gin.Context) {
 		return
 	}
 
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input := new(k8s.DeployStorageClassInputParams)
 	input.StorageClass = payload
 	taskName := tasks.GetTaskName(k8s.StorageClassService().DeployStorageClass)
@@ -108,7 +126,7 @@ func (ctrl *storageClassController) DeployStorageClass(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -125,13 +143,19 @@ func (ctrl *storageClassController) DeleteStorageClass(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.DeleteStorageClassInputParams)
 	input.StorageClassName = ctx.Param("name")
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.StorageClassService().DeleteStorageClass)
 	logRequestedTaskController("storage-class", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

@@ -44,6 +44,12 @@ func (ctrl *clusterRoleBindingController) GetClusterRoleBindingList(ctx *gin.Con
 			log.Logger.Info("Filter by param for ClusterRoleBinding List param Map: ", queryLabelMap, " values: ", ctx.Query("labels"))
 		}
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	input.Search = ctx.Query("q")
 	input.Continue = ctx.Query("continue")
 	input.Limit = ctx.Query("limit")
@@ -53,7 +59,7 @@ func (ctrl *clusterRoleBindingController) GetClusterRoleBindingList(ctx *gin.Con
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().GetClusterRoleBindingList)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -74,9 +80,15 @@ func (ctrl *clusterRoleBindingController) GetClusterRoleBindingDetails(ctx *gin.
 	if err != nil {
 		log.Logger.Errorw("unable to marshal GetClusterRoleBindingDetails Task input ", "err", err.Error())
 	}
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().GetClusterRoleBindingDetails)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -98,6 +110,13 @@ func (ctrl *clusterRoleBindingController) DeployClusterRoleBinding(ctx *gin.Cont
 		return
 	}
 
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+
 	input := new(k8s.DeployClusterRoleBindingInputParams)
 	input.ClusterRoleBinding = payload
 	inputTask, err := json.Marshal(input)
@@ -106,7 +125,7 @@ func (ctrl *clusterRoleBindingController) DeployClusterRoleBinding(ctx *gin.Cont
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().DeployClusterRoleBinding)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -123,13 +142,19 @@ func (ctrl *clusterRoleBindingController) DeleteClusterRoleBinding(ctx *gin.Cont
 	var result ResponseDTO
 	input := new(k8s.DeleteClusterRoleBindingInputParams)
 	input.ClusterRoleBindingName = ctx.Param("name")
+	clusterGroupName := ctx.Query("cluster_id")
+	if clusterGroupName == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroupName)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().DeleteClusterRoleBinding)
 	logRequestedTaskController("cluster-role-binding", taskName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask)
+	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
