@@ -50,8 +50,7 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 		return nil, nil, err
 	}
 
-	// Get the DB name from environment variables
-	dbName := os.Getenv("DB_NAME")
+	dbName := SetEnvWithDefault("DB_NAME", "lighthouse")
 	if dbName == "" {
 		log.Fatal("DB_NAME environment variable is not set")
 		return nil, nil, fmt.Errorf("DB_NAME not set")
@@ -67,42 +66,6 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil
 }
-func ResetCollections(client *mongo.Client, ctx context.Context) error {
-	// Get the DB name from environment variables
-	dbName := os.Getenv("DB_NAME")
-	if dbName == "" {
-		return fmt.Errorf("DB_NAME not set")
-	}
-
-	// List of collections to reset
-	collections := []enum.TableName{
-		enum.UsersTable,
-		enum.PermissionsTable,
-		enum.RolesTable,
-		enum.ClusterTable,
-		enum.TokenTable,
-	}
-
-	// Drop each collection
-	for _, collName := range collections {
-		err := client.Database(dbName).Collection(string(collName)).Drop(ctx)
-		if err != nil {
-			log.Printf("Failed to drop collection %s: %v", collName, err)
-			return fmt.Errorf("failed to drop collection %s: %v", collName, err)
-		}
-		log.Printf("Successfully dropped collection: %s", collName)
-	}
-
-	// Reinitialize collections
-	UserCollection = client.Database(dbName).Collection(string(enum.UsersTable))
-	PermissionCollection = client.Database(dbName).Collection(string(enum.PermissionsTable))
-	RoleCollection = client.Database(dbName).Collection(string(enum.RolesTable))
-	ClusterCollection = client.Database(dbName).Collection(string(enum.ClusterTable))
-	TokenCollection = client.Database(dbName).Collection(string(enum.TokenTable))
-
-	log.Println("Successfully reset all collections")
-	return nil
-}
 
 // InitializeDefaultUser creates a default user if no users exist.
 func InitializeDefaultUser() {
@@ -111,12 +74,14 @@ func InitializeDefaultUser() {
 		log.Fatalf("Error counting documents in users collection: %v", err)
 	}
 
+	defaultUserName := SetEnvWithDefault("USER_EMAIL", "admin@default.com")
+	defaultPassword := SetEnvWithDefault("PASSWORD", "lighthouse")
 	if count == 0 {
 		defaultUser := models.User{
-			Username:     os.Getenv("USER_EMAIL"),
+			Username:     defaultUserName,
 			FirstName:    "Admin",
 			LastName:     "User",
-			Password:     utils.HashPassword(os.Getenv("PASSWORD")), // Use a hashed password here
+			Password:     utils.HashPassword(defaultPassword), // Use a hashed password here
 			UserType:     "ADMIN",
 			Roles:        []models.Role{},
 			UserIsActive: true,
@@ -242,16 +207,18 @@ func InitializeClusters() {
 			log.Fatalf("Error creating token validations: %v", err)
 		}
 
+		clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
+		serverURL := SetEnvWithDefault("SERVER_URL", "localhost:50051")
 		// Create worker cluster
 		agentCluster := models.Cluster{
 			ID:            agentClusterID,
-			Name:          os.Getenv("DEFAULT_CLUSTER_NAME"),
+			Name:          clusterName,
 			ClusterType:   enum.WORKER,
 			WorkerGroup:   agentClusterID.Hex(),
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,
-			ControllerURL: os.Getenv("SERVER_URL"),
+			ControllerURL: serverURL,
 			CreatedBy:     string(enum.SYSTEM),
 			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),
@@ -270,4 +237,14 @@ func InitializeClusters() {
 	} else {
 		log.Println("Clusters already exist. No default clusters created.")
 	}
+}
+
+func SetEnvWithDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		// Set the environment variable with the default value
+		os.Setenv(key, defaultValue)
+		return defaultValue
+	}
+	return value
 }
