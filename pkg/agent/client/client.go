@@ -1,4 +1,4 @@
-package server
+package client
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerURL, secretName, re
 			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		} else {
 			tlsConfig = &tls.Config{}
-			tlsConfig.InsecureSkipVerify = config.IsTlsInsecureSkipVerify()
+			tlsConfig.InsecureSkipVerify = config.IsSkipServerTlsVerification()
 			if caCertPool != nil {
 				tlsConfig.RootCAs = caCertPool
 			}

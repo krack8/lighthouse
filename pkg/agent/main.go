@@ -4,13 +4,12 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
-	"github.com/krack8/lighthouse/pkg/agent/server"
+	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"log"
-	"os"
 	"sync"
 	"time"
 )
@@ -22,10 +21,10 @@ func main() {
 	config.InitEnvironmentVariables()
 	config.InitiateKubeClientSet()
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
-	groupName := os.Getenv("WORKER_GROUP")
-	controllerURL := os.Getenv("SERVER_URL")
-	secretName := os.Getenv("AGENT_SECRET_NAME")
-	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")
+	groupName := config.WorkerGroup
+	controllerURL := config.ServerUrl
+	secretName := config.AgentSecretName
+	resourceNamespace := config.ResourceNamespace
 	//authToken := "my-secret"
 	tasks.InitTaskRegistry()
 	var caCertPool *x509.CertPool
@@ -46,7 +45,7 @@ func main() {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel() // Cancel the context when the program exits
 
-		conn, stream, err := server.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
+		conn, stream, err := agentClient.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
 			_log.Logger.Fatalw("Failed to connect and identify worker", "error", err)
 			continue
