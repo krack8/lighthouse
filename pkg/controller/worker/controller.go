@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb"
@@ -11,7 +12,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
-	"net/http"
 	"sync"
 	"time"
 )
@@ -127,7 +127,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			s.addWorker(currentWorker)
 
 			// Send back a simple Ack
-			stream.Send(&pb.TaskStreamResponse{
+			_ = stream.Send(&pb.TaskStreamResponse{
 				Payload: &pb.TaskStreamResponse_Ack{
 					Ack: &pb.Ack{Message: "Registered successfully"},
 				},

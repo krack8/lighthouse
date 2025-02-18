@@ -29,7 +29,7 @@ func main() {
 	//authToken := "my-secret"
 	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
 	if err != nil {
-		log.Fatalf("Failed to get "+os.Getenv("AGENT_SECRET_NAME")+" secret: %v", err)
+		log.Fatalf("Failed to get "+config.AgentSecretName+" secret: %v", err)
 	}
 	// Validate and provide a default if needed
 	if groupName == "" {
@@ -68,7 +68,7 @@ func main() {
 			for {
 				in, err := stream.Recv()
 				if err != nil {
-					_log.Logger.Infow("Stream Recv error (worker)", "err", err)
+					_log.Logger.Infow("Stream Receive error (worker)", "err", err)
 					streamErrorChan <- err
 					return
 				}
