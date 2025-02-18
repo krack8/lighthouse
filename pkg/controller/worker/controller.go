@@ -17,7 +17,7 @@ import (
 )
 
 type TaskToAgentInterface interface {
-	SendToWorker(c context.Context, groupName string, payload string, taskName string, input []byte) (*pb.TaskResult, error)
+	SendToWorker(c context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error)
 }
 
 type taskToAgent struct{}
