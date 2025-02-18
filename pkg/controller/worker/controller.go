@@ -2,15 +2,11 @@ package worker
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	cfg "github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/k8s"
-	"github.com/krack8/lighthouse/pkg/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -184,40 +180,6 @@ func (s *serverImpl) removeWorker(w *workerConnection) {
 		w.groupName, len(s.groups[w.groupName]))
 }
 
-// sendTaskToWorker sends a task down a particular worker’s stream.
-// Returns a channel on which the result will be delivered.
-func (s *serverImpl) sendTaskToWorker(w *workerConnection, payload string, taskName string, input []byte) (<-chan *pb.TaskResult, error) {
-	// Generate a task ID.
-	taskID := uuid.NewString()
-
-	// Prepare a channel to receive the worker’s response.
-	resultCh := make(chan *pb.TaskResult, 1)
-
-	s.mu.Lock()
-	w.resultChMap[taskID] = resultCh
-	s.mu.Unlock()
-
-	// Actually send the task to the worker.
-	err := w.stream.Send(&pb.TaskStreamResponse{
-		Payload: &pb.TaskStreamResponse_NewTask{
-			NewTask: &pb.Task{
-				Id:      taskID,
-				Name:    taskName,
-				Payload: payload,
-				Input:   string(input),
-			},
-		},
-	})
-	if err != nil {
-		s.mu.Lock()
-		delete(w.resultChMap, taskID)
-		s.mu.Unlock()
-		return nil, err
-	}
-
-	return resultCh, nil
-}
-
 // pickWorker returns any worker from the specified group (round-robin or random).
 // For simplicity, let's just pick the first.
 func (s *serverImpl) pickWorker(groupName string) *workerConnection {
@@ -287,45 +249,9 @@ func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input [
 	}
 }
 
-// HTTP handler: /execute?group=GroupA&payload=SomeData
-func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) {
-	group := r.URL.Query().Get("group")
-	payload := r.URL.Query().Get("payload")
-	if group == "" || payload == "" {
-		http.Error(w, "Missing group or payload param", http.StatusBadRequest)
-		return
-	}
-
-	worker := s.pickWorker(group)
-	if worker == nil {
-		http.Error(w, "No worker in group "+group, http.StatusServiceUnavailable)
-		return
-	}
-	taskName := "GetNamespaceList"
-	tasks.GetCurrentTaskName()
-	input, _ := json.Marshal(k8s.GetNamespaceListInputParams{Search: "hola", Limit: "10"})
-
-	resultCh, err := s.sendTaskToWorker(worker, payload, taskName, input)
-	if err != nil {
-		http.Error(w, "Failed to send task to worker: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Wait for the worker to respond with a result or time out
-	select {
-	case res := <-resultCh:
-		// Send response to the user
-		fmt.Fprintf(w, "Task ID: %s\nSuccess: %v\nOutput: %s\n",
-			res.TaskId, res.Success, res.Output)
-	case <-time.After(10 * time.Second):
-		http.Error(w, "Timed out waiting for worker result", http.StatusGatewayTimeout)
-	}
-}
-
-/*var srv = &serverImpl{
-	groups: make(map[string][]*workerConnection),
-}
-*/
+//var srv = &serverImpl{
+//	groups: make(map[string][]*workerConnection),
+//}
 
 // disconnectWorker handles immediate worker disconnection
 func (s *serverImpl) disconnectWorker(w *workerConnection) {
