@@ -249,10 +249,6 @@ func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input [
 	}
 }
 
-//var srv = &serverImpl{
-//	groups: make(map[string][]*workerConnection),
-//}
-
 // disconnectWorker handles immediate worker disconnection
 func (s *serverImpl) disconnectWorker(w *workerConnection) {
 	if w == nil || w.stream == nil {
@@ -289,7 +285,7 @@ func (s *serverImpl) disconnectWorker(w *workerConnection) {
 				Message: "disconnect_requested",
 			},
 		},
-	}
+	})
 
 	if err != nil {
 		log.Printf("Failed to send disconnect message to group %s: %v", w.groupName, err)
