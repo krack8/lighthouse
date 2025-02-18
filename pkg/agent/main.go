@@ -68,7 +68,7 @@ func main() {
 			for {
 				in, err := stream.Recv()
 				if err != nil {
-					_log.Logger.Infow("Stream Recv error (worker)", "err", err)
+					_log.Logger.Infow("Stream Receive error (worker)", "err", err)
 					streamErrorChan <- err
 					return
 				}

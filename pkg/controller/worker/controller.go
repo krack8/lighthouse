@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb"
@@ -16,7 +17,7 @@ import (
 )
 
 type TaskToAgentInterface interface {
-	SendToWorker(c context.Context, groupName string, payload string, taskName string, input []byte) (*pb.TaskResult, error)
+	SendToWorker(c context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error)
 }
 
 type taskToAgent struct{}
@@ -79,7 +80,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 				if err != nil {
 					return err
 				}
-				log.Printf("worker connection rejected: empty group name")
+				return fmt.Errorf("worker connection rejected: empty group name")
 			}
 
 			//Verify the auth token if AUTH is ENABLED
@@ -126,7 +127,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			s.addWorker(currentWorker)
 
 			// Send back a simple Ack
-			stream.Send(&pb.TaskStreamResponse{
+			_ = stream.Send(&pb.TaskStreamResponse{
 				Payload: &pb.TaskStreamResponse_Ack{
 					Ack: &pb.Ack{Message: "Registered successfully"},
 				},
@@ -248,11 +249,9 @@ func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input [
 	}
 }
 
-/*
-var srv = &serverImpl{
-	groups: make(map[string][]*workerConnection),
-}
-*/
+//var srv = &serverImpl{
+//	groups: make(map[string][]*workerConnection),
+//}
 
 // disconnectWorker handles immediate worker disconnection
 func (s *serverImpl) disconnectWorker(w *workerConnection) {
@@ -280,8 +279,11 @@ func (s *serverImpl) disconnectWorker(w *workerConnection) {
 		return
 	}
 
-	// Send disconnect message directly through the stream
-	err := &pb.TaskStreamResponse{
+	log.Printf("Sending disconnect message - Group: %s, Total workers in group: %d",
+		w.groupName, len(workers))
+
+	// Send disconnect message immediately
+	err := w.stream.Send(&pb.TaskStreamResponse{
 		Payload: &pb.TaskStreamResponse_Ack{
 			Ack: &pb.Ack{
 				Message: "disconnect_requested",
