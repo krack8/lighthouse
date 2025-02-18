@@ -11,8 +11,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
-	"os"
-	"net/http"
 	"sync"
 	"time"
 )
@@ -81,7 +79,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 				if err != nil {
 					return err
 				}
-				return fmt.Errorf("worker connection rejected: empty group name")
+				log.Printf("worker connection rejected: empty group name")
 			}
 
 			//Verify the auth token if AUTH is ENABLED
@@ -283,13 +281,13 @@ func (s *serverImpl) disconnectWorker(w *workerConnection) {
 	}
 
 	// Send disconnect message directly through the stream
-	disconnectMsg := &pb.TaskStreamResponse{
+	err := &pb.TaskStreamResponse{
 		Payload: &pb.TaskStreamResponse_Ack{
 			Ack: &pb.Ack{
 				Message: "disconnect_requested",
 			},
 		},
-	})
+	}
 
 	if err != nil {
 		log.Printf("Failed to send disconnect message to group %s: %v", w.groupName, err)

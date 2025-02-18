@@ -5,11 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"log"
 	"sync"
 	"time"
@@ -29,7 +29,7 @@ func main() {
 
 	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
 	if err != nil {
-		log.Fatalf("Failed to get "+os.Getenv("AGENT_SECRET_NAME")+" secret: %v", err)
+		log.Fatalf("Failed to get "+secretName+" secret: %v", err)
 	}
 	// Validate and provide a default if needed
 	if groupName == "" {
