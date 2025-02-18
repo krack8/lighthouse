@@ -11,6 +11,7 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -55,7 +56,7 @@ func main() {
 	streamRecoveryInterval := 5 * time.Second
 	for streamRecoveryAttempt := 0; streamRecoveryAttempt < streamRecoveryMaxAttempt; streamRecoveryAttempt++ {
 		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel() // Cancel the context when the program exits
+		//defer cancel() // Cancel the context when the program exits
 
 		conn, stream, err := agentClient.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
@@ -112,8 +113,24 @@ func main() {
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
+					if strings.ReplaceAll(payload.Ack.Message, " ", "") == "InvalidAgentToken" {
+						_log.Logger.Errorw("Unauthorized: token is invalid", "err", "unauthorized")
+						// Close the gRPC connection
+						if err = conn.Close(); err != nil {
+							_log.Logger.Warnw("Failed to close gRPC connection", "error", err)
+						}
+
+						// Cancel the context to stop any ongoing operations
+						cancel()
+
+						// Close the error channel to signal disconnect
+						close(streamErrorChan)
+						log.Fatalf("Unauthorized: token is invalid")
+						return
+					}
+
 					if payload.Ack.Message == "group_name_required" {
-						_log.Logger.Errorw("Connection rejected: group name is required")
+						_log.Logger.Errorw("Connection rejected: group name is required", "err", "rejected")
 						log.Fatalf("Connection rejected: group name is required")
 					}
 
