@@ -16,7 +16,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 )
@@ -54,7 +53,6 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 	defer func() {
 		if currentWorker != nil {
 			s.removeWorker(currentWorker)
-			//s.disconnectWorker(currentWorker)
 		}
 	}()
 
@@ -72,6 +70,22 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 			// This is the first message from the worker identifying itself.
 			groupName := payload.WorkerInfo.GroupName
 			authToken := payload.WorkerInfo.AuthToken
+
+			// Validate group name
+			if groupName == "" {
+				log.Printf("Worker attempted to connect with empty group name - rejecting connection")
+				err := stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_Ack{
+						Ack: &pb.Ack{
+							Message: "group_name_required",
+						},
+					},
+				})
+				if err != nil {
+					return err
+				}
+				return fmt.Errorf("worker connection rejected: empty group name")
+			}
 
 			//Verify the auth token if AUTH is ENABLED
 			if cfg.IsAuth() {
@@ -104,7 +118,7 @@ func (s *serverImpl) TaskStream(stream pb.Controller_TaskStreamServer) error {
 					return nil
 				}
 			}
-			log.Printf("New worker identified. group=%s, token=%s", groupName, authToken)
+			log.Printf("New worker identified. group=%s", groupName)
 
 			// Create the worker connection instance.
 			currentWorker = &workerConnection{
@@ -255,11 +269,9 @@ func (s *serverImpl) Process(groupName string, payload string, taskName string, 
 
 func (tta *taskToAgent) SendToWorker(c context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error) {
 	payload := taskName
-	runMode := os.Getenv("RUN_MODE")
-	if runMode == "" || runMode == "DEVELOP" {
-		groupName = os.Getenv("WORKER_GROUP")
-	}
-	resultCh, err := srv.Process(groupName, payload, taskName, input)
+	// Get the server instance
+	server := GetServerInstance()
+	resultCh, err := server.Process(groupName, payload, taskName, input)
 	if err != nil {
 		return nil, err
 	}
@@ -310,14 +322,71 @@ func (s *serverImpl) httpExecuteHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-var srv = &serverImpl{
+/*var srv = &serverImpl{
 	groups: make(map[string][]*workerConnection),
 }
+*/
 
-var workerConn = &workerConnection{
-	stream:      nil,
-	groupName:   "",
-	resultChMap: make(map[string]chan *pb.TaskResult),
+// disconnectWorker handles immediate worker disconnection
+func (s *serverImpl) disconnectWorker(w *workerConnection) {
+	if w == nil || w.stream == nil {
+		log.Printf("Invalid worker connection")
+		return
+	}
+
+	// Lock before any operations
+	s.mu.Lock()
+
+	// Verify worker exists in the group
+	workers := s.groups[w.groupName]
+	workerFound := false
+	for _, conn := range workers {
+		if conn == w {
+			workerFound = true
+			break
+		}
+	}
+
+	if !workerFound {
+		log.Printf("Worker not found in group %s", w.groupName)
+		s.mu.Unlock()
+		return
+	}
+
+	log.Printf("Sending disconnect message - Group: %s, Total workers in group: %d",
+		w.groupName, len(workers))
+
+	// Send disconnect message immediately
+	err := w.stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_Ack{
+			Ack: &pb.Ack{
+				Message: "disconnect_requested",
+			},
+		},
+	})
+
+	if err != nil {
+		log.Printf("Failed to send disconnect message to group %s: %v", w.groupName, err)
+	} else {
+		log.Printf("Successfully sent disconnect message to group %s", w.groupName)
+	}
+
+	// Cleanup channels
+	for taskID, ch := range w.resultChMap {
+		close(ch)
+		delete(w.resultChMap, taskID)
+	}
+
+	// Remove worker from group
+	var newList []*workerConnection
+	for _, conn := range workers {
+		if conn != w {
+			newList = append(newList, conn)
+		}
+	}
+	s.groups[w.groupName] = newList
+
+	s.mu.Unlock()
 }
 
 // RemoveWorkerByGroupName removes all workers in a group
@@ -325,76 +394,50 @@ func (s *serverImpl) RemoveWorkerByGroupName(groupName string) bool {
 	s.mu.Lock()
 	workers, exists := s.groups[groupName]
 	if !exists || len(workers) == 0 {
+		log.Printf("No workers found in group: %s", groupName)
 		s.mu.Unlock()
 		return false
 	}
 
-	// First disconnect all workers
-	for _, worker := range workers {
-		go func(w *workerConnection) {
-			s.disconnectWorker(w)
-		}(worker)
-	}
-
-	// Remove the group
-	delete(s.groups, groupName)
+	workerCount := len(workers)
+	log.Printf("Found %d workers in group %s", workerCount, groupName)
 	s.mu.Unlock()
 
-	log.Printf("Removed group %s and disconnected all workers", groupName)
+	for i, worker := range workers {
+		log.Printf("Disconnecting worker %d/%d in group %s", i+1, workerCount, groupName)
+		s.disconnectWorker(worker)
+	}
+
 	return true
 }
 
-// disconnectWorker handles graceful worker disconnection
-func (s *serverImpl) disconnectWorker(w *workerConnection) {
-	if w == nil || w.stream == nil {
-		return
-	}
+// Use a proper singleton pattern:
+var (
+	srv     *serverImpl
+	srvOnce sync.Once
+	srvMu   sync.RWMutex
+)
 
-	// Send disconnect message directly through the stream
-	disconnectMsg := &pb.TaskStreamResponse{
-		Payload: &pb.TaskStreamResponse_Ack{
-			Ack: &pb.Ack{
-				Message: "disconnect_requested",
-			},
-		},
-	}
-
-	// Try to send disconnect message first
-	err := w.stream.Send(disconnectMsg)
-	if err != nil {
-		log.Printf("Failed to send disconnect message: %v", err)
-	} else {
-		log.Printf("Successfully sent disconnect message to worker in group %s", w.groupName)
-	}
-
-	// Clean up channels
-	s.mu.Lock()
-	for taskID, ch := range w.resultChMap {
-		close(ch)
-		delete(w.resultChMap, taskID)
-	}
-	s.mu.Unlock()
-
-	// Remove from groups
-	s.removeWorker(w)
-
-	log.Printf("Worker disconnected from group %s", w.groupName)
-}
-
-// Add a getter for the server instance
+// GetServerInstance returns the singleton server instance
 func GetServerInstance() *serverImpl {
+	srvOnce.Do(func() {
+		srvMu.Lock()
+		defer srvMu.Unlock()
+		if srv == nil {
+			srv = &serverImpl{
+				groups: make(map[string][]*workerConnection),
+			}
+		}
+	})
 	return srv
-}
-
-func GetWorkerConnection() *workerConnection {
-	return workerConn
 }
 
 func StartGrpcServer() {
 	// Start gRPC server
 	go func() {
 		grpcServer := grpc.NewServer()
-		pb.RegisterControllerServer(grpcServer, srv)
+		server := GetServerInstance()
+		pb.RegisterControllerServer(grpcServer, server)
 		reflection.Register(grpcServer)
 
 		lis, err := net.Listen("tcp", ":50051")

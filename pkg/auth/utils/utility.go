@@ -92,6 +92,10 @@ func CreateNamespaceIfNotExists(namespace string) error {
 
 // GetSecret retrieves and decodes a secret
 func GetSecret(name, namespace string) (string, error) {
+	if name == "" || namespace == "" {
+		return "", fmt.Errorf("missing or invalid name or namespace")
+	}
+
 	secret, err := config.GetKubeClientSet().CoreV1().Secrets(namespace).Get(
 		context.Background(),
 		name,
@@ -188,4 +192,33 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 	}
 
 	return authToken, nil
+}
+
+// Helper function to get worker group from environment or secret
+func GetWorkerGroup(secretName, namespace string) (string, error) {
+	// First try environment variable
+	groupName := os.Getenv("WORKER_GROUP")
+	if groupName != "" {
+		return groupName, nil
+	}
+
+	// If not in environment, try getting from secret
+	if secretName != "" && namespace != "" {
+		// Get the Kubernetes clientset
+		clientSet := config.GetKubeClientSet()
+
+		// Try to get the secret
+		secret, err := clientSet.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+		if err != nil {
+			return "", fmt.Errorf("failed to get secret %s in namespace %s: %w", secretName, namespace, err)
+		}
+
+		// Look for worker group in the secret
+		if groupData, exists := secret.Data["WORKER_GROUP"]; exists && len(groupData) > 0 {
+			return string(groupData), nil
+		}
+	} else {
+		return "", fmt.Errorf("missing or invalid name or namespace")
+	}
+	return "", fmt.Errorf("worker_group key not found in secret %s", secretName)
 }

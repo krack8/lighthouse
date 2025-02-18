@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"github.com/krack8/lighthouse/pkg/agent/server"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
@@ -26,7 +27,18 @@ func main() {
 	controllerURL := os.Getenv("SERVER_URL")
 	secretName := os.Getenv("AGENT_SECRET_NAME")
 	resourceNamespace := os.Getenv("RESOURCE_NAMESPACE")
-	//authToken := "my-secret"
+
+	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
+	if err != nil {
+		log.Fatalf("Failed to get "+os.Getenv("AGENT_SECRET_NAME")+" secret: %v", err)
+	}
+	// Validate and provide a default if needed
+	if groupName == "" {
+		_log.Logger.Errorw("Missing env variable WORKER_GROUP", "err", "WORKER_GROUP env variable is not found in kubernetes secret")
+	}
+
+	_log.Logger.Infow("Starting worker", "groupName", groupName)
+
 	tasks.InitTaskRegistry()
 	var caCertPool *x509.CertPool
 	if config.TlsServerCustomCa != "" {
@@ -100,6 +112,11 @@ func main() {
 
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+
+					if payload.Ack.Message == "group_name_required" {
+						_log.Logger.Errorw("Connection rejected: group name is required")
+						log.Fatalf("Connection rejected: group name is required")
+					}
 
 					if payload.Ack.Message == "disconnect_requested" {
 						_log.Logger.Infow("Disconnect requested, starting shutdown")
