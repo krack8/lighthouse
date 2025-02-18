@@ -5,11 +5,13 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
+	"github.com/krack8/lighthouse/pkg/auth/utils"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/config"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -25,7 +27,18 @@ func main() {
 	controllerURL := config.ServerUrl
 	secretName := config.AgentSecretName
 	resourceNamespace := config.ResourceNamespace
-	//authToken := "my-secret"
+
+	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
+	if err != nil {
+		log.Fatalf("Failed to get "+secretName+" secret: %v", err)
+	}
+	// Validate and provide a default if needed
+	if groupName == "" {
+		_log.Logger.Errorw("Missing env variable WORKER_GROUP", "err", "WORKER_GROUP env variable is not found in kubernetes secret")
+	}
+
+	_log.Logger.Infow("Starting worker", "groupName", groupName)
+
 	tasks.InitTaskRegistry()
 	var caCertPool *x509.CertPool
 	if config.TlsServerCustomCa != "" {
@@ -43,7 +56,7 @@ func main() {
 	streamRecoveryInterval := 5 * time.Second
 	for streamRecoveryAttempt := 0; streamRecoveryAttempt < streamRecoveryMaxAttempt; streamRecoveryAttempt++ {
 		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel() // Cancel the context when the program exits
+		//defer cancel() // Cancel the context when the program exits
 
 		conn, stream, err := agentClient.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
@@ -56,7 +69,7 @@ func main() {
 			for {
 				in, err := stream.Recv()
 				if err != nil {
-					_log.Logger.Infow("Stream Recv error (worker)", "err", err)
+					_log.Logger.Infow("Stream Receive error (worker)", "err", err)
 					streamErrorChan <- err
 					return
 				}
@@ -99,6 +112,27 @@ func main() {
 
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+
+					if strings.ReplaceAll(payload.Ack.Message, " ", "") == "InvalidAgentToken" {
+						_log.Logger.Errorw("Unauthorized: token is invalid", "err", "unauthorized")
+						// Close the gRPC connection
+						if err = conn.Close(); err != nil {
+							_log.Logger.Warnw("Failed to close gRPC connection", "error", err)
+						}
+
+						// Cancel the context to stop any ongoing operations
+						cancel()
+
+						// Close the error channel to signal disconnect
+						close(streamErrorChan)
+						log.Fatalf("Unauthorized: token is invalid")
+						return
+					}
+
+					if payload.Ack.Message == "group_name_required" {
+						_log.Logger.Errorw("Connection rejected: group name is required", "err", "rejected")
+						log.Fatalf("Connection rejected: group name is required")
+					}
 
 					if payload.Ack.Message == "disconnect_requested" {
 						_log.Logger.Infow("Disconnect requested, starting shutdown")

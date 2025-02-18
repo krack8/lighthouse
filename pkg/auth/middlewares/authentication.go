@@ -37,7 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Validate token and extract claims
 		claims, err := utils.ValidateToken(token, os.Getenv("JWT_SECRET"))
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization token"})
 			c.Abort()
 			return
 		}

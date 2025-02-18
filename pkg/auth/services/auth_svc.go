@@ -84,5 +84,25 @@ func IsAgentAuthTokenValid(authToken string) bool {
 		log.Logger.Errorw("Failed to update cluster status", "err", err.Error())
 		return false
 	}
+
+	/*// Add nil check before accessing ClusterID
+	if tokenValidation.ClusterID.IsZero() {
+		log.Logger.Warnw("Invalid token validation: nil cluster ID", "groupName", groupName)
+		return false
+	}
+
+	clusterIDHex := tokenValidation.ClusterID.Hex()
+	if clusterIDHex == "" {
+		log.Logger.Warnw("Empty cluster ID hex value", "groupName", groupName)
+		return false
+	}
+
+	if clusterIDHex != groupName {
+		log.Logger.Warnw("Invalid cluster group name. The group name is not registered with this cluster",
+			"expected", clusterIDHex,
+			"received", groupName)
+		return false
+	}*/
+
 	return true
 }
