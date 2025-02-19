@@ -123,15 +123,16 @@ func (pi *PermissionInitializer) InitializePermissions(ctx context.Context) erro
 		}
 
 		err := pi.initializePermission(ctx, models.Permission{
-			Name:         string(def.Name),
-			Description:  string(def.Description),
-			Category:     def.Category,
-			EndpointList: endpointFunc(),
-			Status:       enum.VALID,
-			CreatedBy:    string(enum.SYSTEM),
-			UpdatedBy:    string(enum.SYSTEM),
-			CreatedAt:    time.Now(),
-			UpdatedAt:    time.Now(),
+			Name:          string(def.Name),
+			Description:   string(def.Description),
+			Category:      def.Category,
+			ResourceGroup: def.ResourceGroup,
+			EndpointList:  endpointFunc(),
+			Status:        enum.VALID,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		})
 		if err != nil {
 			return fmt.Errorf("failed to initialize permission %s: %v", def.Name, err)

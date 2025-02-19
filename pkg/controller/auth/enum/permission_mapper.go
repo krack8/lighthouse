@@ -2,72 +2,78 @@ package enum
 
 // PermissionDefinition represents a permission's metadata
 type PermissionDefinition struct {
-	Name           PermissionName
-	Description    PermissionDescription
-	Category       PermissionCategory
-	Resource_Group ResourceGroup
+	Name          PermissionName
+	Description   PermissionDescription
+	Category      PermissionCategory
+	ResourceGroup ResourceGroup
 }
 
 var PermissionInitializer = []PermissionDefinition{
 	{
-		Name:           DEFAULT_PERMISSION,
-		Description:    DEFAULT_PERMISSION_DESCRIPTION,
-		Category:       DEFAULT,
-		Resource_Group: NONE,
+		Name:          DEFAULT_PERMISSION,
+		Description:   DEFAULT_PERMISSION_DESCRIPTION,
+		Category:      DEFAULT,
+		ResourceGroup: NONE,
 	},
 	{
-		Name:           VIEW_USER,
-		Description:    VIEW_USER_DESCRIPTION,
-		Category:       MANAGEMENT,
-		Resource_Group: USER,
+		Name:          VIEW_USER,
+		Description:   VIEW_USER_DESCRIPTION,
+		Category:      MANAGEMENT,
+		ResourceGroup: USER,
 	},
 	{
-		Name:           MANAGE_USER,
-		Description:    MANAGE_USER_DESCRIPTION,
-		Category:       MANAGEMENT,
-		Resource_Group: USER,
+		Name:          MANAGE_USER,
+		Description:   MANAGE_USER_DESCRIPTION,
+		Category:      MANAGEMENT,
+		ResourceGroup: USER,
 	},
 	{
-		Name:           VIEW_ROLE,
-		Description:    VIEW_ROLE_DESCRIPTION,
-		Category:       MANAGEMENT,
-		Resource_Group: USER,
+		Name:          VIEW_ROLE,
+		Description:   VIEW_ROLE_DESCRIPTION,
+		Category:      MANAGEMENT,
+		ResourceGroup: USER,
 	},
 	{
-		Name:           MANAGE_ROLE,
-		Description:    MANAGE_ROLE_DESCRIPTION,
-		Category:       MANAGEMENT,
-		Resource_Group: USER,
+		Name:          MANAGE_ROLE,
+		Description:   MANAGE_ROLE_DESCRIPTION,
+		Category:      MANAGEMENT,
+		ResourceGroup: USER,
 	},
 	{
-		Name:        ADD_CLUSTER,
-		Description: ADD_CLUSTER_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          ADD_CLUSTER,
+		Description:   ADD_CLUSTER_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: USER,
 	},
 	{
-		Name:        CREATE_NAMESPACE,
-		Description: CREATE_NAMESPACE_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          CREATE_NAMESPACE,
+		Description:   CREATE_NAMESPACE_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: NAMESPACE,
 	},
 	{
-		Name:        VIEW_NAMESPACE,
-		Description: VIEW_NAMESPACE_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          VIEW_NAMESPACE,
+		Description:   VIEW_NAMESPACE_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: NAMESPACE,
 	},
 	{
-		Name:        UPDATE_NAMESPACE,
-		Description: UPDATE_NAMESPACE_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          UPDATE_NAMESPACE,
+		Description:   UPDATE_NAMESPACE_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: NAMESPACE,
 	},
 	{
-		Name:        DELETE_NAMESPACE,
-		Description: DELETE_NAMESPACE_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          DELETE_NAMESPACE,
+		Description:   DELETE_NAMESPACE_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: NAMESPACE,
 	},
 	{
-		Name:        VIEW_DEPLOYMENT,
-		Description: VIEW_DEPLOYMENT_DESCRIPTION,
-		Category:    CLUSTER,
+		Name:          VIEW_DEPLOYMENT,
+		Description:   VIEW_DEPLOYMENT_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: DEPLOYMENT,
 	},
 	{
 		Name:        VIEW_REPLICA_SET,

@@ -191,7 +191,7 @@ const (
 	CLUSTER_ROLE_BINDING    ResourceGroup = "CLUSTER_ROLE_BINDING"
 	STORAGE_CLASS           ResourceGroup = "STORAGE_CLASS"
 	CUSTOM_RESOURCE         ResourceGroup = "CUSTOM_RESOURCE"
-	CERTIFICATES            ResourceGroup = "CERTIFICATES"
+	CERTIFICATE             ResourceGroup = "CERTIFICATE"
 	CONFIG_MAP              ResourceGroup = "CONFIG_MAP"
 	CRON_JOB                ResourceGroup = "CRON_JOB"
 	CONTROLLER_REVISION     ResourceGroup = "CONTROLLER_REVISION"
