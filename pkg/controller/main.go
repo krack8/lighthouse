@@ -14,7 +14,7 @@ import (
 func main() {
 	_log.InitializeLogger()
 
-	cfg.InitEnvironmentVariables()
+	cfg.InitEnvironmentVariables("../.env")
 
 	// Init Agent Connection Manager
 	core.InitAgentConnectionManager()

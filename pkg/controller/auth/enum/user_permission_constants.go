@@ -9,6 +9,9 @@ type PermissionName string
 // PermissionDescription represents permission descriptions
 type PermissionDescription string
 
+// ResourceGroup represents different type of resources in a category
+type ResourceGroup string
+
 const (
 	//Permission categories
 	DEFAULT    PermissionCategory = "DEFAULT"
