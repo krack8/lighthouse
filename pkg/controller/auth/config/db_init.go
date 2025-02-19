@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
-	enum2 "github.com/krack8/lighthouse/pkg/controller/auth/enum"
-	models2 "github.com/krack8/lighthouse/pkg/controller/auth/models"
-	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
@@ -57,11 +57,11 @@ func ConnectDB() (*mongo.Client, context.Context, error) {
 	}
 
 	// Initialize the collections
-	UserCollection = client.Database(dbName).Collection(string(enum2.UsersTable))
-	PermissionCollection = client.Database(dbName).Collection(string(enum2.PermissionsTable))
-	RoleCollection = client.Database(dbName).Collection(string(enum2.RolesTable))
-	ClusterCollection = client.Database(dbName).Collection(string(enum2.ClusterTable))
-	TokenCollection = client.Database(dbName).Collection(string(enum2.TokenTable))
+	UserCollection = client.Database(dbName).Collection(string(enum.UsersTable))
+	PermissionCollection = client.Database(dbName).Collection(string(enum.PermissionsTable))
+	RoleCollection = client.Database(dbName).Collection(string(enum.RolesTable))
+	ClusterCollection = client.Database(dbName).Collection(string(enum.ClusterTable))
+	TokenCollection = client.Database(dbName).Collection(string(enum.TokenTable))
 
 	log.Println("Successfully connected to MongoDB")
 	return client, ctx, nil
@@ -77,19 +77,19 @@ func InitializeDefaultUser() {
 	defaultUserName := SetEnvWithDefault("USER_EMAIL", "admin@default.com")
 	defaultPassword := SetEnvWithDefault("PASSWORD", "lighthouse")
 	if count == 0 {
-		defaultUser := models2.User{
+		defaultUser := models.User{
 			Username:     defaultUserName,
 			FirstName:    "Admin",
 			LastName:     "User",
-			Password:     utils2.HashPassword(defaultPassword), // Use a hashed password here
+			Password:     utils.HashPassword(defaultPassword), // Use a hashed password here
 			UserType:     "ADMIN",
-			Roles:        []models2.Role{},
+			Roles:        []models.Role{},
 			UserIsActive: true,
 			IsVerified:   true,
 			Phone:        "1234567890",
-			Status:       enum2.VALID,
-			CreatedBy:    string(enum2.SYSTEM),
-			UpdatedBy:    string(enum2.SYSTEM),
+			Status:       enum.VALID,
+			CreatedBy:    string(enum.SYSTEM),
+			UpdatedBy:    string(enum.SYSTEM),
 			CreatedAt:    time.Now(),
 			UpdatedAt:    time.Now(),
 		}
@@ -112,32 +112,32 @@ func InitRBAC() {
 		log.Fatal(err)
 	}
 
-	var defaultPermission models2.Permission
+	var defaultPermission models.Permission
 	// Find permissions by name
-	err := PermissionCollection.FindOne(context.Background(), bson.M{"name": string(enum2.DEFAULT_PERMISSION)}).Decode(&defaultPermission)
+	err := PermissionCollection.FindOne(context.Background(), bson.M{"name": string(enum.DEFAULT_PERMISSION)}).Decode(&defaultPermission)
 	if err != nil {
 		log.Fatalf("Default permission not found: %v", err)
 	}
 
-	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{"status": enum2.VALID})
+	roleCount, err := RoleCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting documents in users collection: %v", err)
 	}
 
-	var defaultPermissions []models2.Permission
+	var defaultPermissions []models.Permission
 
 	defaultPermissions = append(defaultPermissions, defaultPermission)
 
 	if roleCount == 0 {
 		// Example role with permissions
-		defaultRole := models2.Role{
+		defaultRole := models.Role{
 			ID:          primitive.NewObjectID(),
 			Name:        "DEFAULT_ROLE",
 			Description: "Basic API Permissions",
 			Permissions: defaultPermissions,
-			Status:      enum2.VALID,
-			CreatedBy:   string(enum2.SYSTEM),
-			UpdatedBy:   string(enum2.SYSTEM),
+			Status:      enum.VALID,
+			CreatedBy:   string(enum.SYSTEM),
+			UpdatedBy:   string(enum.SYSTEM),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
@@ -152,7 +152,7 @@ func InitRBAC() {
 
 // InitializeClusters creates default clusters if none exist
 func InitializeClusters() {
-	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum2.VALID})
+	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		log.Fatalf("Error counting clusters: %v", err)
 	}
@@ -160,7 +160,7 @@ func InitializeClusters() {
 	if clusterCount == 0 {
 		agentClusterID := primitive.NewObjectID()
 		// Generate a raw token
-		crypto, _ := utils2.NewCryptoImpl()
+		crypto, _ := utils.NewCryptoImpl()
 
 		rawToken, err := crypto.GenerateSecureToken(32)
 		if err != nil {
@@ -175,7 +175,7 @@ func InitializeClusters() {
 
 		k8s.InitiateKubeClientSet()
 		// create the secret
-		_, err = utils2.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
+		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
 		if err != nil {
 			log.Fatalf("[ERROR] Failed to get secret: %v\n", err)
 		}
@@ -187,17 +187,17 @@ func InitializeClusters() {
 		}
 
 		// Create token validations
-		agentToken := models2.TokenValidation{
+		agentToken := models.TokenValidation{
 			ID:            primitive.NewObjectID(),
 			ClusterID:     agentClusterID,
 			RawTokenHash:  string(hashRawToken),
 			CombinedToken: combinedToken,
 			IsValid:       true,
 			ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year
-			Status:        enum2.VALID,
-			TokenStatus:   enum2.TokenStatusValid,
-			CreatedBy:     string(enum2.SYSTEM),
-			UpdatedBy:     string(enum2.SYSTEM),
+			Status:        enum.VALID,
+			TokenStatus:   enum.TokenStatusValid,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
 		}
@@ -210,17 +210,17 @@ func InitializeClusters() {
 		clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
 		serverURL := SetEnvWithDefault("GRPC_SERVER", "localhost:50051")
 		// Create worker cluster
-		agentCluster := models2.Cluster{
+		agentCluster := models.Cluster{
 			ID:            agentClusterID,
 			Name:          clusterName,
-			ClusterType:   enum2.WORKER,
+			ClusterType:   enum.WORKER,
 			WorkerGroup:   agentClusterID.Hex(),
 			Token:         agentToken,
-			Status:        enum2.VALID,
-			ClusterStatus: enum2.PENDING,
+			Status:        enum.VALID,
+			ClusterStatus: enum.PENDING,
 			ControllerURL: serverURL,
-			CreatedBy:     string(enum2.SYSTEM),
-			UpdatedBy:     string(enum2.SYSTEM),
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
 			IsActive:      true,

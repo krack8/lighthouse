@@ -9,6 +9,9 @@ type PermissionName string
 // PermissionDescription represents permission descriptions
 type PermissionDescription string
 
+// ResourceGroup represents different type of resources in a category
+type ResourceGroup string
+
 const (
 	//Permission categories
 	DEFAULT    PermissionCategory = "DEFAULT"
@@ -19,7 +22,6 @@ const (
 	//CLUSTER Permission names
 	DEFAULT_PERMISSION                PermissionName = "DEFAULT_PERMISSION"
 	ADD_CLUSTER                       PermissionName = "ADD_CLUSTER"
-	MANAGE_NAMESPACE                  PermissionName = "MANAGE_NAMESPACE_ENDPOINTS"
 	CREATE_NAMESPACE                  PermissionName = "CREATE_K8S_NAMESPACE"
 	VIEW_NAMESPACE                    PermissionName = "VIEW_K8S_NAMESPACE"
 	UPDATE_NAMESPACE                  PermissionName = "UPDATE_K8S_NAMESPACE"
@@ -101,7 +103,6 @@ const (
 	//CLUSTER Permission descriptions
 	DEFAULT_PERMISSION_DESCRIPTION                PermissionDescription = "Default permission for basic access"
 	ADD_CLUSTER_DESCRIPTION                       PermissionDescription = "Permission to add cluster with the control plane"
-	MANAGE_NAMESPACE_DESCRIPTION                  PermissionDescription = "Permission to manage namespace endpoints"
 	CREATE_NAMESPACE_DESCRIPTION                  PermissionDescription = "Permission to create Kubernetes namespaces"
 	VIEW_NAMESPACE_DESCRIPTION                    PermissionDescription = "Permission to view Kubernetes namespaces"
 	UPDATE_NAMESPACE_DESCRIPTION                  PermissionDescription = "Permission to update Kubernetes namespaces"
@@ -179,4 +180,41 @@ const (
 
 	VIEW_ROLE_DESCRIPTION   PermissionDescription = "Permission to view roles"
 	MANAGE_ROLE_DESCRIPTION PermissionDescription = "Permission to manage roles"
+
+	//Resource Group Name
+	NODE                    ResourceGroup = "NODE"
+	NAMESPACE               ResourceGroup = "NAMESPACE"
+	PERSISTENT_VOLUME       ResourceGroup = "PERSISTENT_VOLUME"
+	CLUSTER_ROLE            ResourceGroup = "CLUSTER_ROLE"
+	CLUSTER_ROLE_BINDING    ResourceGroup = "CLUSTER_ROLE_BINDING"
+	STORAGE_CLASS           ResourceGroup = "STORAGE_CLASS"
+	CUSTOM_RESOURCE         ResourceGroup = "CUSTOM_RESOURCE"
+	CERTIFICATE             ResourceGroup = "CERTIFICATE"
+	CONFIG_MAP              ResourceGroup = "CONFIG_MAP"
+	CRON_JOB                ResourceGroup = "CRON_JOB"
+	CONTROLLER_REVISION     ResourceGroup = "CONTROLLER_REVISION"
+	DAEMONSET               ResourceGroup = "DAEMONSET"
+	DEPLOYMENT              ResourceGroup = "DEPLOYMENT"
+	STATEFULSET             ResourceGroup = "STATEFULSET"
+	ENDPOINT_SLICE          ResourceGroup = "ENDPOINT_SLICE"
+	ENDPOINT                ResourceGroup = "ENDPOINT"
+	INGRESS                 ResourceGroup = "INGRESS"
+	JOB                     ResourceGroup = "JOB"
+	NETWORK_POLICY          ResourceGroup = "NETWORK_POLICY"
+	SECRET                  ResourceGroup = "SECRET"
+	POD                     ResourceGroup = "POD"
+	PERSISTENT_VOLUME_CLAIM ResourceGroup = "PERSISTENT_VOLUME_CLAIM"
+	POD_DISRUPTION_BUDGET   ResourceGroup = "POD_DISRUPTION_BUDGET"
+	REPLICASET              ResourceGroup = "REPLICASET"
+	REPLICATION_CONTROLLER  ResourceGroup = "REPLICATION_CONTROLLER"
+	RESOURCE_QUOTA          ResourceGroup = "RESOURCE_QUOTA"
+	ROLE                    ResourceGroup = "ROLE"
+	ROLE_BINDING            ResourceGroup = "ROLE_BINDING"
+	SERVICE                 ResourceGroup = "SERVICE"
+	SERVICE_ACCOUNT         ResourceGroup = "SERVICE_ACCOUNT"
+	VIRTUAL_SERVICE         ResourceGroup = "VIRTUAL_SERVICE"
+	GATEWAY                 ResourceGroup = "GATEWAY"
+
+	USER ResourceGroup = "USER"
+	NONE ResourceGroup = "NONE"
 )

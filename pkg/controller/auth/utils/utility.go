@@ -121,8 +121,8 @@ func GetSecret(name, namespace string) (string, error) {
 func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string, error) {
 	// Prepare secret data (no need to base64 encode, Kubernetes will do it)
 	secretData := map[string][]byte{
-		"AUTH_TOKEN":   []byte(authToken),
-		"WORKER_GROUP": []byte(clusterId),
+		"AUTH_TOKEN":  []byte(authToken),
+		"AGENT_GROUP": []byte(clusterId),
 	}
 
 	clientSet := k8s.GetKubeClientSet()
@@ -197,7 +197,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 // Helper function to get worker group from environment or secret
 func GetWorkerGroup(secretName, namespace string) (string, error) {
 	// First try environment variable
-	groupName := os.Getenv("WORKER_GROUP")
+	groupName := os.Getenv("AGENT_GROUP")
 	if groupName != "" {
 		return groupName, nil
 	}
@@ -214,11 +214,11 @@ func GetWorkerGroup(secretName, namespace string) (string, error) {
 		}
 
 		// Look for worker group in the secret
-		if groupData, exists := secret.Data["WORKER_GROUP"]; exists && len(groupData) > 0 {
+		if groupData, exists := secret.Data["AGENT_GROUP"]; exists && len(groupData) > 0 {
 			return string(groupData), nil
 		}
 	} else {
 		return "", fmt.Errorf("missing or invalid name or namespace")
 	}
-	return "", fmt.Errorf("worker_group key not found in secret %s", secretName)
+	return "", fmt.Errorf("AGENT_GROUP key not found in secret %s", secretName)
 }

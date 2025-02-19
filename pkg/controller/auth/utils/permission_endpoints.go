@@ -292,6 +292,14 @@ func GetViewLogsEndpoints() []models.Endpoint {
 }
 
 // GetManageEndpointsEndpoints returns endpoints for managing endpoints
+func GetViewEndpointsEndpoints() []models.Endpoint {
+	return []models.Endpoint{
+		{Method: "GET", Route: "/api/v1/endpoints"},
+		{Method: "GET", Route: "/api/v1/endpoints/@"},
+	}
+}
+
+// GetManageEndpointsEndpoints returns endpoints for managing endpoints
 func GetManageEndpointsEndpoints() []models.Endpoint {
 	return []models.Endpoint{
 		{Method: "POST", Route: "/api/v1/endpoints"},
