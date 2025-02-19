@@ -27,11 +27,11 @@ func main() {
 		log.Fatalf("Error connecting to DB: %v", err)
 		return
 	}
-	/*// Add this if you want to reset collections on startup
-	if err := config.ResetCollections(client, ctx); err != nil {
-		log.Printf("Failed to reset collections: %v", err)
-		return
-	}*/
+	// Add this if you want to reset collections on startup
+	//if err := config.ResetCollections(client, ctx); err != nil {
+	//	_log.Logger.Errorw("Failed to reset collections", "err", err)
+	//	return
+	//}
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Fatalf("Error disconnecting from DB: %v", err)
@@ -52,6 +52,6 @@ func main() {
 
 	// Start HTTP server
 	srvr.StartHttServer()
-	log.Println("HTTP server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	_log.Logger.Infow("HTTP server listening on :"+cfg.ServerPort, "[Server-Port]", cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }

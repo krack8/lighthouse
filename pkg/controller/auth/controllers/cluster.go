@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/controller/core"
@@ -129,7 +130,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + os.Getenv("RESOURCE_NAMESPACE") + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set server.url=" + os.Getenv("SERVER_URL"),
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set controller.grpc.url=" + config.GrpcServer,
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
