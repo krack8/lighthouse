@@ -2,11 +2,14 @@ package utils
 
 import (
 	"encoding/hex"
+	"github.com/krack8/lighthouse/pkg/common/log"
 	"strings"
 	"testing"
 )
 
 func TestHashPassword(t *testing.T) {
+	log.InitializeLogger()
+
 	tests := []struct {
 		name     string
 		password string
