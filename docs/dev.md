@@ -23,6 +23,7 @@ kind create cluster --name lighthouse
 - Set `RUN_MODE=DEVELOP`
 - Set `KUBE_CONFIG_FILE=YOUR_KUBECONFIG_FILENAME`. Kubeconfig file is expected in `$HOME/.kube` directory.
 - Set `IS_INTERNAL_SERVER="TRUE"`
+- Set `MONGO_URI=YOUR_MONGO_CONNECTION_URI`
 #### 5. Download Dependencies
 ```azure
 go mod tidy
