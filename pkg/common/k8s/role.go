@@ -92,7 +92,7 @@ func (p *GetRoleListInputParams) Find(c context.Context, roleClient v1.RoleInter
 
 func (p *GetRoleListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching role list")
-	roleClient := config.GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
+	roleClient := GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ type GetRoleDetailsInputParams struct {
 
 func (p *GetRoleDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching role details of ....", p.NamespaceName)
-	rolesClient := config.GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
+	rolesClient := GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
 	output, err := rolesClient.Get(context.Background(), p.RoleName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get role ", p.RoleName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployRoleInputParams struct {
 }
 
 func (p *DeployRoleInputParams) Process(c context.Context) error {
-	RoleClient := config.GetKubeClientSet().RbacV1().Roles(p.Role.Namespace)
+	RoleClient := GetKubeClientSet().RbacV1().Roles(p.Role.Namespace)
 	_, err := RoleClient.Get(context.Background(), p.Role.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating role in namespace "+p.Role.Namespace, "value", p.Role.Name)
@@ -238,7 +238,7 @@ type DeleteRoleInputParams struct {
 
 func (p *DeleteRoleInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting Role of ....", p.NamespaceName)
-	RoleClient := config.GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
+	RoleClient := GetKubeClientSet().RbacV1().Roles(p.NamespaceName)
 	_, err := RoleClient.Get(context.Background(), p.RoleName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get Role ", p.RoleName, "err", err.Error())

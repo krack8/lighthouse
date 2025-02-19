@@ -91,7 +91,7 @@ func (p *GetClusterRoleListInputParams) Find(c context.Context, clusterRoleClien
 
 func (p *GetClusterRoleListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role list")
-	clusterRoleClient := config.GetKubeClientSet().RbacV1().ClusterRoles()
+	clusterRoleClient := GetKubeClientSet().RbacV1().ClusterRoles()
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -166,7 +166,7 @@ type GetClusterRoleDetailsInputParams struct {
 
 func (p *GetClusterRoleDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role details ....")
-	clusterRolesClient := config.GetKubeClientSet().RbacV1().ClusterRoles()
+	clusterRolesClient := GetKubeClientSet().RbacV1().ClusterRoles()
 	output, err := clusterRolesClient.Get(context.Background(), p.ClusterRoleName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get cluster role ", p.ClusterRoleName, "err", err.Error())
@@ -199,7 +199,7 @@ func (p *DeployClusterRoleInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployClusterRoleInputParams) Process(c context.Context) error {
-	clusterRoleClient := config.GetKubeClientSet().RbacV1().ClusterRoles()
+	clusterRoleClient := GetKubeClientSet().RbacV1().ClusterRoles()
 	returnedClusterRole, err := clusterRoleClient.Get(context.Background(), p.ClusterRole.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating clusterRole ", "value", p.ClusterRole.Name)
@@ -241,7 +241,7 @@ type DeleteClusterRoleInputParams struct {
 
 func (p *DeleteClusterRoleInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting clusterRole ....", p.ClusterRoleName)
-	clusterRoleClient := config.GetKubeClientSet().RbacV1().ClusterRoles()
+	clusterRoleClient := GetKubeClientSet().RbacV1().ClusterRoles()
 	_, err := clusterRoleClient.Get(context.Background(), p.ClusterRoleName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get clusterRole ", p.ClusterRoleName, "err", err.Error())

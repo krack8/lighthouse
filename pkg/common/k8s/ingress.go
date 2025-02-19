@@ -92,7 +92,7 @@ func (p *GetIngressListInputParams) Find(c context.Context, ingressClient v1.Ing
 
 func (p *GetIngressListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching ingress list")
-	ingressClient := config.GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
+	ingressClient := GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -167,7 +167,7 @@ type GetIngressDetailsInputParams struct {
 
 func (p *GetIngressDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching ingress details of ....", p.NamespaceName)
-	ingresssClient := config.GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
+	ingresssClient := GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
 	output, err := ingresssClient.Get(context.Background(), p.IngressName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get ingress ", p.IngressName, "err", err.Error())
@@ -195,7 +195,7 @@ type DeployIngressInputParams struct {
 }
 
 func (p *DeployIngressInputParams) Process(c context.Context) error {
-	IngressClient := config.GetKubeClientSet().NetworkingV1().Ingresses(p.Ingress.Namespace)
+	IngressClient := GetKubeClientSet().NetworkingV1().Ingresses(p.Ingress.Namespace)
 	_, err := IngressClient.Get(context.Background(), p.Ingress.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating ingress in namespace "+p.Ingress.Namespace, "value", p.Ingress.Name)
@@ -237,7 +237,7 @@ type DeleteIngressInputParams struct {
 
 func (p *DeleteIngressInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting Ingress of ....", p.NamespaceName)
-	IngressClient := config.GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
+	IngressClient := GetKubeClientSet().NetworkingV1().Ingresses(p.NamespaceName)
 	_, err := IngressClient.Get(context.Background(), p.IngressName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get Ingress ", p.IngressName, "err", err.Error())

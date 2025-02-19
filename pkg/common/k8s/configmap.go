@@ -28,7 +28,7 @@ func ConfigMapService() *configMapService {
 }
 
 func getConfigMapClient(namespace string) v1.ConfigMapInterface {
-	return config.GetKubeClientSet().CoreV1().ConfigMaps(namespace)
+	return GetKubeClientSet().CoreV1().ConfigMaps(namespace)
 }
 
 type OutputConfigMapList struct {
@@ -96,7 +96,7 @@ func (p *GetConfigMapListInputParams) Find(c context.Context, configMapClient v1
 
 func (p *GetConfigMapListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	configMapClient := config.GetKubeClientSet().CoreV1().ConfigMaps(p.NamespaceName)
+	configMapClient := GetKubeClientSet().CoreV1().ConfigMaps(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -207,7 +207,7 @@ type DeployConfigMapInputParams struct {
 }
 
 func (p *DeployConfigMapInputParams) Process(c context.Context) error {
-	configMapClient := config.GetKubeClientSet().CoreV1().ConfigMaps(p.ConfigMap.Namespace)
+	configMapClient := GetKubeClientSet().CoreV1().ConfigMaps(p.ConfigMap.Namespace)
 	_, err := configMapClient.Get(context.Background(), p.ConfigMap.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating Config Map in namespace "+p.ConfigMap.Namespace, "value", p.ConfigMap.Name)
@@ -249,7 +249,7 @@ type DeleteConfigMapInputParams struct {
 
 func (p *DeleteConfigMapInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting configMap of ....", p.NamespaceName)
-	configMapClient := config.GetKubeClientSet().CoreV1().ConfigMaps(p.NamespaceName)
+	configMapClient := GetKubeClientSet().CoreV1().ConfigMaps(p.NamespaceName)
 	_, err := configMapClient.Get(context.Background(), p.ConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get configMap ", p.ConfigMapName, "err", err.Error())

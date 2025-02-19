@@ -92,7 +92,7 @@ func (p *GetEndpointsListInputParams) Find(c context.Context, endpointsClient _v
 
 func (p *GetEndpointsListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role binding list")
-	endpointsClient := config.GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
+	endpointsClient := GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -167,7 +167,7 @@ type GetEndpointsDetailsInputParams struct {
 
 func (p *GetEndpointsDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role details ....")
-	endpointsClient := config.GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
+	endpointsClient := GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
 	output, err := endpointsClient.Get(context.Background(), p.EndpointsName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get cluster role binding", p.EndpointsName, "err", err.Error())
@@ -204,7 +204,7 @@ func (p *DeployEndpointsInputParams) Process(c context.Context) error {
 	if p.Namespace == "" {
 		p.Namespace = "default"
 	}
-	endpointsClient := config.GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
+	endpointsClient := GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
 	_, err := endpointsClient.Get(context.Background(), p.Endpoints.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating endpoints ", "value", p.Endpoints.Name)
@@ -246,7 +246,7 @@ type DeleteEndpointsInputParams struct {
 
 func (p *DeleteEndpointsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting endpoints ....", p.EndpointsName)
-	endpointsClient := config.GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
+	endpointsClient := GetKubeClientSet().CoreV1().Endpoints(p.Namespace)
 	_, err := endpointsClient.Get(context.Background(), p.EndpointsName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get endpoints ", p.EndpointsName, "err", err.Error())

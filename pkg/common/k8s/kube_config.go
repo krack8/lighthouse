@@ -1,7 +1,8 @@
-package config
+package k8s
 
 import (
 	"flag"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	snapshotV1 "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned/typed/volumesnapshot/v1"
 	networkingv1beta1 "istio.io/client-go/pkg/clientset/versioned/typed/networking/v1beta1"
@@ -28,13 +29,13 @@ func InitiateKubeClientSet() {
 	var restConfig *rest.Config
 	var err error
 
-	if IsK8() {
+	if config.IsK8() {
 		restConfig, err = clientcmd.BuildConfigFromFlags("", "")
 	} else {
 		if home := homedir.HomeDir(); home != "" {
-			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", KubeConfigFile), "(optional) absolute path to the kubeconfig file")
+			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", config.KubeConfigFile), "(optional) absolute path to the kubeconfig file")
 			restConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
-			log.Logger.Info(filepath.Join(home, ".kube", KubeConfigFile))
+			log.Logger.Info(filepath.Join(home, ".kube", config.KubeConfigFile))
 
 		} else {
 			restConfig, err = clientcmd.BuildConfigFromFlags("", "")

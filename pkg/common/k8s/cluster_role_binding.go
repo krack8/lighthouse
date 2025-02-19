@@ -91,7 +91,7 @@ func (p *GetClusterRoleBindingListInputParams) Find(c context.Context, clusterRo
 
 func (p *GetClusterRoleBindingListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role binding list")
-	clusterRoleBindingClient := config.GetKubeClientSet().RbacV1().ClusterRoleBindings()
+	clusterRoleBindingClient := GetKubeClientSet().RbacV1().ClusterRoleBindings()
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -166,7 +166,7 @@ type GetClusterRoleBindingDetailsInputParams struct {
 
 func (p *GetClusterRoleBindingDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role details ....")
-	clusterRoleBindingsClient := config.GetKubeClientSet().RbacV1().ClusterRoleBindings()
+	clusterRoleBindingsClient := GetKubeClientSet().RbacV1().ClusterRoleBindings()
 	output, err := clusterRoleBindingsClient.Get(context.Background(), p.ClusterRoleBindingName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get cluster role binding", p.ClusterRoleBindingName, "err", err.Error())
@@ -199,7 +199,7 @@ func (p *DeployClusterRoleBindingInputParams) PostProcess(c context.Context) err
 }
 
 func (p *DeployClusterRoleBindingInputParams) Process(c context.Context) error {
-	clusterRoleBindingClient := config.GetKubeClientSet().RbacV1().ClusterRoleBindings()
+	clusterRoleBindingClient := GetKubeClientSet().RbacV1().ClusterRoleBindings()
 	_, err := clusterRoleBindingClient.Get(context.Background(), p.ClusterRoleBinding.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating clusterRoleBinding ", "value", p.ClusterRoleBinding.Name)
@@ -240,7 +240,7 @@ type DeleteClusterRoleBindingInputParams struct {
 
 func (p *DeleteClusterRoleBindingInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting clusterRoleBinding ....", p.ClusterRoleBindingName)
-	clusterRoleBindingClient := config.GetKubeClientSet().RbacV1().ClusterRoleBindings()
+	clusterRoleBindingClient := GetKubeClientSet().RbacV1().ClusterRoleBindings()
 	_, err := clusterRoleBindingClient.Get(context.Background(), p.ClusterRoleBindingName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get clusterRoleBinding ", p.ClusterRoleBindingName, "err", err.Error())

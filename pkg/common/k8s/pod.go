@@ -107,7 +107,7 @@ func (p *GetPodListInputParams) Find(c context.Context, podClient _v1.PodInterfa
 
 func (p *GetPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod list")
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 
 	limit := config.PageLimit
 	if p.Limit != "" {
@@ -189,13 +189,13 @@ type GetPodDetailsInputParams struct {
 
 func (p *GetPodDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod details of ....", p.NamespaceName)
-	podsClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podsClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	pod, err := podsClient.Get(context.Background(), p.PodName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod ", p.PodName, "err", err.Error())
 		return err
 	}
-	podMetrics, err := config.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), p.PodName, metav1.GetOptions{})
+	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), p.PodName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
 	}
@@ -232,7 +232,7 @@ func (p *DeployPodInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployPodInputParams) Process(c context.Context) error {
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.Pod.Namespace)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.Pod.Namespace)
 	returnedPod, err := podClient.Get(context.Background(), p.Pod.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating pod in namespace "+p.Pod.Namespace, "value", p.Pod.Name)
@@ -277,7 +277,7 @@ type DeletePodInputParams struct {
 
 func (p *DeletePodInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting pod of ....", p.NamespaceName)
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	_, err := podClient.Get(context.Background(), p.PodName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get pod ", p.PodName, "err", err.Error())
@@ -326,7 +326,7 @@ type GetPodStatsInputParams struct {
 
 func (p *GetPodStatsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod list stats")
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	//x := corev1.PodLogOptions{} // option as follow
 	//podClient.GetLogs("", &x)
 
@@ -345,7 +345,7 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 		log.Logger.Errorw("Failed to get pod list stats", "err", err.Error())
 		return err
 	}
-	podMetrics, err := config.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
+	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
 		return err
@@ -426,7 +426,7 @@ type GetPodLogsInputParams struct {
 
 func (p *GetPodLogsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod container logs", "debug", "logs")
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	podLogOptions := corev1.PodLogOptions{Follow: false}
 	if p.Container != "" {
 		podLogOptions.Container = p.Container
@@ -497,7 +497,7 @@ type GetPodLogsStreamInputParams struct {
 
 func (p *GetPodLogsStreamInputParams) Process(c context.Context, conn *websocket.Conn) error {
 	log.Logger.Debugw("fetching pod container stream logs", "debug", "logs")
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	podLogOptions := corev1.PodLogOptions{Follow: true}
 	if p.Container != "" {
 		podLogOptions.Container = p.Container

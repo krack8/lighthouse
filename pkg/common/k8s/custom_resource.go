@@ -147,7 +147,7 @@ func (p *GetCustomResourceListInputParams) Process(c context.Context) error {
 		}
 	}
 
-	customResourcesClient := config.GetDynamicClientSet().Resource(p.CustomResourceSGVR)
+	customResourcesClient := GetDynamicClientSet().Resource(p.CustomResourceSGVR)
 	if p.Search != "" {
 		//listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		err = p.Find(c, customResourcesClient, limit)
@@ -242,7 +242,7 @@ func (p *GetCustomResourceDetailsInputParams) Process(c context.Context) error {
 	var unstructuredCustomResource *unstructured.Unstructured
 	var err error
 
-	customResourcesClient := config.GetDynamicClientSet().Resource(p.CustomResourceSGVR)
+	customResourcesClient := GetDynamicClientSet().Resource(p.CustomResourceSGVR)
 	if p.NamespaceName != "" {
 		unstructuredCustomResource, err = customResourcesClient.Namespace(p.NamespaceName).Get(context.Background(), p.Name, metav1.GetOptions{})
 	} else {
@@ -321,7 +321,7 @@ func (p *DeployCustomResourceInputParams) PreProcess(c context.Context) error {
 }
 
 func (p *DeployCustomResourceInputParams) Process(c context.Context) error {
-	customResourcesClient := config.GetDynamicClientSet().Resource(p.CustomResourceSGVR)
+	customResourcesClient := GetDynamicClientSet().Resource(p.CustomResourceSGVR)
 	unstructuredCustomResource := p.CustomResource.GenerateUnstructured()
 	if unstructuredCustomResource == nil {
 		log.Logger.Errorw("unstructured CustomResource is nil")
@@ -414,7 +414,7 @@ func (p *DeleteCustomResourceInputParams) PreProcess(c context.Context) error {
 
 func (p *DeleteCustomResourceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting CustomResource ", p.CustomResourceName)
-	customResourcesClient := config.GetDynamicClientSet().Resource(p.CustomResourceSGVR)
+	customResourcesClient := GetDynamicClientSet().Resource(p.CustomResourceSGVR)
 	if p.NamespaceName != "" {
 		_, err := customResourcesClient.Namespace(p.NamespaceName).Get(context.Background(), p.CustomResourceName, metav1.GetOptions{})
 		if err != nil {

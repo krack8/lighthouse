@@ -91,7 +91,7 @@ func (p *GetPodDisruptionBudgetsListInputParams) Find(c context.Context, podDisr
 
 func (p *GetPodDisruptionBudgetsListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching podDisruptionBudgets list")
-	podDisruptionBudgetsClient := config.GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
+	podDisruptionBudgetsClient := GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -166,7 +166,7 @@ type GetPodDisruptionBudgetsDetailsInputParams struct {
 
 func (p *GetPodDisruptionBudgetsDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching podDisruptionBudgets details of ....", p.NamespaceName)
-	podDisruptionBudgetssClient := config.GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
+	podDisruptionBudgetssClient := GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
 	output, err := podDisruptionBudgetssClient.Get(context.Background(), p.PodDisruptionBudgetsName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get podDisruptionBudgets ", p.PodDisruptionBudgetsName, "err", err.Error())
@@ -194,7 +194,7 @@ type DeployPodDisruptionBudgetsInputParams struct {
 }
 
 func (p *DeployPodDisruptionBudgetsInputParams) Process(c context.Context) error {
-	PodDisruptionBudgetsClient := config.GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.PodDisruptionBudgets.Namespace)
+	PodDisruptionBudgetsClient := GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.PodDisruptionBudgets.Namespace)
 	_, err := PodDisruptionBudgetsClient.Get(context.Background(), p.PodDisruptionBudgets.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating podDisruptionBudgets in namespace "+p.PodDisruptionBudgets.Namespace, "value", p.PodDisruptionBudgets.Name)
@@ -236,7 +236,7 @@ type DeletePodDisruptionBudgetsInputParams struct {
 
 func (p *DeletePodDisruptionBudgetsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting PodDisruptionBudgets of ....", p.NamespaceName)
-	PodDisruptionBudgetsClient := config.GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
+	PodDisruptionBudgetsClient := GetKubeClientSet().PolicyV1().PodDisruptionBudgets(p.NamespaceName)
 	_, err := PodDisruptionBudgetsClient.Get(context.Background(), p.PodDisruptionBudgetsName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get PodDisruptionBudgets ", p.PodDisruptionBudgetsName, "err", err.Error())

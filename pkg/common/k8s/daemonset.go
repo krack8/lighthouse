@@ -101,7 +101,7 @@ func (p *GetDaemonSetListInputParams) PostProcess(c context.Context) error {
 
 func (p *GetDaemonSetListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	daemonSetClient := config.GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
+	daemonSetClient := GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -185,7 +185,7 @@ func (p *GetDaemonSetDetailsInputParams) PostProcess(c context.Context) error {
 
 func (p *GetDaemonSetDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching daemonSet details of ....", p.NamespaceName)
-	daemonSetsClient := config.GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
+	daemonSetsClient := GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
 	output, err := daemonSetsClient.Get(context.Background(), p.DaemonSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get daemonSet ", p.DaemonSetName, "err", err.Error())
@@ -218,7 +218,7 @@ func (p *DeployDaemonSetInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployDaemonSetInputParams) Process(c context.Context) error {
-	daemonSetClient := config.GetKubeClientSet().AppsV1().DaemonSets(p.DaemonSet.Namespace)
+	daemonSetClient := GetKubeClientSet().AppsV1().DaemonSets(p.DaemonSet.Namespace)
 	_, err := daemonSetClient.Get(context.Background(), p.DaemonSet.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating daemonSet in namespace "+p.DaemonSet.Namespace, "value", p.DaemonSet.Name)
@@ -260,7 +260,7 @@ type DeleteDaemonSetInputParams struct {
 
 func (p *DeleteDaemonSetInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting daemonSet of ....", p.NamespaceName)
-	daemonSetClient := config.GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
+	daemonSetClient := GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
 	_, err := daemonSetClient.Get(context.Background(), p.DaemonSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get daemonSet ", p.DaemonSetName, "err", err.Error())
@@ -306,7 +306,7 @@ type GetDaemonSetStatsInputParams struct {
 
 func (p *GetDaemonSetStatsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching daemonSet list stats")
-	daemonSetClient := config.GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
+	daemonSetClient := GetKubeClientSet().AppsV1().DaemonSets(p.NamespaceName)
 
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {

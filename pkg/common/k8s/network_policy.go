@@ -90,7 +90,7 @@ func (p *GetNetworkPolicyListInputParams) Find(c context.Context, networkPolicyC
 
 func (p *GetNetworkPolicyListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching networkPolicy list")
-	networkPolicyClient := config.GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NamespaceName)
+	networkPolicyClient := GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -166,7 +166,7 @@ type GetNetworkPolicyDetailsInputParams struct {
 
 func (p *GetNetworkPolicyDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching networkPolicy details of ....", p.NamespaceName)
-	networkPolicysClient := config.GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NamespaceName)
+	networkPolicysClient := GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NamespaceName)
 	output, err := networkPolicysClient.Get(context.Background(), p.NetworkPolicyName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get networkPolicy ", p.NetworkPolicyName, "err", err.Error())

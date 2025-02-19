@@ -92,7 +92,7 @@ func (p *GetStorageClassListInputParams) Find(c context.Context, storageClassCli
 
 func (p *GetStorageClassListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	storageClassClient := config.GetKubeClientSet().StorageV1().StorageClasses()
+	storageClassClient := GetKubeClientSet().StorageV1().StorageClasses()
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -167,7 +167,7 @@ type GetStorageClassDetailsInputParams struct {
 
 func (p *GetStorageClassDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching storageClass details of ....", p.StorageClassName)
-	storageClasssClient := config.GetKubeClientSet().StorageV1().StorageClasses()
+	storageClasssClient := GetKubeClientSet().StorageV1().StorageClasses()
 	output, err := storageClasssClient.Get(context.Background(), p.StorageClassName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get storageClass ", p.StorageClassName, "err", err.Error())
@@ -195,7 +195,7 @@ type DeployStorageClassInputParams struct {
 }
 
 func (p *DeployStorageClassInputParams) Process(c context.Context) error {
-	StorageClassClient := config.GetKubeClientSet().StorageV1().StorageClasses()
+	StorageClassClient := GetKubeClientSet().StorageV1().StorageClasses()
 	_, err := StorageClassClient.Get(context.Background(), p.StorageClass.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating storageClass ", "value", p.StorageClass.Name)
@@ -236,7 +236,7 @@ type DeleteStorageClassInputParams struct {
 
 func (p *DeleteStorageClassInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting StorageClass ", p.StorageClassName)
-	StorageClassClient := config.GetKubeClientSet().StorageV1().StorageClasses()
+	StorageClassClient := GetKubeClientSet().StorageV1().StorageClasses()
 	_, err := StorageClassClient.Get(context.Background(), p.StorageClassName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get StorageClass ", p.StorageClassName, "err", err.Error())

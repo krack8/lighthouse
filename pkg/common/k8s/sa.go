@@ -92,7 +92,7 @@ func (p *GetServiceAccountListInputParams) Find(c context.Context, serviceAccoun
 
 func (p *GetServiceAccountListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching service account list")
-	serviceAccountClient := config.GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
+	serviceAccountClient := GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -162,7 +162,7 @@ type GetServiceAccountDetailsInputParams struct {
 
 func (p *GetServiceAccountDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching serviceAccount details of ....", p.NamespaceName)
-	serviceAccountsClient := config.GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
+	serviceAccountsClient := GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
 	output, err := serviceAccountsClient.Get(context.Background(), p.ServiceAccountName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get serviceAccount ", p.ServiceAccountName, "err", err.Error())
@@ -190,7 +190,7 @@ type DeployServiceAccountInputParams struct {
 }
 
 func (p *DeployServiceAccountInputParams) Process(c context.Context) error {
-	ServiceAccountClient := config.GetKubeClientSet().CoreV1().ServiceAccounts(p.ServiceAccount.Namespace)
+	ServiceAccountClient := GetKubeClientSet().CoreV1().ServiceAccounts(p.ServiceAccount.Namespace)
 	_, err := ServiceAccountClient.Get(context.Background(), p.ServiceAccount.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating serviceAccount in namespace "+p.ServiceAccount.Namespace, "value", p.ServiceAccount.Name)
@@ -232,7 +232,7 @@ type DeleteServiceAccountInputParams struct {
 
 func (p *DeleteServiceAccountInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting ServiceAccount of ....", p.NamespaceName)
-	ServiceAccountClient := config.GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
+	ServiceAccountClient := GetKubeClientSet().CoreV1().ServiceAccounts(p.NamespaceName)
 	_, err := ServiceAccountClient.Get(context.Background(), p.ServiceAccountName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get ServiceAccount ", p.ServiceAccountName, "err", err.Error())

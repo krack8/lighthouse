@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/dto"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	corev1 "k8s.io/api/core/v1"
@@ -67,7 +66,7 @@ type GetNodeInputParams struct {
 
 func (p *GetNodeListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node list")
-	nodesClient := cfg.GetKubeClientSet().CoreV1().Nodes()
+	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -95,7 +94,7 @@ func (p *GetNodeListInputParams) Process(c context.Context) error {
 		p.output.GraphView.NodeCpuAllocatable = float64(node.Status.Allocatable.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuAllocatable
 		p.output.GraphView.NodeMemoryAllocatable = (node.Status.Allocatable.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryAllocatable
 	}
-	metricsClient := cfg.GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
+	metricsClient := GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
 	nodeMetricsList, err := metricsClient.List(context.Background(), listOptions)
 	if err != nil {
 		log.Logger.Errorw("Failed to process get node list metrics", "err", err.Error())
@@ -112,7 +111,7 @@ func (p *GetNodeListInputParams) Process(c context.Context) error {
 		}
 	}
 
-	podList, err := cfg.GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	podList, err := GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to process get pod count", "err", err.Error())
 	}
@@ -147,13 +146,13 @@ func (svc *nodeService) GetNodeList(c context.Context, p GetNodeListInputParams)
 
 func (p *GetNodeInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node details of ....", p.NodeName)
-	nodesClient := cfg.GetKubeClientSet().CoreV1().Nodes()
+	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	output, err := nodesClient.Get(context.Background(), p.NodeName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to fetch node details", "err", err.Error())
 		return err
 	}
-	metricsClient := cfg.GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
+	metricsClient := GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
 	nodeMetrics, err := metricsClient.Get(context.Background(), p.NodeName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to process get node metrics", "err", err.Error())
@@ -161,7 +160,7 @@ func (p *GetNodeInputParams) Process(c context.Context) error {
 		//return err
 	}
 	fieldSelector := fmt.Sprintf("spec.nodeName=%s", p.NodeName)
-	podList, err := cfg.GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{FieldSelector: fieldSelector})
+	podList, err := GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{FieldSelector: fieldSelector})
 	if err != nil {
 		log.Logger.Errorw("Failed to fetch pod count", "err", err.Error())
 	}
@@ -208,7 +207,7 @@ const (
 
 func (p *NodeCordonInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node details of ....", p.NodeName)
-	nodesClient := cfg.GetKubeClientSet().CoreV1().Nodes()
+	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	node, err := nodesClient.Get(context.Background(), p.NodeName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to fetch node details", "err", err.Error())
@@ -270,7 +269,7 @@ type NodeTaintInputParams struct {
 
 func (p *NodeTaintInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node taint of ....", p.NodeName)
-	nodesClient := cfg.GetKubeClientSet().CoreV1().Nodes()
+	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	node, err := nodesClient.Get(context.Background(), p.NodeName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to fetch node details", "err", err.Error())
@@ -321,7 +320,7 @@ type NodeUnTaintInputParams struct {
 
 func (p *NodeUnTaintInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node untaint of ....", p.NodeName)
-	nodesClient := cfg.GetKubeClientSet().CoreV1().Nodes()
+	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	node, err := nodesClient.Get(context.Background(), p.NodeName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to fetch node details", "err", err.Error())

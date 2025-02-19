@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/dto"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +43,7 @@ func (p *GetVolumeSnapshotContentListInputParams) Process(c context.Context) err
 	if p.Search != "" {
 		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 	}
-	volumeSnapshotContentsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotContentSGVR)
+	volumeSnapshotContentsClient := GetDynamicClientSet().Resource(VolumeSnapshotContentSGVR)
 	unstructuredVolumeSnapshotContentList, err := volumeSnapshotContentsClient.List(context.Background(), listOptions)
 	if err != nil {
 		log.Logger.Errorw("Failed to get volumeSnapshotContent list", "err", err.Error())
@@ -88,7 +87,7 @@ func (p *GetVolumeSnapshotContentDetailsInputParams) Process(c context.Context) 
 	log.Logger.Debugw("fetching volumeSnapshotContent details of ....", p.VolumeSnapshotContentName)
 	var volumeSnapshotContent dto.VolumeSnapshotContent
 
-	volumeSnapshotContentsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotContentSGVR)
+	volumeSnapshotContentsClient := GetDynamicClientSet().Resource(VolumeSnapshotContentSGVR)
 	unstructuredVolumeSnapshotContent, err := volumeSnapshotContentsClient.Get(context.Background(), p.VolumeSnapshotContentName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get volumeSnapshotContent ", p.VolumeSnapshotContentName, "err", err.Error())

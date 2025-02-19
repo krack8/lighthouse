@@ -99,7 +99,7 @@ func (p *GetPvListInputParams) Find(c context.Context, persistentVolumeClient v1
 
 func (p *GetPvListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pv list")
-	pvClient := config.GetKubeClientSet().CoreV1().PersistentVolumes()
+	pvClient := GetKubeClientSet().CoreV1().PersistentVolumes()
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -181,7 +181,7 @@ func (p *GetPvDetailsInputParams) PostProcess(c context.Context) error {
 
 func (p *GetPvDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pv details of ....", p.PvName)
-	pvsClient := config.GetKubeClientSet().CoreV1().PersistentVolumes()
+	pvsClient := GetKubeClientSet().CoreV1().PersistentVolumes()
 	output, err := pvsClient.Get(context.Background(), p.PvName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pv ", p.PvName, "err", err.Error())
@@ -216,7 +216,7 @@ func (p *DeployPvInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployPvInputParams) Process(c context.Context) error {
-	pvClient := config.GetKubeClientSet().CoreV1().PersistentVolumes()
+	pvClient := GetKubeClientSet().CoreV1().PersistentVolumes()
 	_, err := pvClient.Get(context.Background(), p.Pv.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating pv ", "value", p.Pv.Name)
@@ -260,7 +260,7 @@ type DeletePvInputParams struct {
 
 func (p *DeletePvInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting pv of ....", p.NamespaceName)
-	pvClient := config.GetKubeClientSet().CoreV1().PersistentVolumes()
+	pvClient := GetKubeClientSet().CoreV1().PersistentVolumes()
 	_, err := pvClient.Get(context.Background(), p.PvName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get pv ", p.PvName, "err", err.Error())

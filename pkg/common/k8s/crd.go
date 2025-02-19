@@ -80,7 +80,7 @@ func (p *GetCrdListInputParams) Process(c context.Context) error {
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
 	}
-	crdClient := config.GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
+	crdClient := GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
 	listOptions := metav1.ListOptions{Limit: config.PageLimit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -174,7 +174,7 @@ type GetCrdDetailsInputParams struct {
 func (p *GetCrdDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching crd details of ....", p.CrdName)
 
-	crdClient := config.GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
+	crdClient := GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
 	crd, err := crdClient.Get(context.Background(), p.CrdName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get crd ", p.CrdName, "err", err.Error())
@@ -203,7 +203,7 @@ type DeployCrdInputParams struct {
 
 func (p *DeployCrdInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("creating custom resource definition ....")
-	crdClient := config.GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
+	crdClient := GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
 
 	returnCrd, err := crdClient.Get(context.Background(), p.Crd.Name, metav1.GetOptions{})
 	if err != nil {
@@ -246,7 +246,7 @@ type DeleteCrdInputParams struct {
 
 func (p *DeleteCrdInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting Crd ", "value", p.CrdName)
-	crdClient := config.GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
+	crdClient := GetApiExtensionClientSet().ApiextensionsV1().CustomResourceDefinitions()
 	_, err := crdClient.Get(context.Background(), p.CrdName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get Crd ", p.CrdName, "err", err.Error())

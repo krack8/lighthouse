@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	csiv1 "github.com/kubernetes-csi/external-snapshotter/client/v6/apis/volumesnapshot/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +30,7 @@ type GetVolumeSnapshotClassListInputParams struct {
 
 func (p *GetVolumeSnapshotClassListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching volume snapshot list")
-	volumeSnapshotClassClient := cfg.GetSnapshotV1ClientSet().VolumeSnapshotClasses()
+	volumeSnapshotClassClient := GetSnapshotV1ClientSet().VolumeSnapshotClasses()
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -71,7 +70,7 @@ type GetVolumeSnapshotClassDetailsInputParams struct {
 func (p *GetVolumeSnapshotClassDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching volumeSnapshotClass details of ....", p.VolumeSnapshotClassName)
 
-	volumeSnapshotClassClient := cfg.GetSnapshotV1ClientSet().VolumeSnapshotClasses()
+	volumeSnapshotClassClient := GetSnapshotV1ClientSet().VolumeSnapshotClasses()
 	volumeSnapshotClass, err := volumeSnapshotClassClient.Get(context.Background(), p.VolumeSnapshotClassName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get volumeSnapshotClass ", p.VolumeSnapshotClassName, "err", err.Error())

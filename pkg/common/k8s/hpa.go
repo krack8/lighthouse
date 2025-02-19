@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +31,7 @@ type GetHpaListInputParams struct {
 
 func (p *GetHpaListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching hpa list")
-	hpaClient := cfg.GetKubeClientSet().AutoscalingV1().HorizontalPodAutoscalers(p.NamespaceName)
+	hpaClient := GetKubeClientSet().AutoscalingV1().HorizontalPodAutoscalers(p.NamespaceName)
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -72,7 +71,7 @@ type GetHpaDetailsInputParams struct {
 
 func (p *GetHpaDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching hpa details of ....", p.NamespaceName)
-	hpasClient := cfg.GetKubeClientSet().AutoscalingV1().HorizontalPodAutoscalers(p.NamespaceName)
+	hpasClient := GetKubeClientSet().AutoscalingV1().HorizontalPodAutoscalers(p.NamespaceName)
 	output, err := hpasClient.Get(context.Background(), p.HpaName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get hpa ", p.HpaName, "err", err.Error())

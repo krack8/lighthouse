@@ -92,7 +92,7 @@ func (p *GetRoleBindingListInputParams) Find(c context.Context, roleBindingClien
 
 func (p *GetRoleBindingListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching roleBinding list")
-	roleBindingClient := config.GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
+	roleBindingClient := GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ type GetRoleBindingDetailsInputParams struct {
 
 func (p *GetRoleBindingDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching roleBinding details of ....", p.NamespaceName)
-	roleBindingsClient := config.GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
+	roleBindingsClient := GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
 	output, err := roleBindingsClient.Get(context.Background(), p.RoleBindingName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get roleBinding ", p.RoleBindingName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployRoleBindingInputParams struct {
 }
 
 func (p *DeployRoleBindingInputParams) Process(c context.Context) error {
-	RoleBindingClient := config.GetKubeClientSet().RbacV1().RoleBindings(p.RoleBinding.Namespace)
+	RoleBindingClient := GetKubeClientSet().RbacV1().RoleBindings(p.RoleBinding.Namespace)
 	_, err := RoleBindingClient.Get(context.Background(), p.RoleBinding.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating roleBinding in namespace "+p.RoleBinding.Namespace, "value", p.RoleBinding.Name)
@@ -238,7 +238,7 @@ type DeleteRoleBindingInputParams struct {
 
 func (p *DeleteRoleBindingInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting RoleBinding of ....", p.NamespaceName)
-	RoleBindingClient := config.GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
+	RoleBindingClient := GetKubeClientSet().RbacV1().RoleBindings(p.NamespaceName)
 	_, err := RoleBindingClient.Get(context.Background(), p.RoleBindingName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get RoleBinding ", p.RoleBindingName, "err", err.Error())

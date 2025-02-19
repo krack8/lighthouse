@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/dto"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,7 +72,7 @@ func (p *DeployManifestInputParams) Process(c context.Context) error {
 		Version:  apiVersion,
 		Resource: p.Resource,
 	}
-	manifestsClient := cfg.GetDynamicClientSet().Resource(ManifestSGVR)
+	manifestsClient := GetDynamicClientSet().Resource(ManifestSGVR)
 	unstructuredManifest := p.Manifest.GenerateUnstructured()
 	fmt.Println("##########")
 	fmt.Println(unstructuredManifest)

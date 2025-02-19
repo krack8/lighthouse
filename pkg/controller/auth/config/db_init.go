@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/common/k8s"
 	enum2 "github.com/krack8/lighthouse/pkg/controller/auth/enum"
 	models2 "github.com/krack8/lighthouse/pkg/controller/auth/models"
 	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
@@ -173,7 +173,7 @@ func InitializeClusters() {
 			log.Fatalf("failed to create combined token:  %v", err)
 		}
 
-		config.InitiateKubeClientSet()
+		k8s.InitiateKubeClientSet()
 		// create the secret
 		_, err = utils2.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
 		if err != nil {

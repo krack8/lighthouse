@@ -98,7 +98,7 @@ func (p *GetJobListInputParams) Find(jobClient v1.JobInterface, pageSize int64) 
 
 func (p *GetJobListInputParams) Process() error {
 	log.Logger.Debugw("fetching job list of " + p.NamespaceName)
-	jobClient := config.GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
+	jobClient := GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ func (svc *jobService) GetJobList(c context.Context, p GetJobListInputParams) (i
 
 func (p *GetJobInputParams) Process() error {
 	log.Logger.Debugw("fetching job details of ....", p.NamespaceName)
-	jobs := config.GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
+	jobs := GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
 	output, err := jobs.Get(context.Background(), p.JobName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get job ", p.JobName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployJobInputParams struct {
 }
 
 func (p *DeployJobInputParams) Process(c context.Context) error {
-	jobClient := config.GetKubeClientSet().BatchV1().Jobs(p.Job.Namespace)
+	jobClient := GetKubeClientSet().BatchV1().Jobs(p.Job.Namespace)
 	_, err := jobClient.Get(context.Background(), p.Job.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating job in namespace "+p.Job.Namespace, "value", p.Job.Name)
@@ -238,7 +238,7 @@ type DeleteJobInputParams struct {
 
 func (p *DeleteJobInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting job of ....", p.NamespaceName)
-	jobClient := config.GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
+	jobClient := GetKubeClientSet().BatchV1().Jobs(p.NamespaceName)
 	_, err := jobClient.Get(context.Background(), p.JobName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get job ", p.JobName, "err", err.Error())

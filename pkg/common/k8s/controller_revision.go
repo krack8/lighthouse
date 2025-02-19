@@ -92,7 +92,7 @@ func (p *GetControllerRevisionListInputParams) Find(c context.Context, controlle
 
 func (p *GetControllerRevisionListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	controllerRevisionClient := config.GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
+	controllerRevisionClient := GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ type GetControllerRevisionDetailsInputParams struct {
 
 func (p *GetControllerRevisionDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching controllerRevision details of ....", p.NamespaceName)
-	controllerRevisionClient := config.GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
+	controllerRevisionClient := GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
 	output, err := controllerRevisionClient.Get(context.Background(), p.ControllerRevisionName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get controllerRevision ", p.ControllerRevisionName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployControllerRevisionInputParams struct {
 }
 
 func (p *DeployControllerRevisionInputParams) Process(c context.Context) error {
-	controllerRevisionClient := config.GetKubeClientSet().AppsV1().ControllerRevisions(p.ControllerRevision.Namespace)
+	controllerRevisionClient := GetKubeClientSet().AppsV1().ControllerRevisions(p.ControllerRevision.Namespace)
 	_, err := controllerRevisionClient.Get(context.Background(), p.ControllerRevision.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating Config Map in namespace "+p.ControllerRevision.Namespace, "value", p.ControllerRevision.Name)
@@ -238,7 +238,7 @@ type DeleteControllerRevisionInputParams struct {
 
 func (p *DeleteControllerRevisionInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting controllerRevision of ....", p.NamespaceName)
-	controllerRevisionClient := config.GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
+	controllerRevisionClient := GetKubeClientSet().AppsV1().ControllerRevisions(p.NamespaceName)
 	_, err := controllerRevisionClient.Get(context.Background(), p.ControllerRevisionName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get controllerRevision ", p.ControllerRevisionName, "err", err.Error())

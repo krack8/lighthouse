@@ -94,7 +94,7 @@ func (p *GetReplicaSetListInputParams) Find(c context.Context, replicasetClient 
 
 func (p *GetReplicaSetListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching replicaset list")
-	replicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+	replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -170,7 +170,7 @@ type GetReplicaSetDetailsInputParams struct {
 
 func (p *GetReplicaSetDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching replicaSet details of ....", p.NamespaceName)
-	replicaSetsClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+	replicaSetsClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 	output, err := replicaSetsClient.Get(context.Background(), p.ReplicaSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get replicaSet ", p.ReplicaSetName, "err", err.Error())
@@ -198,7 +198,7 @@ type DeployReplicaSetInputParams struct {
 }
 
 func (p *DeployReplicaSetInputParams) Process(c context.Context) error {
-	ReplicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.ReplicaSet.Namespace)
+	ReplicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.ReplicaSet.Namespace)
 	_, err := ReplicaSetClient.Get(context.Background(), p.ReplicaSet.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating replicaSet in namespace "+p.ReplicaSet.Namespace, "value", p.ReplicaSet.Name)
@@ -240,7 +240,7 @@ type DeleteReplicaSetInputParams struct {
 
 func (p *DeleteReplicaSetInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting ReplicaSet of ....", p.NamespaceName)
-	ReplicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+	ReplicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 	_, err := ReplicaSetClient.Get(context.Background(), p.ReplicaSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get ReplicaSet ", p.ReplicaSetName, "err", err.Error())
@@ -291,12 +291,12 @@ func (p *GetReplicaSetStatsInputParams) Process(c context.Context) error {
 
 	p.output = p.output.New()
 
-	podMetrics, err := config.GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
+	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
 		return err
 	}
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	podList := &corev1.PodList{}
 	if p.ReplicaSet == "" {
 		podList, err = podClient.List(context.Background(), metav1.ListOptions{})
@@ -332,7 +332,7 @@ func (p *GetReplicaSetStatsInputParams) Process(c context.Context) error {
 		listOptions = metav1.ListOptions{
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
-		replicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+		replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 		replicasetList, err := replicaSetClient.List(context.Background(), listOptions)
 		if err != nil {
 			log.Logger.Errorw("Failed to get replicaset list", "err", err.Error())
@@ -360,7 +360,7 @@ func (p *GetReplicaSetStatsInputParams) Process(c context.Context) error {
 		}
 		return nil
 	} else if p.ReplicaSet != "" {
-		replicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+		replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 		rs, err := replicaSetClient.Get(context.Background(), p.ReplicaSet, metav1.GetOptions{})
 		if err != nil {
 			log.Logger.Errorw("Failed to get replicaset list", "err", err.Error())

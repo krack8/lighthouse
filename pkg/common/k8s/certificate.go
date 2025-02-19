@@ -127,7 +127,7 @@ func (p *GetCertificateListInputParams) Process(c context.Context) error {
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
 	}
-	certificateClient := config.GetDynamicClientSet().Resource(config.CertificateSGVR).Namespace(p.NamespaceName)
+	certificateClient := GetDynamicClientSet().Resource(CertificateSGVR).Namespace(p.NamespaceName)
 	if p.Search != "" {
 		//listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		err = p.Find(c, certificateClient, limit)
@@ -197,7 +197,7 @@ func (p *GetCertificateDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching certificate details of ....", p.NamespaceName)
 	var certificate dto.Certificate
 
-	certificatesClient := config.GetDynamicClientSet().Resource(config.CertificateSGVR)
+	certificatesClient := GetDynamicClientSet().Resource(CertificateSGVR)
 	unstructuredCertificate, err := certificatesClient.Namespace(p.NamespaceName).Get(context.Background(), p.CertificateName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get certificate ", p.CertificateName, "err", err.Error())
@@ -231,7 +231,7 @@ type DeployCertificateInputParams struct {
 }
 
 func (p *DeployCertificateInputParams) Process(c context.Context) error {
-	certificatesClient := config.GetDynamicClientSet().Resource(config.CertificateSGVR)
+	certificatesClient := GetDynamicClientSet().Resource(CertificateSGVR)
 	unstructuredCertificate := p.Certificate.GenerateUnstructured()
 	if unstructuredCertificate == nil {
 		log.Logger.Errorw("unstructured Certificate is nil")
@@ -279,7 +279,7 @@ type DeleteCertificateInputParams struct {
 
 func (p *DeleteCertificateInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting Certificate of ....", p.NamespaceName)
-	certificatesClient := config.GetDynamicClientSet().Resource(config.CertificateSGVR)
+	certificatesClient := GetDynamicClientSet().Resource(CertificateSGVR)
 	_, err := certificatesClient.Namespace(p.NamespaceName).Get(context.Background(), p.CertificateName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get Certificate ", p.CertificateName, "err", err.Error())

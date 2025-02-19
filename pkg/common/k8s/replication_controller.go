@@ -92,7 +92,7 @@ func (p *GetReplicationControllerListInputParams) Find(c context.Context, replic
 
 func (p *GetReplicationControllerListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	replicationControllerClient := config.GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
+	replicationControllerClient := GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ type GetReplicationControllerDetailsInputParams struct {
 
 func (p *GetReplicationControllerDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching replicationController details of ....", p.NamespaceName)
-	replicationControllerClient := config.GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
+	replicationControllerClient := GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
 	output, err := replicationControllerClient.Get(context.Background(), p.ReplicationControllerName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get replicationController ", p.ReplicationControllerName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployReplicationControllerInputParams struct {
 }
 
 func (p *DeployReplicationControllerInputParams) Process(c context.Context) error {
-	replicationControllerClient := config.GetKubeClientSet().CoreV1().ReplicationControllers(p.ReplicationController.Namespace)
+	replicationControllerClient := GetKubeClientSet().CoreV1().ReplicationControllers(p.ReplicationController.Namespace)
 	_, err := replicationControllerClient.Get(context.Background(), p.ReplicationController.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating Config Map in namespace "+p.ReplicationController.Namespace, "value", p.ReplicationController.Name)
@@ -238,7 +238,7 @@ type DeleteReplicationControllerInputParams struct {
 
 func (p *DeleteReplicationControllerInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting replicationController of ....", p.NamespaceName)
-	replicationControllerClient := config.GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
+	replicationControllerClient := GetKubeClientSet().CoreV1().ReplicationControllers(p.NamespaceName)
 	_, err := replicationControllerClient.Get(context.Background(), p.ReplicationControllerName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get replicationController ", p.ReplicationControllerName, "err", err.Error())

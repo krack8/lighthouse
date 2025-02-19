@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/dto"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +46,7 @@ func (p *GetVolumeSnapshotListInputParams) Process(c context.Context) error {
 	if p.Search != "" {
 		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 	}
-	volumeSnapshotsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotSGVR)
+	volumeSnapshotsClient := GetDynamicClientSet().Resource(VolumeSnapshotSGVR)
 	unstructuredVolumeSnapshotList, err := volumeSnapshotsClient.Namespace(p.NamespaceName).List(context.Background(), listOptions)
 	if err != nil {
 		log.Logger.Errorw("Failed to get volumeSnapshot list", "err", err.Error())
@@ -92,7 +91,7 @@ func (p *GetVolumeSnapshotDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching volumeSnapshot details of ....", p.NamespaceName)
 	var volumeSnapshot dto.VolumeSnapshotV1
 
-	volumeSnapshotsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotSGVR)
+	volumeSnapshotsClient := GetDynamicClientSet().Resource(VolumeSnapshotSGVR)
 	unstructuredVolumeSnapshot, err := volumeSnapshotsClient.Namespace(p.NamespaceName).Get(context.Background(), p.VolumeSnapshotName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get volumeSnapshot ", p.VolumeSnapshotName, "err", err.Error())
@@ -126,7 +125,7 @@ type DeployVolumeSnapshotInputParams struct {
 }
 
 func (p *DeployVolumeSnapshotInputParams) Process(c context.Context) error {
-	volumeSnapshotsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotSGVR)
+	volumeSnapshotsClient := GetDynamicClientSet().Resource(VolumeSnapshotSGVR)
 	unstructuredVolumeSnapshot := p.VolumeSnapshot.GenerateUnstructured()
 	if unstructuredVolumeSnapshot == nil {
 		log.Logger.Errorw("unstructured VolumeSnapshot is nil")
@@ -174,7 +173,7 @@ type DeleteVolumeSnapshotInputParams struct {
 
 func (p *DeleteVolumeSnapshotInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting VolumeSnapshot of ....", p.NamespaceName)
-	volumeSnapshotsClient := cfg.GetDynamicClientSet().Resource(cfg.VolumeSnapshotSGVR)
+	volumeSnapshotsClient := GetDynamicClientSet().Resource(VolumeSnapshotSGVR)
 	_, err := volumeSnapshotsClient.Namespace(p.NamespaceName).Get(context.Background(), p.VolumeSnapshotName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get VolumeSnapshot ", p.VolumeSnapshotName, "err", err.Error())

@@ -104,7 +104,7 @@ func (p *GetDeploymentListInputParams) Find(c context.Context, deploymentClient 
 
 func (p *GetDeploymentListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching deployment list")
-	deploymentClient := config.GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
+	deploymentClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -185,7 +185,7 @@ func (p *GetDeploymentDetailsInputParams) PostProcess(c context.Context) error {
 
 func (p *GetDeploymentDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching deployment details of ....", p.NamespaceName)
-	deploymentsClient := config.GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
+	deploymentsClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 	output, err := deploymentsClient.Get(context.Background(), p.DeploymentName, metav1.GetOptions{})
 	/////
 	//var replicasets []string
@@ -236,7 +236,7 @@ func (p *DeployDeploymentInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployDeploymentInputParams) Process(c context.Context) error {
-	deploymentClient := config.GetKubeClientSet().AppsV1().Deployments(p.Deployment.Namespace)
+	deploymentClient := GetKubeClientSet().AppsV1().Deployments(p.Deployment.Namespace)
 	_, err := deploymentClient.Get(context.Background(), p.Deployment.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating deployment in namespace "+p.Deployment.Namespace, "value", p.Deployment.Name)
@@ -278,7 +278,7 @@ type DeleteDeploymentInputParams struct {
 
 func (p *DeleteDeploymentInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting deployment of ....", p.NamespaceName)
-	deploymentClient := config.GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
+	deploymentClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 	_, err := deploymentClient.Get(context.Background(), p.DeploymentName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get deployment ", p.DeploymentName, "err", err.Error())
@@ -324,7 +324,7 @@ type GetDeploymentStatsInputParams struct {
 
 func (p *GetDeploymentStatsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching deployment list stats")
-	deploymentClient := config.GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
+	deploymentClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
@@ -397,7 +397,7 @@ const PodTemplateHash = "pod-template-hash"
 
 func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching replicaset details of ...."+p.NamespaceName, "service", "deployment-pod-list")
-	replicaSetClient := config.GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
+	replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
 	replicaSet, err := replicaSetClient.Get(context.Background(), p.Replicaset, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get deployment pod list"+p.DeploymentName, "err", err.Error())
@@ -407,7 +407,7 @@ func (p *GetDeploymentPodListInputParams) Process(c context.Context) error {
 		return errors.New("unable to fetch pod list")
 	}
 	if replicaSet.Labels[PodTemplateHash] != "" {
-		podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+		podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 
 		listOptions := metav1.ListOptions{}
 		p.Labels = make(map[string]string)

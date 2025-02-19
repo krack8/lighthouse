@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +32,7 @@ type GetEventListInputParams struct {
 
 func (p *GetEventListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching event list")
-	eventClient := cfg.GetKubeClientSet().CoreV1().Events(p.NamespaceName)
+	eventClient := GetKubeClientSet().CoreV1().Events(p.NamespaceName)
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -77,7 +76,7 @@ type GetEventDetailsInputParams struct {
 
 func (p *GetEventDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching event details of ....", p.NamespaceName)
-	eventsClient := cfg.GetKubeClientSet().CoreV1().Events(p.NamespaceName)
+	eventsClient := GetKubeClientSet().CoreV1().Events(p.NamespaceName)
 	output, err := eventsClient.Get(context.Background(), p.EventName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get event ", p.EventName, "err", err.Error())

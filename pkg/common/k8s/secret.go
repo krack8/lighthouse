@@ -92,7 +92,7 @@ func (p *GetSecretListInputParams) Find(c context.Context, secretClient v1.Secre
 
 func (p *GetSecretListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching secret list")
-	secretClient := config.GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
+	secretClient := GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ type GetSecretDetailsInputParams struct {
 
 func (p *GetSecretDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching secret details of ....", p.NamespaceName)
-	secretsClient := config.GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
+	secretsClient := GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
 	output, err := secretsClient.Get(context.Background(), p.SecretName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get secret ", p.SecretName, "err", err.Error())
@@ -201,7 +201,7 @@ func (p *DeploySecretInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeploySecretInputParams) Process(c context.Context) error {
-	secretClient := config.GetKubeClientSet().CoreV1().Secrets(p.Secret.Namespace)
+	secretClient := GetKubeClientSet().CoreV1().Secrets(p.Secret.Namespace)
 	_, err := secretClient.Get(context.Background(), p.Secret.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating secret in namespace "+p.Secret.Namespace, "value", p.Secret.Name)
@@ -245,7 +245,7 @@ type DeleteSecretInputParams struct {
 
 func (p *DeleteSecretInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting secret of ....", p.NamespaceName)
-	secretClient := config.GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
+	secretClient := GetKubeClientSet().CoreV1().Secrets(p.NamespaceName)
 	_, err := secretClient.Get(context.Background(), p.SecretName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get secret ", p.SecretName, "err", err.Error())

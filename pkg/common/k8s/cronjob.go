@@ -98,7 +98,7 @@ func (p *GetCronJobListInputParams) Find(jobClient v1.CronJobInterface, pageSize
 
 func (p *GetCronJobListInputParams) Process() error {
 	log.Logger.Debugw("fetching cronjob list")
-	cronJobClient := config.GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
+	cronJobClient := GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -168,7 +168,7 @@ func (svc *cronJobService) GetCronJobList(c context.Context, p GetCronJobListInp
 
 func (p *GetCronJobInputParams) Process() error {
 	log.Logger.Debugw("fetching cronjob details of ....", p.NamespaceName)
-	cronJobClient := config.GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
+	cronJobClient := GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
 	output, err := cronJobClient.Get(context.Background(), p.CronJobName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get cronjob ", p.CronJobName, "err", err.Error())
@@ -196,7 +196,7 @@ type DeployCronJobInputParams struct {
 }
 
 func (p *DeployCronJobInputParams) Process(c context.Context) error {
-	cronJobClient := config.GetKubeClientSet().BatchV1().CronJobs(p.CronJob.Namespace)
+	cronJobClient := GetKubeClientSet().BatchV1().CronJobs(p.CronJob.Namespace)
 	_, err := cronJobClient.Get(context.Background(), p.CronJob.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating cron job in namespace "+p.CronJob.Namespace, "value", p.CronJob.Name)
@@ -238,7 +238,7 @@ type DeleteCronJobInputParams struct {
 
 func (p *DeleteCronJobInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting cronJob of ....", p.NamespaceName)
-	cronJobClient := config.GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
+	cronJobClient := GetKubeClientSet().BatchV1().CronJobs(p.NamespaceName)
 	_, err := cronJobClient.Get(context.Background(), p.CronJobName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get cronJob ", p.CronJobName, "err", err.Error())

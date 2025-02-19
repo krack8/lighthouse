@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
@@ -60,7 +60,7 @@ func GenerateResetToken() string {
 }
 
 func CreateNamespaceIfNotExists(namespace string) error {
-	clientSet := config.GetKubeClientSet()
+	clientSet := k8s.GetKubeClientSet()
 	namespaceClient := clientSet.CoreV1().Namespaces()
 	_, err := namespaceClient.Get(context.Background(), namespace, metav1.GetOptions{})
 	if err != nil {
@@ -96,7 +96,7 @@ func GetSecret(name, namespace string) (string, error) {
 		return "", fmt.Errorf("missing or invalid name or namespace")
 	}
 
-	secret, err := config.GetKubeClientSet().CoreV1().Secrets(namespace).Get(
+	secret, err := k8s.GetKubeClientSet().CoreV1().Secrets(namespace).Get(
 		context.Background(),
 		name,
 		metav1.GetOptions{},
@@ -125,7 +125,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 		"WORKER_GROUP": []byte(clusterId),
 	}
 
-	clientSet := config.GetKubeClientSet()
+	clientSet := k8s.GetKubeClientSet()
 
 	// Create namespace if it doesn't exist
 	err := CreateNamespaceIfNotExists(namespace)
@@ -205,7 +205,7 @@ func GetWorkerGroup(secretName, namespace string) (string, error) {
 	// If not in environment, try getting from secret
 	if secretName != "" && namespace != "" {
 		// Get the Kubernetes clientset
-		clientSet := config.GetKubeClientSet()
+		clientSet := k8s.GetKubeClientSet()
 
 		// Try to get the secret
 		secret, err := clientSet.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})

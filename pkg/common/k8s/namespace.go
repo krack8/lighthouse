@@ -30,11 +30,11 @@ func NamespaceService() *namespaceService {
 }
 
 func (p *GetNamespaceInputParams) setClient() {
-	p.Client = config.GetKubeClientSet().CoreV1().Namespaces()
+	p.Client = GetKubeClientSet().CoreV1().Namespaces()
 }
 
 func getNamespaceClient() v1.NamespaceInterface {
-	return config.GetKubeClientSet().CoreV1().Namespaces()
+	return GetKubeClientSet().CoreV1().Namespaces()
 }
 
 func (p *GetNamespaceListInputParams) removeNamespaceListFields() interface{} {
@@ -114,7 +114,7 @@ func (p *GetNamespaceListInputParams) Find(c context.Context, namespaceClient v1
 
 func (p *GetNamespaceListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching namespace list")
-	namespacesClient := config.GetKubeClientSet().CoreV1().Namespaces()
+	namespacesClient := GetKubeClientSet().CoreV1().Namespaces()
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -182,7 +182,7 @@ type GetNamespaceNamesInputParams struct {
 
 func (p *GetNamespaceNamesInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching namespace details of ....", "namespace name list")
-	namespacesClient := config.GetKubeClientSet().CoreV1().Namespaces()
+	namespacesClient := GetKubeClientSet().CoreV1().Namespaces()
 	listOptions := metav1.ListOptions{}
 	namespaceList, err := namespacesClient.List(context.Background(), listOptions)
 	if err != nil {

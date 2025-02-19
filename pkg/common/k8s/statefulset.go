@@ -103,7 +103,7 @@ func (p *GetStatefulSetListInputParams) Find(c context.Context, statefulsetClien
 
 func (p *GetStatefulSetListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching stateful set list")
-	statefulSetClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
+	statefulSetClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -186,7 +186,7 @@ func (p *GetStatefulSetDetailsInputParams) PostProcess(c context.Context) error 
 
 func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulSet details of ....", p.NamespaceName)
-	statefulSetsClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
+	statefulSetsClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
 	output, err := statefulSetsClient.Get(context.Background(), p.StatefulSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get statefulSet ", p.StatefulSetName, "err", err.Error())
@@ -219,7 +219,7 @@ func (p *DeployStatefulSetInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployStatefulSetInputParams) Process(c context.Context) error {
-	statefulSetClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.StatefulSet.Namespace)
+	statefulSetClient := GetKubeClientSet().AppsV1().StatefulSets(p.StatefulSet.Namespace)
 	_, err := statefulSetClient.Get(context.Background(), p.StatefulSet.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating statefulSet in namespace "+p.StatefulSet.Namespace, "value", p.StatefulSet.Name)
@@ -261,7 +261,7 @@ type DeleteStatefulSetInputParams struct {
 
 func (p *DeleteStatefulSetInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting statefulSet of ....", p.NamespaceName)
-	statefulSetClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
+	statefulSetClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
 	_, err := statefulSetClient.Get(context.Background(), p.StatefulSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get statefulSet ", p.StatefulSetName, "err", err.Error())
@@ -307,7 +307,7 @@ type GetStatefulSetStatsInputParams struct {
 
 func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulSet list stats")
-	statefulSetClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
+	statefulSetClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
 
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
@@ -386,13 +386,13 @@ const (
 
 func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulset pods list of ...."+p.StatefulSetName, "service", "statefulSet-pod-list")
-	statefulSetsClient := config.GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
+	statefulSetsClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
 	statefulSet, err := statefulSetsClient.Get(context.Background(), p.StatefulSetName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get statefulSet ", p.StatefulSetName, "err", err.Error())
 		return err
 	}
-	podClient := config.GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
+	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
 	listOptions := metav1.ListOptions{}
 	if p.Labels == nil {
 		p.Labels = make(map[string]string)

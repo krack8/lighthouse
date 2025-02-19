@@ -92,7 +92,7 @@ func (p *GetIstioGatewayListInputParams) Find(c context.Context, istioGatewayCli
 
 func (p *GetIstioGatewayListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching istioGateway list")
-	istioGatewayClient := config.GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
+	istioGatewayClient := GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -161,7 +161,7 @@ type GetIstioGatewayDetailsInputParams struct {
 
 func (p *GetIstioGatewayDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching istioGateway details of ....", p.NamespaceName)
-	istioGatewaysClient := config.GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
+	istioGatewaysClient := GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
 	output, err := istioGatewaysClient.Get(context.Background(), p.IstioGatewayName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get istioGateway ", p.IstioGatewayName, "err", err.Error())
@@ -189,7 +189,7 @@ type DeployIstioGatewayInputParams struct {
 }
 
 func (p *DeployIstioGatewayInputParams) Process(c context.Context) error {
-	IstioGatewayClient := config.GetNetworkingV1Beta1ClientSet().Gateways(p.IstioGateway.Namespace)
+	IstioGatewayClient := GetNetworkingV1Beta1ClientSet().Gateways(p.IstioGateway.Namespace)
 	_, err := IstioGatewayClient.Get(context.Background(), p.IstioGateway.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating istioGateway in namespace "+p.IstioGateway.Namespace, "value", p.IstioGateway.Name)
@@ -231,7 +231,7 @@ type DeleteIstioGatewayInputParams struct {
 
 func (p *DeleteIstioGatewayInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting IstioGateway of ....", p.NamespaceName)
-	IstioGatewayClient := config.GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
+	IstioGatewayClient := GetNetworkingV1Beta1ClientSet().Gateways(p.NamespaceName)
 	_, err := IstioGatewayClient.Get(context.Background(), p.IstioGatewayName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get IstioGateway ", p.IstioGatewayName, "err", err.Error())

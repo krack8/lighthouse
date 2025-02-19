@@ -99,7 +99,7 @@ func (p *GetPvcListInputParams) Find(c context.Context, pvcClient v1.PersistentV
 
 func (p *GetPvcListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
-	pvcClient := config.GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
+	pvcClient := GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -176,7 +176,7 @@ func (p *GetPvcDetailsInputParams) PostProcess(c context.Context) error {
 
 func (p *GetPvcDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pvc details of ....", p.NamespaceName)
-	pvcsClient := config.GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
+	pvcsClient := GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
 	output, err := pvcsClient.Get(context.Background(), p.PvcName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get pvc ", p.PvcName, "err", err.Error())
@@ -211,7 +211,7 @@ func (p *DeployPvcInputParams) PostProcess(c context.Context) error {
 }
 
 func (p *DeployPvcInputParams) Process(c context.Context) error {
-	pvcClient := config.GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.Pvc.Namespace)
+	pvcClient := GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.Pvc.Namespace)
 	_, err := pvcClient.Get(context.Background(), p.Pvc.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating pvc in namespace "+p.Pvc.Namespace, "value", p.Pvc.Name)
@@ -255,7 +255,7 @@ type DeletePvcInputParams struct {
 
 func (p *DeletePvcInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting pvc of ....", p.NamespaceName)
-	pvcClient := config.GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
+	pvcClient := GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
 	_, err := pvcClient.Get(context.Background(), p.PvcName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get pvc ", p.PvcName, "err", err.Error())

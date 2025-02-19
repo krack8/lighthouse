@@ -93,7 +93,7 @@ func (p *GetResourceQuotaListInputParams) Find(c context.Context, resourceQuotaC
 
 func (p *GetResourceQuotaListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching resourceQuota list")
-	resourceQuotaClient := config.GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
+	resourceQuotaClient := GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -169,7 +169,7 @@ type GetResourceQuotaDetailsInputParams struct {
 
 func (p *GetResourceQuotaDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching resourceQuota details of ....", p.NamespaceName)
-	resourceQuotaClient := config.GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
+	resourceQuotaClient := GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
 	output, err := resourceQuotaClient.Get(context.Background(), p.ResourceQuotaName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get resourceQuota ", p.ResourceQuotaName, "err", err.Error())
@@ -197,7 +197,7 @@ type DeployResourceQuotaInputParams struct {
 }
 
 func (p *DeployResourceQuotaInputParams) Process(c context.Context) error {
-	resourceQuotaClient := config.GetKubeClientSet().CoreV1().ResourceQuotas(p.ResourceQuota.Namespace)
+	resourceQuotaClient := GetKubeClientSet().CoreV1().ResourceQuotas(p.ResourceQuota.Namespace)
 	_, err := resourceQuotaClient.Get(context.Background(), p.ResourceQuota.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating resource quota in namespace "+p.ResourceQuota.Namespace, "value", p.ResourceQuota.Name)
@@ -239,7 +239,7 @@ type DeleteResourceQuotaInputParams struct {
 
 func (p *DeleteResourceQuotaInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting resourceQuota of ....", p.NamespaceName)
-	resourceQuotaClient := config.GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
+	resourceQuotaClient := GetKubeClientSet().CoreV1().ResourceQuotas(p.NamespaceName)
 	_, err := resourceQuotaClient.Get(context.Background(), p.ResourceQuotaName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get resourceQuota ", p.ResourceQuotaName, "err", err.Error())

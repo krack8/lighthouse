@@ -92,7 +92,7 @@ func (p *GetVirtualServiceListInputParams) Find(c context.Context, virtualServic
 
 func (p *GetVirtualServiceListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching virtualService list")
-	virtualServiceClient := config.GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
+	virtualServiceClient := GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -167,7 +167,7 @@ type GetVirtualServiceDetailsInputParams struct {
 
 func (p *GetVirtualServiceDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching virtualService details of ....", p.NamespaceName)
-	virtualServicesClient := config.GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
+	virtualServicesClient := GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
 	output, err := virtualServicesClient.Get(context.Background(), p.VirtualServiceName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get virtualService ", p.VirtualServiceName, "err", err.Error())
@@ -195,7 +195,7 @@ type DeployVirtualServiceInputParams struct {
 }
 
 func (p *DeployVirtualServiceInputParams) Process(c context.Context) error {
-	VirtualServiceClient := config.GetNetworkingV1Beta1ClientSet().VirtualServices(p.VirtualService.Namespace)
+	VirtualServiceClient := GetNetworkingV1Beta1ClientSet().VirtualServices(p.VirtualService.Namespace)
 	_, err := VirtualServiceClient.Get(context.Background(), p.VirtualService.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating virtualService in namespace "+p.VirtualService.Namespace, "value", p.VirtualService.Name)
@@ -237,7 +237,7 @@ type DeleteVirtualServiceInputParams struct {
 
 func (p *DeleteVirtualServiceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting VirtualService of ....", p.NamespaceName)
-	VirtualServiceClient := config.GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
+	VirtualServiceClient := GetNetworkingV1Beta1ClientSet().VirtualServices(p.NamespaceName)
 	_, err := VirtualServiceClient.Get(context.Background(), p.VirtualServiceName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get VirtualService ", p.VirtualServiceName, "err", err.Error())

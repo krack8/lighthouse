@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"encoding/json"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/dto"
 	"github.com/krack8/lighthouse/pkg/common/log"
 )
@@ -30,8 +29,8 @@ type GetPodMetricsListInputParams struct {
 func (p *GetPodMetricsListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching config map list")
 	var podMetricsList dto.PodMetricsList
-	podMetricsClient := cfg.GetKubeClientSet().RESTClient()
-	data, err := podMetricsClient.Get().AbsPath(cfg.MetricsAbsPath + p.NamespaceName + "/pods").DoRaw(context.Background())
+	podMetricsClient := GetKubeClientSet().RESTClient()
+	data, err := podMetricsClient.Get().AbsPath(MetricsAbsPath + p.NamespaceName + "/pods").DoRaw(context.Background())
 	if err != nil {
 		log.Logger.Errorw("Failed to get podMetrics list", "err", err.Error())
 		return err
@@ -67,8 +66,8 @@ func (p *GetPodMetricsDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching podMetrics details of ....", p.NamespaceName)
 	var podMetrics dto.PodMetrics
 
-	podMetricsClient := cfg.GetKubeClientSet().RESTClient()
-	data, err := podMetricsClient.Get().AbsPath(cfg.MetricsAbsPath + p.NamespaceName + "/pods/" + p.PodName).DoRaw(context.Background())
+	podMetricsClient := GetKubeClientSet().RESTClient()
+	data, err := podMetricsClient.Get().AbsPath(MetricsAbsPath + p.NamespaceName + "/pods/" + p.PodName).DoRaw(context.Background())
 	if err != nil {
 		log.Logger.Errorw("Failed to get podMetrics details of "+p.PodName, "err", err.Error())
 		return err

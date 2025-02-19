@@ -3,7 +3,6 @@ package k8s
 import (
 	"context"
 	"errors"
-	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +32,7 @@ type GetLoadBalancerListInputParams struct {
 
 func (p *GetLoadBalancerListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching loadBalancer list")
-	loadBalancerClient := cfg.GetKubeClientSet().CoreV1().Services(p.NamespaceName)
+	loadBalancerClient := GetKubeClientSet().CoreV1().Services(p.NamespaceName)
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
@@ -86,7 +85,7 @@ type GetLoadBalancerDetailsInputParams struct {
 
 func (p *GetLoadBalancerDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching loadBalancer details of ....", p.NamespaceName)
-	loadBalancersClient := cfg.GetKubeClientSet().CoreV1().Services(p.NamespaceName)
+	loadBalancersClient := GetKubeClientSet().CoreV1().Services(p.NamespaceName)
 	output, err := loadBalancersClient.Get(context.Background(), p.LoadBalancerName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get loadBalancer ", p.LoadBalancerName, "err", err.Error())

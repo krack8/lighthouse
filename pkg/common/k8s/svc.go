@@ -92,7 +92,7 @@ func (p *GetSvcListInputParams) Find(c context.Context, svcClient v1.ServiceInte
 
 func (p *GetSvcListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching svc list")
-	svcClient := config.GetKubeClientSet().CoreV1().Services(p.NamespaceName)
+	svcClient := GetKubeClientSet().CoreV1().Services(p.NamespaceName)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -162,7 +162,7 @@ type GetSvcDetailsInputParams struct {
 
 func (p *GetSvcDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching svc details of ....", p.NamespaceName)
-	svcClient := config.GetKubeClientSet().CoreV1().Services(p.NamespaceName)
+	svcClient := GetKubeClientSet().CoreV1().Services(p.NamespaceName)
 	output, err := svcClient.Get(context.Background(), p.SvcName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get svc ", p.SvcName, "err", err.Error())
@@ -190,7 +190,7 @@ type DeploySvcInputParams struct {
 }
 
 func (p *DeploySvcInputParams) Process(c context.Context) error {
-	svcClient := config.GetKubeClientSet().CoreV1().Services(p.Svc.Namespace)
+	svcClient := GetKubeClientSet().CoreV1().Services(p.Svc.Namespace)
 	existingService, err := svcClient.Get(context.Background(), p.Svc.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating Service in namespace "+p.Svc.Namespace, "value", p.Svc.Name)
@@ -234,7 +234,7 @@ type DeleteSvcInputParams struct {
 
 func (p *DeleteSvcInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting svc of ....", p.NamespaceName)
-	svcClient := config.GetKubeClientSet().CoreV1().Services(p.NamespaceName)
+	svcClient := GetKubeClientSet().CoreV1().Services(p.NamespaceName)
 	_, err := svcClient.Get(context.Background(), p.SvcName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get svc ", p.SvcName, "err", err.Error())

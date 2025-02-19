@@ -92,7 +92,7 @@ func (p *GetEndpointSliceListInputParams) Find(c context.Context, endpointSliceC
 
 func (p *GetEndpointSliceListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role list")
-	endpointSliceClient := config.GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
+	endpointSliceClient := GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -167,7 +167,7 @@ type GetEndpointSliceDetailsInputParams struct {
 
 func (p *GetEndpointSliceDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching cluster role details ....")
-	endpointSlicesClient := config.GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
+	endpointSlicesClient := GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
 	output, err := endpointSlicesClient.Get(context.Background(), p.EndpointSliceName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("Failed to get cluster role ", p.EndpointSliceName, "err", err.Error())
@@ -204,7 +204,7 @@ func (p *DeployEndpointSliceInputParams) Process(c context.Context) error {
 	if p.Namespace == "" {
 		p.Namespace = "default"
 	}
-	endpointSliceClient := config.GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
+	endpointSliceClient := GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
 	returnedEndpointSlice, err := endpointSliceClient.Get(context.Background(), p.EndpointSlice.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Infow("Creating endpointSlice ", "value", p.EndpointSlice.Name)
@@ -247,7 +247,7 @@ type DeleteEndpointSliceInputParams struct {
 
 func (p *DeleteEndpointSliceInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("deleting endpointSlice ....", p.EndpointSliceName)
-	endpointSliceClient := config.GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
+	endpointSliceClient := GetKubeClientSet().DiscoveryV1().EndpointSlices(p.Namespace)
 	_, err := endpointSliceClient.Get(context.Background(), p.EndpointSliceName, metav1.GetOptions{})
 	if err != nil {
 		log.Logger.Errorw("get endpointSlice ", p.EndpointSliceName, "err", err.Error())
