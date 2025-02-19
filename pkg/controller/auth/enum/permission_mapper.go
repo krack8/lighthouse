@@ -321,18 +321,18 @@ var PermissionInitializer = []PermissionDefinition{
 		Category:      CLUSTER,
 		ResourceGroup: VIRTUAL_SERVICE,
 	},
-	//{
-	//	Name:          VIEW_ENDPOINTS,
-	//	Description:   VIEW_ENDPOINTS_DESCRIPTION,
-	//	Category:      CLUSTER,
-	//	ResourceGroup: ENDPOINT,
-	//},
-	//{
-	//	Name:          MANAGE_ENDPOINTS,
-	//	Description:   MANAGE_ENDPOINTS_DESCRIPTION,
-	//	Category:      CLUSTER,
-	//	ResourceGroup: ENDPOINT,
-	//},
+	{
+		Name:          VIEW_ENDPOINTS,
+		Description:   VIEW_ENDPOINTS_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: ENDPOINT,
+	},
+	{
+		Name:          MANAGE_ENDPOINTS,
+		Description:   MANAGE_ENDPOINTS_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: ENDPOINT,
+	},
 	{
 		Name:          VIEW_ENDPOINT_SLICE,
 		Description:   VIEW_ENDPOINT_SLICE_DESCRIPTION,
@@ -452,6 +452,18 @@ var PermissionInitializer = []PermissionDefinition{
 		Description:   MANAGE_CUSTOM_RESOURCES_DESCRIPTION,
 		Category:      CLUSTER,
 		ResourceGroup: CUSTOM_RESOURCE,
+	},
+	{
+		Name:          VIEW_GATEWAY,
+		Description:   VIEW_GATEWAY_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: GATEWAY,
+	},
+	{
+		Name:          MANAGE_GATEWAY,
+		Description:   MANAGE_GATEWAY_DESCRIPTION,
+		Category:      CLUSTER,
+		ResourceGroup: GATEWAY,
 	},
 	// Add more permission definitions here
 }
