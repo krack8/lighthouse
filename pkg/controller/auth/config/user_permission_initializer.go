@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	enum2 "github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	enum "github.com/krack8/lighthouse/pkg/controller/auth/enum"
 	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +16,7 @@ import (
 // PermissionInitializer manages permission initialization
 type PermissionInitializer struct {
 	permissionCollection *mongo.Collection
-	endpointRegistry     map[enum2.PermissionName]func() []models.Endpoint
+	endpointRegistry     map[enum.PermissionName]func() []models.Endpoint
 	mu                   sync.RWMutex
 }
 
@@ -24,7 +24,7 @@ type PermissionInitializer struct {
 func NewPermissionInitializer(collection *mongo.Collection) *PermissionInitializer {
 	pi := &PermissionInitializer{
 		permissionCollection: collection,
-		endpointRegistry:     make(map[enum2.PermissionName]func() []models.Endpoint),
+		endpointRegistry:     make(map[enum.PermissionName]func() []models.Endpoint),
 	}
 	pi.registerEndpoints()
 	return pi
@@ -32,109 +32,109 @@ func NewPermissionInitializer(collection *mongo.Collection) *PermissionInitializ
 
 // registerEndpoints maps permission names to their endpoint functions. register additional
 func (pi *PermissionInitializer) registerEndpoints() {
-	pi.endpointRegistry = map[enum2.PermissionName]func() []models.Endpoint{
-		enum2.DEFAULT_PERMISSION: utils.GetDefaultEndpoints,
-		enum2.VIEW_USER:          utils.GetUserEndpoints,
-		enum2.MANAGE_USER:        utils.GetManageUserEndpoints,
-		enum2.VIEW_ROLE:          utils.GetRolesEndpoints,
-		enum2.MANAGE_ROLE:        utils.GetManageRolesEndpoints,
-		enum2.ADD_CLUSTER:        utils.GetAddClustersEndpoints,
-		//enum.MANAGE_NAMESPACE:                  utils.GetManageEndpointsEndpoints,
-		enum2.CREATE_NAMESPACE:                  utils.GetCreateNamespaceEndpoints,
-		enum2.VIEW_NAMESPACE:                    utils.GetViewNamespaceEndpoints,
-		enum2.UPDATE_NAMESPACE:                  utils.GetUpdateNamespaceEndpoints,
-		enum2.DELETE_NAMESPACE:                  utils.GetDeleteNamespaceEndpoints,
-		enum2.VIEW_DEPLOYMENT:                   utils.GetViewDeploymentEndpoints,
-		enum2.VIEW_REPLICA_SET:                  utils.GetViewReplicaSetEndpoints,
-		enum2.MANAGE_POD:                        utils.GetManagePodEndpoints,
-		enum2.VIEW_POD:                          utils.GetViewPodEndpoints,
-		enum2.MANAGE_DEPLOYMENT:                 utils.GetManageDeploymentEndpoints,
-		enum2.MANAGE_REPLICA_SET:                utils.GetManageReplicaSetEndpoints,
-		enum2.VIEW_STATEFUL_SET:                 utils.GetViewStatefulSetEndpoints,
-		enum2.MANAGE_STATEFUL_SET:               utils.GetManageStatefulSetEndpoints,
-		enum2.VIEW_DAEMON_SET:                   utils.GetViewDaemonSetEndpoints,
-		enum2.MANAGE_DAEMON_SET:                 utils.GetManageDaemonSetEndpoints,
-		enum2.VIEW_SECRET:                       utils.GetViewSecretEndpoints,
-		enum2.MANAGE_SECRET:                     utils.GetManageSecretEndpoints,
-		enum2.VIEW_CONFIG_MAP:                   utils.GetViewConfigMapEndpoints,
-		enum2.MANAGE_CONFIG_MAP:                 utils.GetManageConfigMapEndpoints,
-		enum2.VIEW_SERVICE_ACCOUNT:              utils.GetViewServiceAccountEndpoints,
-		enum2.MANAGE_SERVICE_ACCOUNT:            utils.GetManageServiceAccountEndpoints,
-		enum2.VIEW_SERVICE:                      utils.GetViewServiceEndpoints,
-		enum2.MANAGE_SERVICE:                    utils.GetManageServiceEndpoints,
-		enum2.VIEW_INGRESS:                      utils.GetViewIngressEndpoints,
-		enum2.MANAGE_INGRESS:                    utils.GetManageIngressEndpoints,
-		enum2.VIEW_CERTIFICATE:                  utils.GetViewCertificateEndpoints,
-		enum2.MANAGE_CERTIFICATE:                utils.GetManageCertificateEndpoints,
-		enum2.VIEW_NAMESPACE_ROLE:               utils.GetViewNamespaceRoleEndpoints,
-		enum2.MANAGE_NAMESPACE_ROLE:             utils.GetManageNamespaceRoleEndpoints,
-		enum2.VIEW_NAMESPACE_ROLE_BINDING:       utils.GetViewNamespaceRoleBindingEndpoints,
-		enum2.MANAGE_NAMESPACE_ROLE_BINDING:     utils.GetManageNamespaceRoleBindingEndpoints,
-		enum2.VIEW_JOB:                          utils.GetViewJobEndpoints,
-		enum2.MANAGE_JOB:                        utils.GetManageJobEndpoints,
-		enum2.VIEW_CRON_JOB:                     utils.GetViewCronJobEndpoints,
-		enum2.MANAGE_CRON_JOB:                   utils.GetManageCronJobEndpoints,
-		enum2.VIEW_NAMESPACE_NETWORK_POLICY:     utils.GetViewNetworkPolicyEndpoints,
-		enum2.MANAGE_NAMESPACE_NETWORK_POLICY:   utils.GetManageNetworkPolicyEndpoints,
-		enum2.VIEW_NAMESPACE_RESOURCE_QUOTA:     utils.GetViewResourceQuotaEndpoints,
-		enum2.MANAGE_RESOURCE_QUOTA:             utils.GetManageResourceQuotaEndpoints,
-		enum2.VIEW_PERSISTENT_VOLUME:            utils.GetViewPersistentVolumeEndpoints,
-		enum2.MANAGE_PERSISTENT_VOLUME:          utils.GetManagePersistentVolumeEndpoints,
-		enum2.VIEW_PERSISTENT_VOLUME_CLAIM:      utils.GetViewPersistentVolumeClaimEndpoints,
-		enum2.MANAGE_PERSISTENT_VOLUME_CLAIM:    utils.GetManagePersistentVolumeClaimEndpoints,
-		enum2.VIEW_GATEWAY:                      utils.GetViewGatewayEndpoints,
-		enum2.MANAGE_GATEWAY:                    utils.GetManageGatewayEndpoints,
-		enum2.VIEW_VIRTUAL_SERVICE:              utils.GetViewVirtualServiceEndpoints,
-		enum2.MANAGE_VIRTUAL_SERVICE:            utils.GetManageVirtualServiceEndpoints,
-		enum2.VIEW_NODES:                        utils.GetViewNodeEndpoints,
-		enum2.MANAGE_NODE_TAINT:                 utils.GetManageNodeTaintEndpoints,
-		enum2.DRAIN_NODE:                        utils.GetDrainNodeEndpoints,
-		enum2.VIEW_CLUSTER_ROLE:                 utils.GetViewClusterRoleEndpoints,
-		enum2.MANAGE_CLUSTER_ROLE:               utils.GetManageClusterRoleEndpoints,
-		enum2.VIEW_CLUSTER_ROLE_BINDING:         utils.GetViewClusterRoleBindingEndpoints,
-		enum2.MANAGE_CLUSTER_ROLE_BINDING:       utils.GetManageClusterRoleBindingEndpoints,
-		enum2.VIEW_STORAGE_CLASS:                utils.GetViewStorageClassEndpoints,
-		enum2.MANAGE_STORAGE_CLASS:              utils.GetManageStorageClassEndpoints,
-		enum2.VIEW_CUSTOM_RESOURCES:             utils.GetViewCustomResourceEndpoints,
-		enum2.MANAGE_CUSTOM_RESOURCES:           utils.GetManageCustomResourceEndpoints,
-		enum2.VIEW_CUSTOM_RESOURCE_DEFINITION:   utils.GetViewCustomResourceDefinitionEndpoints,
-		enum2.MANAGE_CUSTOM_RESOURCE_DEFINITION: utils.GetManageCustomResourceDefinitionEndpoints,
-		enum2.VIEW_LOGS:                         utils.GetViewLogsEndpoints,
-		//enum.VIEW_ENDPOINTS:                    utils.GetViewEndpointSliceEndpoints,
-		enum2.MANAGE_ENDPOINTS:              utils.GetManageEndpointsEndpoints,
-		enum2.VIEW_ENDPOINT_SLICE:           utils.GetViewEndpointSliceEndpoints,
-		enum2.MANAGE_ENDPOINT_SLICE:         utils.GetManageEndpointSliceEndpoints,
-		enum2.VIEW_PDB:                      utils.GetViewPDBEndpoints,
-		enum2.MANAGE_PDB:                    utils.GetManagePDBEndpoints,
-		enum2.VIEW_CONTROLLER_REVISION:      utils.GetViewControllerRevisionEndpoints,
-		enum2.MANAGE_CONTROLLER_REVISION:    utils.GetManageControllerRevisionEndpoints,
-		enum2.VIEW_REPLICATION_CONTROLLER:   utils.GetViewReplicationControllerEndpoints,
-		enum2.MANAGE_REPLICATION_CONTROLLER: utils.GetManageReplicationControllerEndpoints,
+	pi.endpointRegistry = map[enum.PermissionName]func() []models.Endpoint{
+		enum.DEFAULT_PERMISSION:                utils.GetDefaultEndpoints,
+		enum.VIEW_USER:                         utils.GetUserEndpoints,
+		enum.MANAGE_USER:                       utils.GetManageUserEndpoints,
+		enum.VIEW_ROLE:                         utils.GetRolesEndpoints,
+		enum.MANAGE_ROLE:                       utils.GetManageRolesEndpoints,
+		enum.ADD_CLUSTER:                       utils.GetAddClustersEndpoints,
+		enum.CREATE_NAMESPACE:                  utils.GetCreateNamespaceEndpoints,
+		enum.VIEW_NAMESPACE:                    utils.GetViewNamespaceEndpoints,
+		enum.UPDATE_NAMESPACE:                  utils.GetUpdateNamespaceEndpoints,
+		enum.DELETE_NAMESPACE:                  utils.GetDeleteNamespaceEndpoints,
+		enum.VIEW_DEPLOYMENT:                   utils.GetViewDeploymentEndpoints,
+		enum.VIEW_REPLICA_SET:                  utils.GetViewReplicaSetEndpoints,
+		enum.MANAGE_POD:                        utils.GetManagePodEndpoints,
+		enum.VIEW_POD:                          utils.GetViewPodEndpoints,
+		enum.MANAGE_DEPLOYMENT:                 utils.GetManageDeploymentEndpoints,
+		enum.MANAGE_REPLICA_SET:                utils.GetManageReplicaSetEndpoints,
+		enum.VIEW_STATEFUL_SET:                 utils.GetViewStatefulSetEndpoints,
+		enum.MANAGE_STATEFUL_SET:               utils.GetManageStatefulSetEndpoints,
+		enum.VIEW_DAEMON_SET:                   utils.GetViewDaemonSetEndpoints,
+		enum.MANAGE_DAEMON_SET:                 utils.GetManageDaemonSetEndpoints,
+		enum.VIEW_SECRET:                       utils.GetViewSecretEndpoints,
+		enum.MANAGE_SECRET:                     utils.GetManageSecretEndpoints,
+		enum.VIEW_CONFIG_MAP:                   utils.GetViewConfigMapEndpoints,
+		enum.MANAGE_CONFIG_MAP:                 utils.GetManageConfigMapEndpoints,
+		enum.VIEW_SERVICE_ACCOUNT:              utils.GetViewServiceAccountEndpoints,
+		enum.MANAGE_SERVICE_ACCOUNT:            utils.GetManageServiceAccountEndpoints,
+		enum.VIEW_SERVICE:                      utils.GetViewServiceEndpoints,
+		enum.MANAGE_SERVICE:                    utils.GetManageServiceEndpoints,
+		enum.VIEW_INGRESS:                      utils.GetViewIngressEndpoints,
+		enum.MANAGE_INGRESS:                    utils.GetManageIngressEndpoints,
+		enum.VIEW_CERTIFICATE:                  utils.GetViewCertificateEndpoints,
+		enum.MANAGE_CERTIFICATE:                utils.GetManageCertificateEndpoints,
+		enum.VIEW_NAMESPACE_ROLE:               utils.GetViewNamespaceRoleEndpoints,
+		enum.MANAGE_NAMESPACE_ROLE:             utils.GetManageNamespaceRoleEndpoints,
+		enum.VIEW_NAMESPACE_ROLE_BINDING:       utils.GetViewNamespaceRoleBindingEndpoints,
+		enum.MANAGE_NAMESPACE_ROLE_BINDING:     utils.GetManageNamespaceRoleBindingEndpoints,
+		enum.VIEW_JOB:                          utils.GetViewJobEndpoints,
+		enum.MANAGE_JOB:                        utils.GetManageJobEndpoints,
+		enum.VIEW_CRON_JOB:                     utils.GetViewCronJobEndpoints,
+		enum.MANAGE_CRON_JOB:                   utils.GetManageCronJobEndpoints,
+		enum.VIEW_NAMESPACE_NETWORK_POLICY:     utils.GetViewNetworkPolicyEndpoints,
+		enum.MANAGE_NAMESPACE_NETWORK_POLICY:   utils.GetManageNetworkPolicyEndpoints,
+		enum.VIEW_NAMESPACE_RESOURCE_QUOTA:     utils.GetViewResourceQuotaEndpoints,
+		enum.MANAGE_RESOURCE_QUOTA:             utils.GetManageResourceQuotaEndpoints,
+		enum.VIEW_PERSISTENT_VOLUME:            utils.GetViewPersistentVolumeEndpoints,
+		enum.MANAGE_PERSISTENT_VOLUME:          utils.GetManagePersistentVolumeEndpoints,
+		enum.VIEW_PERSISTENT_VOLUME_CLAIM:      utils.GetViewPersistentVolumeClaimEndpoints,
+		enum.MANAGE_PERSISTENT_VOLUME_CLAIM:    utils.GetManagePersistentVolumeClaimEndpoints,
+		enum.VIEW_GATEWAY:                      utils.GetViewGatewayEndpoints,
+		enum.MANAGE_GATEWAY:                    utils.GetManageGatewayEndpoints,
+		enum.VIEW_VIRTUAL_SERVICE:              utils.GetViewVirtualServiceEndpoints,
+		enum.MANAGE_VIRTUAL_SERVICE:            utils.GetManageVirtualServiceEndpoints,
+		enum.VIEW_NODES:                        utils.GetViewNodeEndpoints,
+		enum.MANAGE_NODE_TAINT:                 utils.GetManageNodeTaintEndpoints,
+		enum.DRAIN_NODE:                        utils.GetDrainNodeEndpoints,
+		enum.VIEW_CLUSTER_ROLE:                 utils.GetViewClusterRoleEndpoints,
+		enum.MANAGE_CLUSTER_ROLE:               utils.GetManageClusterRoleEndpoints,
+		enum.VIEW_CLUSTER_ROLE_BINDING:         utils.GetViewClusterRoleBindingEndpoints,
+		enum.MANAGE_CLUSTER_ROLE_BINDING:       utils.GetManageClusterRoleBindingEndpoints,
+		enum.VIEW_STORAGE_CLASS:                utils.GetViewStorageClassEndpoints,
+		enum.MANAGE_STORAGE_CLASS:              utils.GetManageStorageClassEndpoints,
+		enum.VIEW_CUSTOM_RESOURCES:             utils.GetViewCustomResourceEndpoints,
+		enum.MANAGE_CUSTOM_RESOURCES:           utils.GetManageCustomResourceEndpoints,
+		enum.VIEW_CUSTOM_RESOURCE_DEFINITION:   utils.GetViewCustomResourceDefinitionEndpoints,
+		enum.MANAGE_CUSTOM_RESOURCE_DEFINITION: utils.GetManageCustomResourceDefinitionEndpoints,
+		enum.VIEW_LOGS:                         utils.GetViewLogsEndpoints,
+		enum.VIEW_ENDPOINTS:                    utils.GetViewEndpointsEndpoints,
+		enum.MANAGE_ENDPOINTS:                  utils.GetManageEndpointsEndpoints,
+		enum.VIEW_ENDPOINT_SLICE:               utils.GetViewEndpointSliceEndpoints,
+		enum.MANAGE_ENDPOINT_SLICE:             utils.GetManageEndpointSliceEndpoints,
+		enum.VIEW_PDB:                          utils.GetViewPDBEndpoints,
+		enum.MANAGE_PDB:                        utils.GetManagePDBEndpoints,
+		enum.VIEW_CONTROLLER_REVISION:          utils.GetViewControllerRevisionEndpoints,
+		enum.MANAGE_CONTROLLER_REVISION:        utils.GetManageControllerRevisionEndpoints,
+		enum.VIEW_REPLICATION_CONTROLLER:       utils.GetViewReplicationControllerEndpoints,
+		enum.MANAGE_REPLICATION_CONTROLLER:     utils.GetManageReplicationControllerEndpoints,
 		// Add more mappings
 	}
 }
 
 // InitializePermissions initializes all permissions
 func (pi *PermissionInitializer) InitializePermissions(ctx context.Context) error {
-	for permName, def := range enum2.PermissionDefinitions {
-		endpointFunc, exists := pi.endpointRegistry[permName]
+	for _, def := range enum.PermissionInitializer {
+		endpointFunc, exists := pi.endpointRegistry[def.Name]
 		if !exists {
-			return fmt.Errorf("no endpoint function registered for permission: %s", permName)
+			return fmt.Errorf("no endpoint function registered for permission: %s", def.Name)
 		}
 
 		err := pi.initializePermission(ctx, models.Permission{
-			Name:         string(permName),
-			Description:  string(def.Description),
-			Category:     def.Category,
-			EndpointList: endpointFunc(),
-			Status:       enum2.VALID,
-			CreatedBy:    string(enum2.SYSTEM),
-			UpdatedBy:    string(enum2.SYSTEM),
-			CreatedAt:    time.Now(),
-			UpdatedAt:    time.Now(),
+			Name:          string(def.Name),
+			Description:   string(def.Description),
+			Category:      def.Category,
+			ResourceGroup: def.ResourceGroup,
+			EndpointList:  endpointFunc(),
+			Status:        enum.VALID,
+			CreatedBy:     string(enum.SYSTEM),
+			UpdatedBy:     string(enum.SYSTEM),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to initialize permission %s: %v", permName, err)
+			return fmt.Errorf("failed to initialize permission %s: %v", def.Name, err)
 		}
 	}
 	return nil

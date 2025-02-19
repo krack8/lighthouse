@@ -3,7 +3,7 @@ import { HttpService } from '@core-ui/services/http.service';
 import { Observable } from 'rxjs';
 import { Utils } from '@shared-ui/utils';
 import * as endpoints from './access-role.endpoints';
-import { IPermission, IRole } from './access-role-interface';
+import { IPermissionListObject, IRole } from './access-role-interface';
 import { map } from 'rxjs/operators';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AccessRoleService {
     return this.httpService.delete(Utils.formatString(endpoints.ACCESS_ROLE, roleId));
   }
 
-  getAccessPermissions(): Observable<IPermission[]> {
+  getAccessPermissions(): Observable<IPermissionListObject> {
     return this.httpService.get(endpoints.ACCESS_PERMISSION).pipe(map(res => res?.permissions));
   }
 

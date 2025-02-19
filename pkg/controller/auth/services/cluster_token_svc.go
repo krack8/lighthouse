@@ -68,14 +68,24 @@ func (m *MongoStorage) UpdateLastUsed(ctx context.Context, token string) error {
 	return err
 }
 
-func (m *MongoStorage) GetToken(ctx context.Context, token string) (*models.TokenValidation, error) {
+func (m *MongoStorage) GetTokenAndClusterDetails(ctx context.Context, token string) (*models.TokenValidation, *models.Cluster, error) {
 	// Query MongoDB for the token
-	var result models.TokenValidation
-	err := db.TokenCollection.FindOne(ctx, bson.M{"auth_token": token, "status": enum.VALID}).Decode(&result)
+	var tokenResult models.TokenValidation
+	err := db.TokenCollection.FindOne(ctx, bson.M{"auth_token": token, "status": enum.VALID}).Decode(&tokenResult)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &result, nil
+
+	var clusterResult models.Cluster
+	if !tokenResult.ClusterID.IsZero() {
+		// Query MongoDB for the cluster
+		err2 := db.ClusterCollection.FindOne(ctx, bson.M{"_id": tokenResult.ClusterID, "status": enum.VALID}).Decode(&clusterResult)
+		if err2 != nil {
+			return nil, nil, err2
+		}
+	}
+
+	return &tokenResult, &clusterResult, nil
 }
 
 // validateTokenStatus checks the validity, expiry, and status of the token
