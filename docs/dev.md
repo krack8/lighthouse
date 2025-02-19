@@ -17,7 +17,7 @@ or a `kubeconfig` file of a remotely accessible Kubernetes cluster
 kind create cluster --name lighthouse
 ```
 
-#### 2. Clone repo
+#### 2. Clone Repository
 #### 3. Create a `.env` file taking reference from `.env-example` file
 #### 4. Set Environment Variables (in .env file):
 - Set `RUN_MODE=DEVELOP`
