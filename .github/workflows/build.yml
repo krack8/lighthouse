@@ -49,4 +49,4 @@ jobs:
 
       - name: Push Frontend Docker Image
         run: |
-          docker push ghcr.io/krack8/lighthouse:frontend-${{ env.TAG }}
+          docker push ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }}
