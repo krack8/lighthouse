@@ -215,4 +215,7 @@ const (
 	SERVICE                 ResourceGroup = "SERVICE"
 	SERVICE_ACCOUNT         ResourceGroup = "SERVICE_ACCOUNT"
 	VIRTUAL_SERVICE         ResourceGroup = "VIRTUAL_SERVICE"
+
+	USER ResourceGroup = "USER"
+	NONE ResourceGroup = "NONE"
 )
