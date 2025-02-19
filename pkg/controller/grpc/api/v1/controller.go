@@ -2,8 +2,8 @@ package v1
 
 import (
 	"fmt"
+	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/pb"
-	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	"log"

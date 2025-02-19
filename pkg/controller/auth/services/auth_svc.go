@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
-	"github.com/krack8/lighthouse/pkg/log"
 	"os"
 	"time"
 )

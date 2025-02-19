@@ -3,11 +3,11 @@ package server
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	cfg "github.com/krack8/lighthouse/pkg/config"
+	cfg "github.com/krack8/lighthouse/pkg/common/config"
+	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
-	_log "github.com/krack8/lighthouse/pkg/log"
 	"net/http"
 	"os"
 )

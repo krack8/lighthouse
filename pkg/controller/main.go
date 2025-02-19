@@ -1,12 +1,12 @@
 package main
 
 import (
-	cfg "github.com/krack8/lighthouse/pkg/config"
+	cfg "github.com/krack8/lighthouse/pkg/common/config"
+	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/controller/auth/config"
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	srvr "github.com/krack8/lighthouse/pkg/controller/server"
-	_log "github.com/krack8/lighthouse/pkg/log"
 	"log"
 	"net/http"
 )
@@ -14,11 +14,12 @@ import (
 func main() {
 	_log.InitializeLogger()
 
+	cfg.InitEnvironmentVariables()
+
 	// Init Agent Connection Manager
 	core.InitAgentConnectionManager()
 
-	srvr.StartGrpcServer()
-	cfg.InitEnvironmentVariables()
+	go srvr.StartGrpcServer()
 
 	// Connect to the database ..
 	client, ctx, err := config.ConnectDB()

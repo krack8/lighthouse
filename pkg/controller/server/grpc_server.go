@@ -2,9 +2,9 @@ package server
 
 import (
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	v1 "github.com/krack8/lighthouse/pkg/controller/grpc/api/v1"
-	"github.com/krack8/lighthouse/pkg/log"
 	"google.golang.org/grpc"
 	"net"
 )

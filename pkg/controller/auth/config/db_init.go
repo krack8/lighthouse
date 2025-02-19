@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/krack8/lighthouse/pkg/config"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	enum2 "github.com/krack8/lighthouse/pkg/controller/auth/enum"
 	models2 "github.com/krack8/lighthouse/pkg/controller/auth/models"
 	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
