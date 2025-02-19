@@ -1,0 +1,52 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*  # Triggers on tags starting with 'v' (e.g., v1.0, v2.0)
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GITHUB_USER }} --password-stdin
+
+      - name: Set TAG variable
+        id: set-tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG="latest"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Build Controller Docker Image
+        run: |
+          docker build -t ghcr.io/krack8/lighthouse:controller-${{ env.TAG }} -f controller.Dockerfile .
+
+      - name: Build Agent Docker Image
+        run: |
+          docker build -t ghcr.io/krack8/lighthouse:agent-${{ env.TAG }} -f agent.Dockerfile .
+
+      - name: Build Frontend Docker Image
+        run: |
+          docker build -t ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }} -f ./frontend/Dockerfile ./frontend
+
+      - name: Push Controller Docker Image
+        run: |
+          docker push ghcr.io/krack8/lighthouse:controller-${{ env.TAG }}
+
+      - name: Push Agent Docker Image
+        run: |
+          docker push ghcr.io/krack8/lighthouse:agent-${{ env.TAG }}
+
+      - name: Push Frontend Docker Image
+        run: |
+          docker push ghcr.io/krack8/lighthouse:frontend-${{ env.TAG }}
