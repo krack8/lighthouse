@@ -113,9 +113,9 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 
 			// Notify whoever is waiting for this task result (our HTTP handler).
 			if currentAgent != nil {
-				core.GetAgentManager().Lock()
+				currentAgent.Lock()
 				ch, ok := currentAgent.ResultChMap[taskRes.TaskId]
-				core.GetAgentManager().Unlock()
+				currentAgent.Unlock()
 				if ok {
 					ch <- taskRes
 				} else {

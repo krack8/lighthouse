@@ -16,10 +16,11 @@ type AgentConnection struct {
 	//UniqueId    string
 	GroupName   string
 	ResultChMap map[string]chan *pb.TaskResult // map of taskID -> channel that receives result
+	mu          sync.Mutex
 }
 
 type AgentManager struct {
-	mu             sync.Mutex
+	mu             sync.RWMutex
 	connectionList map[string][]*AgentConnection // GroupName -> slice of agents
 }
 
@@ -33,6 +34,14 @@ func InitAgentConnectionManager() {
 
 func GetAgentManager() *AgentManager {
 	return &agentManager
+}
+
+func (ac *AgentConnection) Lock() {
+	ac.mu.Lock()
+}
+
+func (ac *AgentConnection) Unlock() {
+	ac.mu.Unlock()
 }
 
 func (s *AgentManager) Lock() {
@@ -96,6 +105,7 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 
 	// Lock before any operations
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	// Verify worker exists in the group
 	workers := s.connectionList[w.GroupName]
@@ -109,7 +119,6 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 
 	if !workerFound {
 		log.Printf("Worker not found in group %s", w.GroupName)
-		s.mu.Unlock()
 		return
 	}
 
@@ -134,7 +143,9 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	// Cleanup channels
 	for taskID, ch := range w.ResultChMap {
 		close(ch)
+		w.mu.Lock()
 		delete(w.ResultChMap, taskID)
+		w.mu.Unlock()
 	}
 
 	// Remove worker from group
@@ -145,8 +156,6 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 		}
 	}
 	s.connectionList[w.GroupName] = newList
-
-	s.mu.Unlock()
 }
 
 // SendTaskToAgent sends a task down a particular agent’s Stream.
@@ -163,9 +172,9 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	// Prepare a channel to receive the agent’s response.
 	resultCh := make(chan *pb.TaskResult, 1)
 
-	s.mu.Lock()
+	w.mu.Lock()
 	w.ResultChMap[taskID] = resultCh
-	s.mu.Unlock()
+	w.mu.Unlock()
 
 	// Actually send the task to the agent.
 	err := w.Stream.Send(&pb.TaskStreamResponse{
@@ -179,16 +188,16 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 		},
 	})
 	if err != nil {
-		s.mu.Lock()
+		w.mu.Lock()
 		delete(w.ResultChMap, taskID)
-		s.mu.Unlock()
+		w.mu.Unlock()
 		return nil, err
 	}
 
 	defer func() {
-		s.mu.Lock()
+		w.mu.Lock()
 		delete(w.ResultChMap, taskID)
-		s.mu.Unlock()
+		w.mu.Unlock()
 	}()
 
 	// Wait for the agent to respond with a result or time out
@@ -207,8 +216,8 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 // PickAgent returns any agent from the specified group (round-robin or random).
 // For simplicity, let's just pick the first.
 func (s *AgentManager) PickAgent(id string) *AgentConnection {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	agents := s.connectionList[id]
 	if len(agents) == 0 {
 		return nil
