@@ -57,11 +57,25 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 			//Verify the auth token if AUTH is ENABLED
 			if cfg.IsAuth() {
 				if authToken != "" {
-					if services.IsAgentAuthTokenValid(authToken) == false {
+					isTokenValid, isGroupNameValid := services.IsAgentAuthTokenAndGroupValid(authToken, groupName)
+					if isTokenValid == false {
 						err := stream.Send(&pb.TaskStreamResponse{
 							Payload: &pb.TaskStreamResponse_Ack{
 								Ack: &pb.Ack{
-									Message: "Invalid Agent Token",
+									Message: "Unauthorized !! Invalid Agent Token",
+								},
+							},
+						})
+						if err != nil {
+							return err
+						}
+						return nil
+					}
+					if isTokenValid == true && isGroupNameValid == false {
+						err := stream.Send(&pb.TaskStreamResponse{
+							Payload: &pb.TaskStreamResponse_Ack{
+								Ack: &pb.Ack{
+									Message: "Invalid cluster group name. The group name is not registered with this cluster",
 								},
 							},
 						})

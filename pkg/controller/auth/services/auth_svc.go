@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/models"
-	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"os"
 	"time"
 )
@@ -17,7 +17,7 @@ func Login(username string, password string) (string, string, error) {
 		return "", "", errors.New("user not found")
 	}
 
-	if !utils2.CheckPassword(password, user.Password) {
+	if !utils.CheckPassword(password, user.Password) {
 		return "", "", errors.New("wrong password")
 	}
 
@@ -33,12 +33,12 @@ func Login(username string, password string) (string, string, error) {
 	}
 
 	// Generate JWT tokens with the username and permissions
-	accessToken, err := utils2.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	accessToken, err := utils.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils2.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
+	refreshToken, err := utils.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
@@ -61,48 +61,44 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 	return parsed, nil
 }
 
-func IsAgentAuthTokenValid(authToken string) bool {
-	tokenValidation, err := mongoUpdate.GetToken(context.Background(), authToken)
+func IsAgentAuthTokenAndGroupValid(authToken, groupName string) (bool, bool) {
+	tokenValidation, _, err := mongoUpdate.GetTokenAndClusterDetails(context.Background(), authToken)
 	if tokenValidation == nil {
 		log.Logger.Warnw("Unauthorized !!..Token not found in DB", "err", err.Error())
-		return false
+		return false, false
 	}
 
 	if err != nil {
 		log.Logger.Errorw("Error fetching token from database", "err", err.Error())
-		return false
+		return false, false
 	}
 
 	_, clusterID, err := ValidateToken(authToken, tokenValidation)
 	if err != nil {
 		log.Logger.Errorw("Token not valid", "err", err.Error())
-		return false
+		return false, false
 	}
 
 	err = UpdateClusterStatusToActive(clusterID)
 	if err != nil {
 		log.Logger.Errorw("Failed to update cluster status", "err", err.Error())
-		return false
+		return false, false
 	}
 
-	/*// Add nil check before accessing ClusterID
-	if tokenValidation.ClusterID.IsZero() {
-		log.Logger.Warnw("Invalid token validation: nil cluster ID", "groupName", groupName)
-		return false
+	/*fmt.Printf("cluster group-----------------", clusterDetails.WorkerGroup)
+
+	// Add nil check before accessing ClusterID
+	if clusterDetails == nil || clusterDetails.WorkerGroup == "" {
+		log.Logger.Warnw("Invalid Group: cluster group is missing in DB", "groupName", groupName)
+		return true, false
 	}
 
-	clusterIDHex := tokenValidation.ClusterID.Hex()
-	if clusterIDHex == "" {
-		log.Logger.Warnw("Empty cluster ID hex value", "groupName", groupName)
-		return false
-	}
-
-	if clusterIDHex != groupName {
+	if clusterDetails.WorkerGroup != groupName {
 		log.Logger.Warnw("Invalid cluster group name. The group name is not registered with this cluster",
-			"expected", clusterIDHex,
+			"expected", clusterDetails.WorkerGroup,
 			"received", groupName)
-		return false
+		return true, false
 	}*/
 
-	return true
+	return true, true
 }
