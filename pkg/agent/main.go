@@ -21,7 +21,7 @@ var taskMutex sync.Mutex
 
 func main() {
 	_log.InitializeLogger()
-	config.InitEnvironmentVariables("../.env")
+	config.InitEnvironmentVariables()
 	k8s.InitiateKubeClientSet()
 
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
@@ -36,7 +36,7 @@ func main() {
 	}
 	// Validate and provide a default if needed
 	if groupName == "" {
-		_log.Logger.Errorw("Missing env variable WORKER_GROUP", "err", "WORKER_GROUP env variable is not found in kubernetes secret")
+		_log.Logger.Errorw("Missing env variable AGENT_GROUP", "err", "AGENT_GROUP env variable is not found in kubernetes secret")
 	}
 
 	_log.Logger.Infow("Starting worker", "groupName", groupName)

@@ -61,7 +61,7 @@ func InitEnvironmentVariables(filenames ...string) {
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 	isK8 = os.Getenv("IS_K8")
 	TlsServerCustomCa = os.Getenv("TLS_SERVER_CUSTOM_CA")
-	WorkerGroup = os.Getenv("WORKER_GROUP")
+	WorkerGroup = os.Getenv("AGENT_GROUP")
 	GrpcServer = os.Getenv("GRPC_SERVER")
 	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
 	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")
