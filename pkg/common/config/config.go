@@ -19,7 +19,7 @@ var InternalServer = false
 var SkipServerTlsVerification = false
 var TlsServerCustomCa = ""
 var WorkerGroup string
-var ServerUrl string
+var GrpcServer string
 var AgentSecretName string
 var ResourceNamespace string
 
@@ -48,17 +48,21 @@ func InitEnvironmentVariables(filenames ...string) {
 	} else {
 		log.Logger.Infow("Server is external. Using tls config", "[Internal-Server]", InternalServer)
 	}
-	if os.Getenv("SKIP_SERVER_TLS_VERIFICATION") == "TRUE" {
-		SkipServerTlsVerification = true
-		log.Logger.Infow("Server is skipping tls verification.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
+	if !InternalServer {
+		if os.Getenv("SKIP_SERVER_TLS_VERIFICATION") == "TRUE" {
+			SkipServerTlsVerification = true
+			log.Logger.Infow("Server is skipping tls verification.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
+		} else {
+			log.Logger.Infow("Server is verifying tls.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
+		}
 	} else {
-		log.Logger.Infow("Server is verifying tls.", "[TLS-Skip-Verify]", SkipServerTlsVerification)
+		log.Logger.Infow("Server transport security is disabled.", "[TLS]", false)
 	}
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 	isK8 = os.Getenv("IS_K8")
 	TlsServerCustomCa = os.Getenv("TLS_SERVER_CUSTOM_CA")
 	WorkerGroup = os.Getenv("WORKER_GROUP")
-	ServerUrl = os.Getenv("SERVER_URL")
+	GrpcServer = os.Getenv("GRPC_SERVER")
 	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
 	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")
 }
