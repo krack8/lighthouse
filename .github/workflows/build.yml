@@ -3,7 +3,7 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - v*  # Triggers on tags starting with 'v' (e.g., v1.0, v2.0)
 
