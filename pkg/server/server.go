@@ -3,9 +3,9 @@ package server
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/auth/controllers"
-	middleware "github.com/krack8/lighthouse/pkg/auth/middlewares"
 	cfg "github.com/krack8/lighthouse/pkg/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
+	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/server/router"
 	"net/http"
@@ -63,7 +63,7 @@ func Home() HomeInf {
 }
 
 func (h *home) Index(ctx *gin.Context) {
-	ctx.Data(http.StatusOK, "application/json; charset=utf-8", []byte("This is KloverCloud Lighthouse"))
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", []byte("This is Lighthouse by Krack8"))
 	return
 }
 

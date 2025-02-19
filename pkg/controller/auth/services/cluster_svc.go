@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	db "github.com/krack8/lighthouse/pkg/auth/config"
-	"github.com/krack8/lighthouse/pkg/auth/enum"
-	"github.com/krack8/lighthouse/pkg/auth/models"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	db "github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-var storage Storage     // Implement the Storage interface
-var crypto utils.Crypto // Implement the Crypto interface
+var storage Storage      // Implement the Storage interface
+var crypto utils2.Crypto // Implement the Crypto interface
 
 // ClusterService handles cluster-related business logic
 type ClusterService struct {
@@ -101,7 +101,7 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 	agentClusterID := primitive.NewObjectID()
 
 	// Generate a raw token
-	crypto, _ := utils.NewCryptoImpl()
+	crypto, _ := utils2.NewCryptoImpl()
 
 	rawToken, err := crypto.GenerateSecureToken(32)
 	if err != nil {
@@ -118,7 +118,7 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 	agentToken := models.TokenValidation{
 		ID:            primitive.NewObjectID(),
 		ClusterID:     agentClusterID,
-		RawTokenHash:  utils.HashPassword(rawToken),
+		RawTokenHash:  utils2.HashPassword(rawToken),
 		CombinedToken: combinedToken,
 		IsValid:       true,
 		ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year

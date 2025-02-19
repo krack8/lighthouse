@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/server"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -60,7 +60,7 @@ func (ctrl *clusterRoleController) GetClusterRoleList(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().GetClusterRoleList)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -90,7 +90,7 @@ func (ctrl *clusterRoleController) GetClusterRoleDetails(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().GetClusterRoleDetails)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -127,7 +127,7 @@ func (ctrl *clusterRoleController) DeployClusterRole(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleService().DeployClusterRole)
 	logRequestedTaskController("cluster-role", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -158,7 +158,7 @@ func (ctrl *clusterRoleController) DeleteClusterRole(ctx *gin.Context) {
 		return
 	}
 
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

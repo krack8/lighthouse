@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/server"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -67,7 +67,7 @@ func (ctrl *controllerRevisionController) GetControllerRevisionList(ctx *gin.Con
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -106,7 +106,7 @@ func (ctrl *controllerRevisionController) GetControllerRevisionDetails(ctx *gin.
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -148,7 +148,7 @@ func (ctrl *controllerRevisionController) DeployControllerRevision(ctx *gin.Cont
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -185,7 +185,7 @@ func (ctrl *controllerRevisionController) DeleteControllerRevision(ctx *gin.Cont
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

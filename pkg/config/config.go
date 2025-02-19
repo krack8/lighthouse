@@ -23,14 +23,14 @@ var ServerUrl string
 var AgentSecretName string
 var ResourceNamespace string
 
-func InitEnvironmentVariables() {
+func InitEnvironmentVariables(filenames ...string) {
 	RunMode = os.Getenv("RUN_MODE")
 	if RunMode == "" {
 		RunMode = DEVELOP
 	}
 	log.Logger.Infow("RUN MODE:", "value", RunMode)
 	if RunMode != PRODUCTION {
-		err := godotenv.Load("../.env")
+		err := godotenv.Load(filenames...)
 		if err != nil {
 			log.Logger.Errorw("Failed to Load environment file", "err", err.Error())
 			os.Exit(1)

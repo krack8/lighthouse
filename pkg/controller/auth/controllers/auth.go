@@ -3,8 +3,8 @@ package controllers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/auth/services"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/auth/services"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"net/http"
 	"os"
 	"time"

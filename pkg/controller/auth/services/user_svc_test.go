@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
-	db "github.com/krack8/lighthouse/pkg/auth/config"
+	db "github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"testing"
 
-	"github.com/krack8/lighthouse/pkg/auth/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"

@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/go-playground/validator/v10"
-	"github.com/krack8/lighthouse/pkg/auth/enum"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )

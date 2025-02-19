@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	db "github.com/krack8/lighthouse/pkg/auth/config"
-	"github.com/krack8/lighthouse/pkg/auth/enum"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	db "github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	models2 "github.com/krack8/lighthouse/pkg/controller/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 
-	"github.com/krack8/lighthouse/pkg/auth/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,7 +37,7 @@ func NewUserService(collection Collection) *UserService {
 	}
 }
 
-func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
+func (s *UserService) CreateUser(user *models2.User) (*models2.User, error) {
 	if user == nil {
 		return nil, errors.New("user cannot be nil")
 	}
@@ -65,7 +65,7 @@ func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 }
 
 // GetUser retrieves a user by ID
-func (s *UserService) GetUser(userID string) (*models.User, error) {
+func (s *UserService) GetUser(userID string) (*models2.User, error) {
 	if userID == "" {
 		return nil, errors.New("user ID cannot be empty")
 	}
@@ -75,7 +75,7 @@ func (s *UserService) GetUser(userID string) (*models.User, error) {
 		return nil, fmt.Errorf("invalid user ID format: %w", err)
 	}
 
-	var user models.User
+	var user models2.User
 	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	result := db.UserCollection.FindOne(context.Background(), filter)
 	if err := result.Decode(&user); err != nil {
@@ -89,7 +89,7 @@ func (s *UserService) GetUser(userID string) (*models.User, error) {
 }
 
 // GetAllUsers retrieves all users
-func (s *UserService) GetAllUsers() ([]models.User, error) {
+func (s *UserService) GetAllUsers() ([]models2.User, error) {
 	cursor, err := db.UserCollection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users: %w", err)
@@ -101,9 +101,9 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 		}
 	}(cursor, context.Background())
 
-	var users []models.User
+	var users []models2.User
 	for cursor.Next(context.Background()) {
-		var user models.User
+		var user models2.User
 		if err := cursor.Decode(&user); err != nil {
 			return nil, fmt.Errorf("failed to decode user: %w", err)
 		}
@@ -118,7 +118,7 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 }
 
 // UpdateUser updates a user by ID
-func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error {
+func (s *UserService) UpdateUser(userID string, updatedUser *models2.User) error {
 	if updatedUser == nil {
 		return errors.New("updated user cannot be nil")
 	}
@@ -129,7 +129,7 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 	}
 
 	// First fetch the existing user
-	var existingUser models.User
+	var existingUser models2.User
 	filter := bson.M{"_id": objectID, "status": enum.VALID}
 	err = db.UserCollection.FindOne(context.Background(), filter).Decode(&existingUser)
 	if err != nil {
@@ -213,12 +213,12 @@ func (s *UserService) DeleteUser(userID string) error {
 }
 
 // GetUserByUsername retrieves a user by username
-func GetUserByUsername(username string) (*models.User, error) {
+func GetUserByUsername(username string) (*models2.User, error) {
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
 
-	var user models.User
+	var user models2.User
 	filter := bson.M{"username": username, "status": enum.VALID}
 	if err := db.UserCollection.FindOne(context.Background(), filter).Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -231,7 +231,7 @@ func GetUserByUsername(username string) (*models.User, error) {
 }
 
 // GetUserProfileINfo fetch User Profile Info
-func (s *UserService) GetUserProfileInfo(username string) (*models.User, error) {
+func (s *UserService) GetUserProfileInfo(username string) (*models2.User, error) {
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
@@ -243,8 +243,8 @@ func (s *UserService) GetUserProfileInfo(username string) (*models.User, error) 
 	return user, nil
 }
 
-func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]models.Role, error) {
-	var roles []models.Role
+func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]models2.Role, error) {
+	var roles []models2.Role
 
 	// Convert string IDs to ObjectIDs
 	objectIds := make([]primitive.ObjectID, 0, len(roleIds))
@@ -282,8 +282,8 @@ func (s *UserService) GetRolesByIds(ctx context.Context, roleIds []string) ([]mo
 // ResetPassword handles password reset with old password verification
 func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newPassword string, requester string) error {
 	// Find user by ID
-	var user models.User
-	var req models.User
+	var user models2.User
+	var req models2.User
 	err := db.UserCollection.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -300,7 +300,7 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 			}
 			return fmt.Errorf("failed to fetch requester data: %w", err)
 		}
-		if req.UserType != models.AdminUser {
+		if req.UserType != models2.AdminUser {
 			return fmt.Errorf("unauthorized !! you don't have ADMIN permission")
 		}
 
@@ -333,7 +333,7 @@ func (s *UserService) ResetPassword(userID primitive.ObjectID, oldPassword, newP
 }
 
 // GetUsersByRoleID retrieves all users that have a specific role ID
-func GetUsersByRoleIDAndUpdateUserRoles(roleID primitive.ObjectID, newRole models.Role) ([]models.User, error) {
+func GetUsersByRoleIDAndUpdateUserRoles(roleID primitive.ObjectID, newRole models2.Role) ([]models2.User, error) {
 	// Query to match users who have the specified role ID in their roles array
 	filter := bson.M{
 		"roles": bson.M{
@@ -354,9 +354,9 @@ func GetUsersByRoleIDAndUpdateUserRoles(roleID primitive.ObjectID, newRole model
 		}
 	}(cursor, context.Background())
 
-	var users []models.User
+	var users []models2.User
 	for cursor.Next(context.Background()) {
-		var user models.User
+		var user models2.User
 		if err := cursor.Decode(&user); err != nil {
 			return nil, fmt.Errorf("failed to decode user: %w", err)
 		}
@@ -402,7 +402,7 @@ func GetUsersByRoleIDAndUpdateUserRoles(roleID primitive.ObjectID, newRole model
 // InitiateForgotPassword starts the forgot password process
 func (s *UserService) InitiateForgotPassword(email string) error {
 	// Find user by email
-	var user models.User
+	var user models2.User
 	err := db.UserCollection.FindOne(context.Background(), bson.M{"username": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

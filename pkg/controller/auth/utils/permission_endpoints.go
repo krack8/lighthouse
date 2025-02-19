@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/krack8/lighthouse/pkg/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 )
 
 // GetDefaultEndpoints returns endpoints for creating  namespaces

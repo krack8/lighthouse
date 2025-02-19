@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	db "github.com/krack8/lighthouse/pkg/auth/config"
-	"github.com/krack8/lighthouse/pkg/auth/dto"
-	"github.com/krack8/lighthouse/pkg/auth/enum"
-	"github.com/krack8/lighthouse/pkg/auth/models"
-	"github.com/krack8/lighthouse/pkg/auth/services"
+	db "github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/dto"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	services2 "github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,10 +19,10 @@ import (
 )
 
 type RbacController struct {
-	RbacService *services.RbacService
+	RbacService *services2.RbacService
 }
 
-func NewRbacController(rbacService *services.RbacService) *RbacController {
+func NewRbacController(rbacService *services2.RbacService) *RbacController {
 	return &RbacController{
 		RbacService: rbacService,
 	}
@@ -368,7 +368,7 @@ func (rbac *RbacController) UpdateRoleHandler(c *gin.Context) {
 		return
 	}
 
-	_, err = services.GetUsersByRoleIDAndUpdateUserRoles(objectID, updateRole)
+	_, err = services2.GetUsersByRoleIDAndUpdateUserRoles(objectID, updateRole)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to update users permission with updated roles."})
 	}

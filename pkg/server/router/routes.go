@@ -2,15 +2,15 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/auth/authApi"
-	"github.com/krack8/lighthouse/pkg/auth/controllers"
 	"github.com/krack8/lighthouse/pkg/controller/api"
+	"github.com/krack8/lighthouse/pkg/controller/auth/authApi"
+	controllers2 "github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 )
 
-var userController *controllers.UserController
+var userController *controllers2.UserController
 
 // Declare the userService as a global variable
-var rbacController *controllers.RbacController
+var rbacController *controllers2.RbacController
 
 func AddApiRoutes(httpRg *gin.RouterGroup) {
 

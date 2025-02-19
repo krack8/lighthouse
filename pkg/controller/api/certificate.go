@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/server"
 	"github.com/krack8/lighthouse/pkg/dto"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
@@ -67,7 +67,7 @@ func (ctrl *certificateController) GetCertificateList(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateList)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -105,7 +105,7 @@ func (ctrl *certificateController) GetCertificateDetails(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateDetails)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -145,7 +145,7 @@ func (ctrl *certificateController) DeployCertificate(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().GetCertificateDetails)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}
@@ -181,7 +181,7 @@ func (ctrl *certificateController) DeleteCertificate(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s.CertificateService().DeleteCertificate)
 	logRequestedTaskController("certificate", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		k8s.SendErrorResponse(ctx, err.Error())
 	}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/krack8/lighthouse/pkg/auth/authApi"
-	"github.com/krack8/lighthouse/pkg/auth/config"
 	cfg "github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/auth/authApi"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	srvr "github.com/krack8/lighthouse/pkg/controller/server"
 	_log "github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/server"
 	"log"
@@ -13,7 +13,7 @@ import (
 
 func main() {
 	_log.InitializeLogger()
-	worker.StartGrpcServer()
+	srvr.StartGrpcServer()
 	cfg.InitEnvironmentVariables()
 
 	// Connect to the database ..

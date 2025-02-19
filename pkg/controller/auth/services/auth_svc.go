@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"errors"
-	"github.com/krack8/lighthouse/pkg/auth/models"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/log"
 	"os"
 	"time"
@@ -17,7 +17,7 @@ func Login(username string, password string) (string, string, error) {
 		return "", "", errors.New("user not found")
 	}
 
-	if !utils.CheckPassword(password, user.Password) {
+	if !utils2.CheckPassword(password, user.Password) {
 		return "", "", errors.New("wrong password")
 	}
 
@@ -33,12 +33,12 @@ func Login(username string, password string) (string, string, error) {
 	}
 
 	// Generate JWT tokens with the username and permissions
-	accessToken, err := utils.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	accessToken, err := utils2.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
+	refreshToken, err := utils2.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}

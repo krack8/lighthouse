@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/server"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -59,7 +59,7 @@ func (ctrl *clusterRoleBindingController) GetClusterRoleBindingList(ctx *gin.Con
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().GetClusterRoleBindingList)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -88,7 +88,7 @@ func (ctrl *clusterRoleBindingController) GetClusterRoleBindingDetails(ctx *gin.
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().GetClusterRoleBindingDetails)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -125,7 +125,7 @@ func (ctrl *clusterRoleBindingController) DeployClusterRoleBinding(ctx *gin.Cont
 	}
 	taskName := tasks.GetTaskName(k8s.ClusterRoleBindingService().DeployClusterRoleBinding)
 	logRequestedTaskController("cluster-role-binding", taskName)
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -154,7 +154,7 @@ func (ctrl *clusterRoleBindingController) DeleteClusterRoleBinding(ctx *gin.Cont
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := worker.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
+	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

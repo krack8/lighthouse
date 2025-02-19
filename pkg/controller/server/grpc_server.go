@@ -1,13 +1,13 @@
-package worker
+package server
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/krack8/lighthouse/pkg/auth/services"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	cfg "github.com/krack8/lighthouse/pkg/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"

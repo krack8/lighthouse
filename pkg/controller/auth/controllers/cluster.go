@@ -3,9 +3,9 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/auth/services"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
+	"github.com/krack8/lighthouse/pkg/controller/auth/services"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	"github.com/krack8/lighthouse/pkg/controller/server"
 	"net/http"
 	"os"
 	"strings"
@@ -98,7 +98,7 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 		return
 	}
 
-	serverInstance := worker.GetServerInstance()
+	serverInstance := server.GetServerInstance()
 	if removed := serverInstance.RemoveWorkerByGroupName(cluster.WorkerGroup); !removed {
 		_ = fmt.Errorf("failed to remove worker group: %s", cluster.WorkerGroup)
 	}
