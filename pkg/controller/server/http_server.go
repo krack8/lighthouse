@@ -6,13 +6,13 @@ import (
 	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	_log "github.com/krack8/lighthouse/pkg/log"
-	"github.com/krack8/lighthouse/pkg/server/router"
 	"net/http"
 	"os"
 )
 
-func Start() {
+func StartHttServer() {
 	//gin.DisableConsoleColor()
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()

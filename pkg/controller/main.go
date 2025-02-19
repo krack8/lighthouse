@@ -4,15 +4,19 @@ import (
 	cfg "github.com/krack8/lighthouse/pkg/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/authApi"
 	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	srvr "github.com/krack8/lighthouse/pkg/controller/server"
 	_log "github.com/krack8/lighthouse/pkg/log"
-	"github.com/krack8/lighthouse/pkg/server"
 	"log"
 	"net/http"
 )
 
 func main() {
 	_log.InitializeLogger()
+
+	// Init Agent Connection Manager
+	core.InitAgentConnectionManager()
+
 	srvr.StartGrpcServer()
 	cfg.InitEnvironmentVariables()
 
@@ -46,7 +50,7 @@ func main() {
 	authApi.Init()
 
 	// Start HTTP server
-	server.Start()
+	srvr.StartHttServer()
 	log.Println("HTTP server listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

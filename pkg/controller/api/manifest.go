@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/server"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	"github.com/krack8/lighthouse/pkg/dto"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
@@ -62,7 +62,7 @@ func (ctrl *manifestController) DeployManifest(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

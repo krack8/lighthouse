@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
-	"github.com/krack8/lighthouse/pkg/controller/server"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	"net/http"
 	"os"
 	"strings"
@@ -98,8 +98,7 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 		return
 	}
 
-	serverInstance := server.GetServerInstance()
-	if removed := serverInstance.RemoveWorkerByGroupName(cluster.WorkerGroup); !removed {
+	if removed := core.GetAgentManager().RemoveAgentByGroupName(cluster.WorkerGroup); !removed {
 		_ = fmt.Errorf("failed to remove worker group: %s", cluster.WorkerGroup)
 	}
 	// Call the service to delete the role

@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/server"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -68,7 +68,7 @@ func (ctrl *replicaSetController) GetReplicaSetList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -106,7 +106,7 @@ func (ctrl *replicaSetController) GetReplicaSetDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -147,7 +147,7 @@ func (ctrl *replicaSetController) DeployReplicaSet(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -184,7 +184,7 @@ func (ctrl *replicaSetController) DeleteReplicaSet(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -237,7 +237,7 @@ func (ctrl *replicaSetController) GetReplicaSetStats(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

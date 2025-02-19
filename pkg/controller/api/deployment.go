@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/server"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -70,7 +70,7 @@ func (ctrl *deploymentController) GetDeploymentList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -107,7 +107,7 @@ func (ctrl *deploymentController) GetDeploymentDetails(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -148,7 +148,7 @@ func (ctrl *deploymentController) DeployDeployment(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -185,7 +185,7 @@ func (ctrl *deploymentController) DeleteDeployment(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -238,7 +238,7 @@ func (ctrl *deploymentController) GetDeploymentStats(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -298,7 +298,7 @@ func (ctrl *deploymentController) GetDeploymentPodList(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

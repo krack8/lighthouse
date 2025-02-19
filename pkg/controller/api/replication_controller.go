@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/pkg/controller/server"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 	"github.com/krack8/lighthouse/pkg/k8s"
 	"github.com/krack8/lighthouse/pkg/log"
 	"github.com/krack8/lighthouse/pkg/tasks"
@@ -68,7 +68,7 @@ func (ctrl *replicationControllerController) GetReplicationControllerList(ctx *g
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -106,7 +106,7 @@ func (ctrl *replicationControllerController) GetReplicationControllerDetails(ctx
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -148,7 +148,7 @@ func (ctrl *replicationControllerController) DeployReplicationController(ctx *gi
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
@@ -185,7 +185,7 @@ func (ctrl *replicationControllerController) DeleteReplicationController(ctx *gi
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := server.TaskToAgent().SendToWorker(ctx, taskName, inputTask, clusterGroup)
+	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroup)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
