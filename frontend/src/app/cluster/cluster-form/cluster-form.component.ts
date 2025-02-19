@@ -54,7 +54,7 @@ export class ClusterFormComponent implements OnInit {
   icClose = icClose;
 
   clusterForm = this._fb.group({
-    name: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-z][a-z0-9- ]+$/)]],
+    name: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-z][a-z0-9-]*(?: [a-z0-9-]+)*$/)]],
   });
   isSubmitting = false;
 
