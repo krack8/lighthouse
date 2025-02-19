@@ -5,8 +5,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
-	tasks2 "github.com/krack8/lighthouse/pkg/agent/tasks"
-	config2 "github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/agent/tasks"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
@@ -20,13 +20,14 @@ var taskMutex sync.Mutex
 
 func main() {
 	_log.InitializeLogger()
-	config2.InitEnvironmentVariables()
-	config2.InitiateKubeClientSet()
+	config.InitEnvironmentVariables()
+	config.InitiateKubeClientSet()
+
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
-	groupName := config2.WorkerGroup
-	controllerURL := config2.ServerUrl
-	secretName := config2.AgentSecretName
-	resourceNamespace := config2.ResourceNamespace
+	groupName := config.WorkerGroup
+	controllerURL := config.ServerUrl
+	secretName := config.AgentSecretName
+	resourceNamespace := config.ResourceNamespace
 
 	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
 	if err != nil {
@@ -39,10 +40,10 @@ func main() {
 
 	_log.Logger.Infow("Starting worker", "groupName", groupName)
 
-	tasks2.InitTaskRegistry()
+	tasks.InitTaskRegistry()
 	var caCertPool *x509.CertPool
-	if config2.TlsServerCustomCa != "" {
-		caCert := []byte(config2.TlsServerCustomCa)
+	if config.TlsServerCustomCa != "" {
+		caCert := []byte(config.TlsServerCustomCa)
 
 		// Create a new certificate pool
 		caCertPool = x509.NewCertPool()
@@ -84,7 +85,7 @@ func main() {
 						taskMutex.Lock()
 						defer taskMutex.Unlock()
 						TaskResult := &pb.TaskResult{}
-						res, err := tasks2.TaskSelector(task)
+						res, err := tasks.TaskSelector(task)
 						if err != nil {
 							TaskResult.Success = false
 							TaskResult.Output = err.Error()
