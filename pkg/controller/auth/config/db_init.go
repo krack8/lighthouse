@@ -183,7 +183,7 @@ func InitializeClusters() {
 		// Generate a bcrypt hash of the raw token with a default cost
 		hashRawToken, err := bcrypt.GenerateFromPassword([]byte(rawToken), bcrypt.DefaultCost)
 		if err != nil {
-			log.Fatalf("error generating token hash", "err", err.Error())
+			log.Fatal("error generating token hash", "err", err.Error())
 		}
 
 		// Create token validations
