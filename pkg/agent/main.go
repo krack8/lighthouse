@@ -26,7 +26,7 @@ func main() {
 
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := config.WorkerGroup
-	controllerURL := config.ServerUrl
+	controllerURL := config.GrpcServer
 	secretName := config.AgentSecretName
 	resourceNamespace := config.ResourceNamespace
 

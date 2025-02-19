@@ -208,7 +208,7 @@ func InitializeClusters() {
 		}
 
 		clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
-		serverURL := SetEnvWithDefault("SERVER_URL", "localhost:50051")
+		serverURL := SetEnvWithDefault("GRPC_SERVER", "localhost:50051")
 		// Create worker cluster
 		agentCluster := models2.Cluster{
 			ID:            agentClusterID,

@@ -9,7 +9,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
-	"os"
 )
 
 func StartHttServer() {
@@ -31,10 +30,7 @@ func StartHttServer() {
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())
 	}
 	// Get the application port from the environment
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // Default port if not specified
-	}
+	port := cfg.ServerPort
 
 	router.AddApiRoutes(httpRouter)
 	r.GET("/health", Home().Health)

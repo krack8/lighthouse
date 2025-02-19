@@ -3,10 +3,10 @@ package v1
 import (
 	"fmt"
 	cfg "github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
-	"log"
 )
 
 type ControllerServer struct {
@@ -27,7 +27,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 	for {
 		req, err := stream.Recv()
 		if err != nil {
-			log.Printf("Stream recv error: %v", err)
+			log.Logger.Warnw("Stream recv error: %v", "err", err)
 			return err
 		}
 
@@ -40,7 +40,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 
 			// Validate group name
 			if groupName == "" {
-				log.Printf("Worker attempted to connect with empty group name - rejecting connection")
+				log.Logger.Warnw("Agent attempted to connect with empty group name - rejecting connection", "agent-identity", "empty group-name: "+groupName)
 				err := stream.Send(&pb.TaskStreamResponse{
 					Payload: &pb.TaskStreamResponse_Ack{
 						Ack: &pb.Ack{
@@ -71,11 +71,11 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 						return nil
 					}
 				} else {
-					log.Printf("Worker auth token is required")
+					log.Logger.Warnw("Agent auth token is required", "agent-identity", "token: "+authToken)
 					err := stream.Send(&pb.TaskStreamResponse{
 						Payload: &pb.TaskStreamResponse_Ack{
 							Ack: &pb.Ack{
-								Message: "Worker auth token is required",
+								Message: "Agent auth token is required",
 							},
 						},
 					})
@@ -85,7 +85,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 					return nil
 				}
 			}
-			log.Printf("New worker identified. group=%s", groupName)
+			log.Logger.Infow("New agent identified. Group: "+groupName, "agent-identity", "Group: "+groupName)
 
 			// Create the worker connection instance.
 			// Create the agent connection instance.
@@ -108,8 +108,8 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 		case *pb.TaskStreamRequest_TaskResult:
 			// The worker has completed a task and is sending the result.
 			taskRes := payload.TaskResult
-			log.Printf("Received task result from worker: task_id=%s, success=%v",
-				taskRes.TaskId, taskRes.Success)
+			log.Logger.Infow(fmt.Sprintf("Received task result from agent: task_id=%s, success=%v",
+				taskRes.TaskId, taskRes.Success), "task-result", taskRes.Success)
 
 			// Notify whoever is waiting for this task result (our HTTP handler).
 			if currentAgent != nil {
@@ -119,12 +119,12 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				if ok {
 					ch <- taskRes
 				} else {
-					log.Printf("No channel waiting for task_id=%s", taskRes.TaskId)
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
 				}
 			}
 
 		default:
-			log.Printf("Unknown message type from worker stream")
+			log.Logger.Warnw("Unknown message type from agent stream", "message-type", "unknown")
 		}
 	}
 }
