@@ -3,9 +3,10 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
-	"log"
 	"sync"
 	"time"
 )
@@ -56,8 +57,8 @@ func (s *AgentManager) AddAgent(w *AgentConnection) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.connectionList[w.GroupName] = append(s.connectionList[w.GroupName], w)
-	log.Printf("Agent added to connection list %q. Total agents in group: %d",
-		w.GroupName, len(s.connectionList[w.GroupName]))
+	log.Logger.Infow(fmt.Sprintf("Agent added to connection list in group %q. Total agents in group: %d",
+		w.GroupName, len(s.connectionList[w.GroupName])), "agent-connected", "group: "+w.GroupName)
 }
 
 func (s *AgentManager) RemoveAgent(w *AgentConnection) {
@@ -71,25 +72,25 @@ func (s *AgentManager) RemoveAgent(w *AgentConnection) {
 		}
 	}
 	s.connectionList[w.GroupName] = newList
-	log.Printf("Agent removed from connection list %q. Remaining agents: %d",
-		w.GroupName, len(s.connectionList[w.GroupName]))
+	log.Logger.Warnw(fmt.Sprintf("Agent removed from connection list in group %q. Remaining agents: %d",
+		w.GroupName, len(s.connectionList[w.GroupName])), "agent-removed", "group: "+w.GroupName)
 }
 
 func (s *AgentManager) RemoveAgentByGroupName(groupName string) bool {
 	s.mu.Lock()
 	workers, exists := s.connectionList[groupName]
 	if !exists || len(workers) == 0 {
-		log.Printf("No agent found in group: %s", groupName)
+		log.Logger.Warnw(fmt.Sprintf("No agent found in group: %s", groupName), "agent-remove", "group: "+groupName)
 		s.mu.Unlock()
 		return false
 	}
 
 	workerCount := len(workers)
-	log.Printf("Found %d workers in group %s", workerCount, groupName)
+	log.Logger.Infow(fmt.Sprintf("Found %d agents in group %s", workerCount, groupName), "agent-remove", "group: "+groupName)
 	s.mu.Unlock()
 
 	for i, worker := range workers {
-		log.Printf("Disconnecting worker %d/%d in group %s", i+1, workerCount, groupName)
+		log.Logger.Warnw(fmt.Sprintf("Disconnecting agent %d/%d in group %s", i+1, workerCount, groupName), "agent-remove", "group: "+groupName)
 		s.disconnectWorker(worker)
 	}
 
@@ -99,7 +100,7 @@ func (s *AgentManager) RemoveAgentByGroupName(groupName string) bool {
 // disconnectWorker handles immediate worker disconnection
 func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	if w == nil || w.Stream == nil {
-		log.Printf("Invalid worker connection")
+		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group: "+w.GroupName)
 		return
 	}
 
@@ -118,12 +119,12 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	}
 
 	if !workerFound {
-		log.Printf("Worker not found in group %s", w.GroupName)
+		log.Logger.Warnw("Agent not found in group: "+w.GroupName, "agent-disconnect", "not found")
 		return
 	}
 
-	log.Printf("Sending disconnect message - Group: %s, Total workers in group: %d",
-		w.GroupName, len(workers))
+	log.Logger.Infow(fmt.Sprintf("Sending disconnect message - Group: %s, Total agents in group: %d",
+		w.GroupName, len(workers)), "agent-disconnect", "sending")
 
 	// Send disconnect message immediately
 	err := w.Stream.Send(&pb.TaskStreamResponse{
@@ -135,9 +136,9 @@ func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	})
 
 	if err != nil {
-		log.Printf("Failed to send disconnect message to group %s: %v", w.GroupName, err)
+		log.Logger.Warnw("Failed to send disconnect message to group "+w.GroupName, "agent-disconnect", err)
 	} else {
-		log.Printf("Successfully sent disconnect message to group %s", w.GroupName)
+		log.Logger.Infow("Successfully sent disconnect message to group "+w.GroupName, "agent-disconnect", "send success")
 	}
 
 	// Cleanup channels

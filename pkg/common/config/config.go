@@ -65,6 +65,9 @@ func InitEnvironmentVariables(filenames ...string) {
 	GrpcServer = os.Getenv("GRPC_SERVER")
 	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
 	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")
+	if os.Getenv("SERVER_PORT") != "" {
+		ServerPort = os.Getenv("SERVER_PORT")
+	}
 }
 
 func IsK8() bool {
