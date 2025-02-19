@@ -47,7 +47,7 @@ Lighthouse works with most of your favorite Kubernetes flavor
 ## Getting Started
 
 ### Installation
-To install Lighthouse, follow the [Installation Guide](docs/install.md).
+To install Lighthouse, follow the [Installation Guide](https://github.com/krack8/helm-charts/tree/main/charts/lighthouse).
 
 
 ## Contributing
