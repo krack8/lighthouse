@@ -1,20 +1,25 @@
 package main
 
 import (
-	"github.com/krack8/lighthouse/pkg/auth/authApi"
-	"github.com/krack8/lighthouse/pkg/auth/config"
-	cfg "github.com/krack8/lighthouse/pkg/config"
-	"github.com/krack8/lighthouse/pkg/controller/worker"
-	_log "github.com/krack8/lighthouse/pkg/log"
-	"github.com/krack8/lighthouse/pkg/server"
+	cfg "github.com/krack8/lighthouse/pkg/common/config"
+	_log "github.com/krack8/lighthouse/pkg/common/log"
+	"github.com/krack8/lighthouse/pkg/controller/auth/authApi"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/core"
+	srvr "github.com/krack8/lighthouse/pkg/controller/server"
 	"log"
 	"net/http"
 )
 
 func main() {
 	_log.InitializeLogger()
-	worker.StartGrpcServer()
+
 	cfg.InitEnvironmentVariables()
+
+	// Init Agent Connection Manager
+	core.InitAgentConnectionManager()
+
+	go srvr.StartGrpcServer()
 
 	// Connect to the database ..
 	client, ctx, err := config.ConnectDB()
@@ -46,7 +51,7 @@ func main() {
 	authApi.Init()
 
 	// Start HTTP server
-	server.Start()
+	srvr.StartHttServer()
 	log.Println("HTTP server listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -5,11 +5,12 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
-	"github.com/krack8/lighthouse/pkg/auth/utils"
+	"github.com/krack8/lighthouse/pkg/agent/tasks"
+	"github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/common/k8s"
+	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
-	"github.com/krack8/lighthouse/pkg/config"
-	_log "github.com/krack8/lighthouse/pkg/log"
-	"github.com/krack8/lighthouse/pkg/tasks"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"log"
 	"strings"
 	"sync"
@@ -21,7 +22,8 @@ var taskMutex sync.Mutex
 func main() {
 	_log.InitializeLogger()
 	config.InitEnvironmentVariables()
-	config.InitiateKubeClientSet()
+	k8s.InitiateKubeClientSet()
+
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := config.WorkerGroup
 	controllerURL := config.ServerUrl
