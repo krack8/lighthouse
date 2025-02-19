@@ -13,7 +13,7 @@ type Permission struct {
 	Description   string                  `json:"description" bson:"description"`
 	EndpointList  []Endpoint              `json:"endpoint_list" bson:"endpoint_list"`
 	Category      enum.PermissionCategory `json:"category" bson:"category"`
-	ResourceGroup enum.ResourceGroup      `json:"order_no" bson:"resource_group"`
+	ResourceGroup enum.ResourceGroup      `json:"resource_group" bson:"resource_group"`
 	Status        enum.Status             `json:"status" bson:"status"`
 	CreatedAt     time.Time               `json:"created_at" bson:"created_at"`
 	UpdatedAt     time.Time               `json:"updated_at" bson:"updated_at"`
