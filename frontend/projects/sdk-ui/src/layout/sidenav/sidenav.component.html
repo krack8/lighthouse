@@ -7,8 +7,10 @@
   fxLayout="column"
 >
   <div class="sidenav-toolbar" fxFlex="none" fxLayout="row" fxLayoutAlign="start center">
-    <img class="w-6 select-none" fxFlex="none" [src]="config.favicon || 'assets/images/ic_krack8_logo.svg'" />
-    <h2 class="title pl-4 select-none text-sm" fxFlex="auto">{{ config.name || 'Krack8 | Lighthouse' }}</h2>
+    <div (click)="navigateToHome()" class="cursor-pointer">
+      <img class="w-6 select-none" fxFlex="none" [src]="config.favicon || 'assets/images/ic_krack8_logo.svg'" />
+      <h2 class="title pl-4 select-none text-sm" fxFlex="auto">{{ config.name || 'Krack8 | Lighthouse' }}</h2>
+    </div>
     <button (click)="toggleCollapse()" class="w-8 h-8 -mr-2 leading-none" fxFlex="none" mat-icon-button type="button">
       <mat-icon size="14px">
         <svg

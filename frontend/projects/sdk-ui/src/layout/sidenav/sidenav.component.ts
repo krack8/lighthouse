@@ -5,6 +5,7 @@ import { trackByRoute } from '@core-ui/utils';
 import { CoreConfigService, ICoreConfig } from '@core-ui/services';
 import { NavigationService, LayoutService } from '@sdk-ui/services';
 import { NavigationItem } from '@sdk-ui/interfaces';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'kc-sidenav',
@@ -25,7 +26,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   constructor(
     private navigationService: NavigationService,
     private layoutService: LayoutService,
-    private coreConfigService: CoreConfigService
+    private coreConfigService: CoreConfigService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -48,5 +50,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   toggleCollapse() {
     this.collapsed ? this.layoutService.expandSidenav() : this.layoutService.collapseSidenav();
+  }
+
+  navigateToHome(): void {
+    this.router.navigate(['/']); // Change '/home' to your desired route
   }
 }

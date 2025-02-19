@@ -63,3 +63,12 @@ h4 {
   }
 }
 
+.helm-chart-note{
+  padding: 10px;
+  background: var(--background-1);
+  margin-top: 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  border-left: solid 4px var(--color-primary);
+}
+
