@@ -62,7 +62,7 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 }
 
 func IsAgentAuthTokenAndGroupValid(authToken, groupName string) (bool, bool) {
-	tokenValidation, _, err := mongoUpdate.GetTokenAndClusterDetails(context.Background(), authToken)
+	tokenValidation, clusterDetails, err := mongoUpdate.GetTokenAndClusterDetails(context.Background(), authToken)
 	if tokenValidation == nil {
 		log.Logger.Warnw("Unauthorized !!..Token not found in DB", "err", err.Error())
 		return false, false
@@ -85,8 +85,6 @@ func IsAgentAuthTokenAndGroupValid(authToken, groupName string) (bool, bool) {
 		return false, false
 	}
 
-	/*fmt.Printf("cluster group-----------------", clusterDetails.WorkerGroup)
-
 	// Add nil check before accessing ClusterID
 	if clusterDetails == nil || clusterDetails.WorkerGroup == "" {
 		log.Logger.Warnw("Invalid Group: cluster group is missing in DB", "groupName", groupName)
@@ -94,11 +92,11 @@ func IsAgentAuthTokenAndGroupValid(authToken, groupName string) (bool, bool) {
 	}
 
 	if clusterDetails.WorkerGroup != groupName {
-		log.Logger.Warnw("Invalid cluster group name. The group name is not registered with this cluster",
+		log.Logger.Warnw("Invalid cluster group. The group is not registered with this cluster",
 			"expected", clusterDetails.WorkerGroup,
 			"received", groupName)
 		return true, false
-	}*/
+	}
 
 	return true, true
 }

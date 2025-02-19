@@ -75,7 +75,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 						err := stream.Send(&pb.TaskStreamResponse{
 							Payload: &pb.TaskStreamResponse_Ack{
 								Ack: &pb.Ack{
-									Message: "Invalid cluster group name. The group name is not registered with this cluster",
+									Message: "Invalid cluster group. The group is not registered with this cluster",
 								},
 							},
 						})

@@ -79,13 +79,12 @@ func (m *MongoStorage) GetTokenAndClusterDetails(ctx context.Context, token stri
 	var clusterResult models.Cluster
 	if !tokenResult.ClusterID.IsZero() {
 		// Query MongoDB for the cluster
-		var clusterResult models.Cluster
 		err2 := db.ClusterCollection.FindOne(ctx, bson.M{"_id": tokenResult.ClusterID, "status": enum.VALID}).Decode(&clusterResult)
 		if err2 != nil {
 			return nil, nil, err2
 		}
 	}
-	fmt.Printf("cluster name-----------", clusterResult.WorkerGroup)
+
 	return &tokenResult, &clusterResult, nil
 }
 
