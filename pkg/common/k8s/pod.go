@@ -123,7 +123,6 @@ func (p *GetPodListInputParams) Process(c context.Context) error {
 	var err error
 	var podList *corev1.PodList
 	if p.Search != "" {
-		//listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
 		err = p.Find(c, podClient, limit)
 		if err != nil {
 			log.Logger.Errorw("Failed to get pod list", "err", err.Error())
@@ -178,8 +177,6 @@ func (svc *podService) GetPodList(c context.Context, p GetPodListInputParams) (i
 
 type OutputPodDetails struct {
 	Result corev1.Pod
-	CPU    float64
-	Memory float64
 }
 type GetPodDetailsInputParams struct {
 	NamespaceName string
@@ -194,16 +191,6 @@ func (p *GetPodDetailsInputParams) Process(c context.Context) error {
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod ", p.PodName, "err", err.Error())
 		return err
-	}
-	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), p.PodName, metav1.GetOptions{})
-	if err != nil {
-		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
-	}
-	p.output.CPU = 0
-	p.output.Memory = 0
-	for _, containerMetric := range podMetrics.Containers {
-		p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-		p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
 	}
 	p.output.Result = *pod
 	return nil
@@ -309,12 +296,10 @@ type StatsPod struct {
 	Running int
 	Pending int
 	Failed  int
-	CPU     float64
-	Memory  float64
 }
 
 func (s *StatsPod) New() *StatsPod {
-	return &StatsPod{Total: 0, Running: 0, Pending: 0, Failed: 0, CPU: 0, Memory: 0}
+	return &StatsPod{Total: 0, Running: 0, Pending: 0, Failed: 0}
 }
 
 type GetPodStatsInputParams struct {
@@ -327,11 +312,7 @@ type GetPodStatsInputParams struct {
 func (p *GetPodStatsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod list stats")
 	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
-	//x := corev1.PodLogOptions{} // option as follow
-	//podClient.GetLogs("", &x)
 
-	//podLogRequest:=podClient.GetLogs("", &x)
-	//stream, err:= podLogRequest.Stream(context.TODO())
 	p.output = p.output.New()
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
@@ -343,11 +324,6 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 	podList, err := podClient.List(context.Background(), listOptions)
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod list stats", "err", err.Error())
-		return err
-	}
-	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
 		return err
 	}
 
@@ -367,14 +343,6 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 				}
 			}
 		}
-		for _, podMetric := range podMetrics.Items {
-			if filteredPods[podMetric.Name] {
-				for _, containerMetric := range podMetric.Containers {
-					p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-					p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
-		}
 		return nil
 	}
 
@@ -388,13 +356,6 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 			p.output.Failed += 1
 		case PENDING:
 			p.output.Pending += 1
-		}
-	}
-
-	for _, podMetric := range podMetrics.Items {
-		for _, containerMetric := range podMetric.Containers {
-			p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-			p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
 		}
 	}
 

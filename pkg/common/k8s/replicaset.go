@@ -5,7 +5,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	appv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	v1 "k8s.io/client-go/kubernetes/typed/apps/v1"
@@ -18,7 +17,6 @@ type ReplicaSetServiceInterface interface {
 	GetReplicaSetDetails(c context.Context, p GetReplicaSetDetailsInputParams) (interface{}, error)
 	DeployReplicaSet(c context.Context, p DeployReplicaSetInputParams) (interface{}, error)
 	DeleteReplicaSet(c context.Context, p DeleteReplicaSetInputParams) (interface{}, error)
-	GetReplicaSetStats(c context.Context, p GetReplicaSetStatsInputParams) (interface{}, error)
 }
 
 type replicaSetService struct{}
@@ -264,159 +262,5 @@ func (svc *replicaSetService) DeleteReplicaSet(c context.Context, p DeleteReplic
 	return ResponseDTO{
 		Status: "success",
 		Data:   nil,
-	}, nil
-}
-
-type StatsReplicaSet struct {
-	CPU    float64
-	Memory float64
-}
-
-func (s *StatsReplicaSet) New() *StatsReplicaSet {
-	return &StatsReplicaSet{CPU: 0, Memory: 0}
-}
-
-type GetReplicaSetStatsInputParams struct {
-	NamespaceName string
-	Search        string
-	Labels        map[string]string
-	ReplicaSet    string
-	output        *StatsReplicaSet
-}
-
-const ReplicaSetKind = "ReplicaSet"
-
-func (p *GetReplicaSetStatsInputParams) Process(c context.Context) error {
-	log.Logger.Debugw("fetching replicaset list stats")
-
-	p.output = p.output.New()
-
-	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
-		return err
-	}
-	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
-	podList := &corev1.PodList{}
-	if p.ReplicaSet == "" {
-		podList, err = podClient.List(context.Background(), metav1.ListOptions{})
-		if err != nil {
-			log.Logger.Errorw("Failed to get pod list for replicaset stats", "err", err.Error())
-			return err
-		}
-	}
-
-	filteredPodList := make(map[string]bool)
-	if p.Search != "" {
-		filteredPodList := make(map[string]bool)
-		for _, pod := range podList.Items {
-			if len(pod.ObjectMeta.OwnerReferences) > 0 {
-				owner := pod.ObjectMeta.OwnerReferences[0]
-				if strings.Contains(owner.Name, p.Search) && owner.Kind == ReplicaSetKind {
-					filteredPodList[pod.Name] = true
-				}
-			}
-		}
-		for _, podMetric := range podMetrics.Items {
-			if filteredPodList[podMetric.Name] {
-				for _, containerMetric := range podMetric.Containers {
-					p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-					p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
-		}
-		return nil
-	} else if p.Labels != nil {
-		listOptions := metav1.ListOptions{}
-		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
-		replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
-		replicasetList, err := replicaSetClient.List(context.Background(), listOptions)
-		if err != nil {
-			log.Logger.Errorw("Failed to get replicaset list", "err", err.Error())
-			return err
-		}
-	outerLoop:
-		for _, rs := range replicasetList.Items {
-			for _, pod := range podList.Items {
-				if len(pod.ObjectMeta.OwnerReferences) > 0 {
-					owner := pod.ObjectMeta.OwnerReferences[0]
-					if owner.Name == rs.Name && owner.Kind == ReplicaSetKind {
-						filteredPodList[pod.Name] = true
-						continue outerLoop
-					}
-				}
-			}
-		}
-		for _, podMetric := range podMetrics.Items {
-			if filteredPodList[podMetric.Name] {
-				for _, containerMetric := range podMetric.Containers {
-					p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-					p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
-		}
-		return nil
-	} else if p.ReplicaSet != "" {
-		replicaSetClient := GetKubeClientSet().AppsV1().ReplicaSets(p.NamespaceName)
-		rs, err := replicaSetClient.Get(context.Background(), p.ReplicaSet, metav1.GetOptions{})
-		if err != nil {
-			log.Logger.Errorw("Failed to get replicaset list", "err", err.Error())
-			return err
-		}
-		podList, err := podClient.List(context.TODO(), metav1.ListOptions{
-			LabelSelector: labels.Set(rs.Spec.Selector.MatchLabels).String(), // Convert to string
-		})
-		for _, pod := range podList.Items {
-			if len(pod.ObjectMeta.OwnerReferences) > 0 {
-				owner := pod.ObjectMeta.OwnerReferences[0]
-				if owner.Name == rs.Name && owner.Kind == ReplicaSetKind {
-					filteredPodList[pod.Name] = true
-					continue
-				}
-			}
-		}
-		for _, podMetric := range podMetrics.Items {
-			if filteredPodList[podMetric.Name] {
-				for _, containerMetric := range podMetric.Containers {
-					p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-					p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-				}
-			}
-		}
-		return nil
-	}
-
-	for _, pod := range podList.Items {
-		if len(pod.ObjectMeta.OwnerReferences) > 0 {
-			owner := pod.ObjectMeta.OwnerReferences[0]
-			if owner.Kind == ReplicaSetKind {
-				filteredPodList[pod.Name] = true
-			}
-		}
-	}
-	for _, podMetric := range podMetrics.Items {
-		if filteredPodList[podMetric.Name] {
-			for _, containerMetric := range podMetric.Containers {
-				p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
-				p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (svc *replicaSetService) GetReplicaSetStats(c context.Context, p GetReplicaSetStatsInputParams) (interface{}, error) {
-	err := p.Process(c)
-	if err != nil {
-		return nil, err
-	}
-
-	return ResponseDTO{
-		Status: "success",
-		Data:   p.output,
 	}, nil
 }
