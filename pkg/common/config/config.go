@@ -45,10 +45,10 @@ func InitEnvironmentVariables(filenames ...string) {
 		log.Logger.Infow("Started with AUTH disabled", "[AUTH]", Auth)
 	}
 	if strings.ToLower(os.Getenv("CONTROLLER_GRPC_TLS_ENABLED")) == True {
-		log.Logger.Infow("Controller grpc server tls is enabled. Using tls config", "[grpc-server-tls]", ControllerGrpcTlsEnabled)
+		log.Logger.Infow("Controller grpc server tls is enabled. Using tls config", "[Grpc-Server-Tls]", ControllerGrpcTlsEnabled)
 	} else {
 		ControllerGrpcTlsEnabled = false
-		log.Logger.Infow("Controller grpc server tls is disabled. Skipping tls config", "[grpc-server-tls]", ControllerGrpcTlsEnabled)
+		log.Logger.Infow("Controller grpc server tls is disabled. Skipping tls config", "[Grpc-Server-Tls]", ControllerGrpcTlsEnabled)
 	}
 	if ControllerGrpcTlsEnabled {
 		if strings.ToLower(os.Getenv("CONTROLLER_GRPC_SKIP_TLS_VERIFICATION")) == True {
