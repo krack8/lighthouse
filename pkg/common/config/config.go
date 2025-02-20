@@ -10,13 +10,14 @@ import (
 const DEVELOP = "DEVELOP"
 const PRODUCTION = "PRODUCTION"
 const True = "true"
+const False = "false"
 
 var RunMode string
 var ServerPort = "8080"
 var PageLimit = int64(10)
 var isK8 = "False"
 var KubeConfigFile = "dev-config.yaml"
-var Auth = false
+var Auth = true
 var ControllerGrpcTlsEnabled = true
 var ControllerGrpcSkipTlsVerification = false
 var TlsServerCustomCa = ""
@@ -38,8 +39,8 @@ func InitEnvironmentVariables(filenames ...string) {
 			os.Exit(1)
 		}
 	}
-	if strings.ToLower(os.Getenv("AUTH_ENABLED")) == True {
-		Auth = true
+	if strings.ToLower(os.Getenv("AUTH_ENABLED")) == False {
+		Auth = false
 		log.Logger.Infow("Started with AUTH enabled", "[AUTH]", Auth)
 	} else {
 		log.Logger.Infow("Started with AUTH disabled", "[AUTH]", Auth)
