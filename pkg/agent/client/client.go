@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func ConnectAndIdentifyWorker(ctx context.Context, controllerURL, secretName, resourceNamespace, groupName string, caCertPool *x509.CertPool) (*grpc.ClientConn, grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse], error) {
+func ConnectAndIdentifyWorker(ctx context.Context, controllerGrpcServerHost, secretName, resourceNamespace, groupName string, caCertPool *x509.CertPool) (*grpc.ClientConn, grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse], error) {
 	maxAttempts := 30 // Maximum retry attempts
 	retryInterval := 2 * time.Second
 	var conn *grpc.ClientConn
@@ -29,9 +29,9 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerURL, secretName, re
 			if caCertPool != nil {
 				tlsConfig.RootCAs = caCertPool
 			}
-			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+			conn, err = grpc.NewClient(controllerGrpcServerHost, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		} else {
-			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err = grpc.NewClient(controllerGrpcServerHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 		if err != nil {
 			_log.Logger.Warnw(fmt.Sprintf("Failed to dial controller. Retrying %d", attempt+1), "error", err)

@@ -7,20 +7,20 @@ import (
 )
 
 type Cluster struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name          string             `json:"name" bson:"name"`
-	ClusterType   enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "WORKER"
-	Token         TokenValidation    `json:"-" bson:"token"`
-	AgentGroup    string             `json:"agent_group" bson:"agent_group"`
-	ControllerURL string             `json:"grpc_url" bson:"grpc_url"`
-	IsActive      bool               `json:"is_active" bson:"is_active"`
-	Details       interface{}        `json:"details" bson:"details"`
-	Status        enum.Status        `json:"status" bson:"status"`
-	ClusterStatus enum.ClusterStatus `json:"cluster_status" bson:"cluster_status"`
-	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
-	CreatedBy     string             `json:"created_by" bson:"created_by"`
-	UpdatedBy     string             `json:"updated_by" bson:"updated_by"`
+	ID                       primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name                     string             `json:"name" bson:"name"`
+	ClusterType              enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "WORKER"
+	Token                    TokenValidation    `json:"-" bson:"token"`
+	AgentGroup               string             `json:"agent_group" bson:"agent_group"`
+	ControllerGrpcServerHost string             `json:"controller_grpc_server_host" bson:"controller_grpc_server_host"`
+	IsActive                 bool               `json:"is_active" bson:"is_active"`
+	Details                  interface{}        `json:"details" bson:"details"`
+	Status                   enum.Status        `json:"status" bson:"status"`
+	ClusterStatus            enum.ClusterStatus `json:"cluster_status" bson:"cluster_status"`
+	CreatedAt                time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt                time.Time          `json:"updated_at" bson:"updated_at"`
+	CreatedBy                string             `json:"created_by" bson:"created_by"`
+	UpdatedBy                string             `json:"updated_by" bson:"updated_by"`
 }
 
 type TokenValidation struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/krack8/lighthouse/pkg/common/log"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"os"
@@ -32,13 +33,15 @@ func Login(username string, password string) (string, string, error) {
 		return "", "", err
 	}
 
+	jwtSecret := config.SetEnvWithDefault("JWT_SECRET", "default_jwt_secret_please_change")
+	jwtRefreshSecret := config.SetEnvWithDefault("JWT_REFRESH_SECRET", "default_jwt_refresh_secret_please_change")
 	// Generate JWT tokens with the username and permissions
-	accessToken, err := utils.GenerateToken(username, os.Getenv("JWT_SECRET"), accessTokenExpiry)
+	accessToken, err := utils.GenerateToken(username, jwtSecret, accessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(username, os.Getenv("JWT_REFRESH_SECRET"), refreshTokenExpiry)
+	refreshToken, err := utils.GenerateToken(username, jwtRefreshSecret, refreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}

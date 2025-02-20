@@ -97,7 +97,7 @@ func UpdateClusterStatusToActive(clusterID primitive.ObjectID) error {
 }
 
 // CreateCluster creates a new cluster and inserts it into the database
-func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models.Cluster, error) {
+func (s *ClusterService) CreateAgentCluster(name, controllerGrpcServerHost string) (*models.Cluster, error) {
 	agentClusterID := primitive.NewObjectID()
 
 	// Generate a raw token
@@ -137,19 +137,19 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 
 	// Create a new cluster
 	cluster := &models.Cluster{
-		ID:            agentClusterID,
-		Name:          name,
-		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
-		Token:         agentToken,
-		AgentGroup:    agentClusterID.Hex(),
-		IsActive:      false,
-		ControllerURL: controllerURL,
-		Status:        enum.VALID,
-		ClusterStatus: enum.PENDING,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-		CreatedBy:     string(enum.SYSTEM),
-		UpdatedBy:     string(enum.SYSTEM),
+		ID:                       agentClusterID,
+		Name:                     name,
+		ClusterType:              enum.WORKER, // Set default cluster type to WORKER
+		Token:                    agentToken,
+		AgentGroup:               agentClusterID.Hex(),
+		IsActive:                 false,
+		ControllerGrpcServerHost: controllerGrpcServerHost,
+		Status:                   enum.VALID,
+		ClusterStatus:            enum.PENDING,
+		CreatedAt:                time.Now(),
+		UpdatedAt:                time.Now(),
+		CreatedBy:                string(enum.SYSTEM),
+		UpdatedBy:                string(enum.SYSTEM),
 	}
 
 	// Insert the new cluster into the MongoDB collection

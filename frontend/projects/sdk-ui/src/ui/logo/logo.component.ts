@@ -12,7 +12,7 @@ import { CoreConfigService, ICoreConfig } from '@core-ui/services';
     <ng-container *ngIf="config$ | async as config; else placeholderLoading">
       <img
         [ngStyle]="{ width: logoWidth }"
-        [src]="config?.logoUrl || (config?.webTheme?.includes('DARK') ? 'assets/images/logo-dark.svg' : 'assets/images/logo-light.svg')"
+        [src]="config?.logoUrl || (config?.webTheme?.includes('DARK') ? 'assets/images/Lighthouse-logo.svg' : 'assets/images/Lighthouse-logo.svg')"
       />
       <!-- Power By -->
       <div class="power_by" *ngIf="showPowerBy && (config?.logoUrl || config?.favicon || config?.name)">

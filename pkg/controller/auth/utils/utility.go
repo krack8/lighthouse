@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"golang.org/x/crypto/bcrypt"
@@ -168,7 +169,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 		return "", fmt.Errorf("failed to fetch secret: %w", err)
 	}
 
-	runMode := os.Getenv("RUN_MODE")
+	runMode := config.RunMode
 	if runMode != "PRODUCTION" {
 		// Update existing secret
 		log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),
