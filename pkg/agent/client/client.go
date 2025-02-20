@@ -23,15 +23,15 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerURL, secretName, re
 	var err error
 	var tlsConfig *tls.Config
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		if config.IsInternalServer() {
-			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		} else {
+		if config.IsControllerGrpcTlsEnabled() {
 			tlsConfig = &tls.Config{}
-			tlsConfig.InsecureSkipVerify = config.IsSkipServerTlsVerification()
+			tlsConfig.InsecureSkipVerify = config.IsControllerGrpcSkipTlsVerification()
 			if caCertPool != nil {
 				tlsConfig.RootCAs = caCertPool
 			}
 			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+		} else {
+			conn, err = grpc.NewClient(controllerURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 		if err != nil {
 			_log.Logger.Warnw(fmt.Sprintf("Failed to dial controller. Retrying %d", attempt+1), "error", err)

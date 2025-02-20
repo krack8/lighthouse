@@ -22,7 +22,7 @@ kind create cluster --name lighthouse
 #### 4. Set Environment Variables (in .env file):
 - Set `RUN_MODE=DEVELOP`
 - Set `KUBE_CONFIG_FILE=YOUR_KUBECONFIG_FILENAME`. Kubeconfig file is expected in `$HOME/.kube` directory.
-- Set `IS_INTERNAL_SERVER="TRUE"`
+- Set `CONTROLLER_GRPC_TLS_ENABLED="true"`
 - Set `MONGO_URI=YOUR_MONGO_CONNECTION_URI`
 #### 5. Download Dependencies
 ```azure
