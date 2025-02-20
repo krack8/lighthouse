@@ -26,7 +26,7 @@ func main() {
 
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
 	groupName := config.AgentGroup
-	controllerURL := config.GrpcServer
+	controllerURL := config.ControllerGrpcServerHost
 	secretName := config.AgentSecretName
 	resourceNamespace := config.ResourceNamespace
 
@@ -39,7 +39,7 @@ func main() {
 		_log.Logger.Errorw("Missing env variable AGENT_GROUP", "err", "AGENT_GROUP env variable is not found in kubernetes secret")
 	}
 
-	_log.Logger.Infow("Starting worker", "groupName", groupName)
+	_log.Logger.Infow("Starting agent", "groupName", groupName)
 
 	tasks.InitTaskRegistry()
 	var caCertPool *x509.CertPool
@@ -62,7 +62,7 @@ func main() {
 
 		conn, stream, err := agentClient.ConnectAndIdentifyWorker(ctx, controllerURL, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
-			_log.Logger.Fatalw("Failed to connect and identify worker", "error", err)
+			_log.Logger.Fatalw("Failed to connect and identify agent", "error", err)
 			continue
 		}
 		streamErrorChan := make(chan error)
@@ -71,7 +71,7 @@ func main() {
 			for {
 				in, err := stream.Recv()
 				if err != nil {
-					_log.Logger.Infow("Stream Receive error (worker)", "err", err)
+					_log.Logger.Infow("Stream Receive error (agent)", "err", err)
 					streamErrorChan <- err
 					return
 				}
@@ -80,7 +80,7 @@ func main() {
 
 				case *pb.TaskStreamResponse_NewTask:
 					task := payload.NewTask
-					_log.Logger.Infow("Worker received a new task: ID=%s, payload=%s",
+					_log.Logger.Infow("Agent received a new task: ID=%s, payload=%s",
 						task.Id, task.Payload)
 					go func(taskID, taskPayload string, task *pb.Task) {
 						taskMutex.Lock()
@@ -113,7 +113,7 @@ func main() {
 					}(task.Id, task.Payload, task)
 
 				case *pb.TaskStreamResponse_Ack:
-					_log.Logger.Infow("Worker received an ACK from server: "+payload.Ack.Message, "info", "ACK")
+					_log.Logger.Infow("Agent received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
 					if strings.ReplaceAll(payload.Ack.Message, " ", "") == "InvalidAgentToken" {
 						_log.Logger.Errorw("Unauthorized: token is invalid", "err", "unauthorized")
@@ -158,7 +158,7 @@ func main() {
 			}
 		}()
 
-		// Keep the worker alive.
+		// Keep the agent alive.
 		select {
 		case <-ctx.Done(): // Context cancelled (e.g., shutdown)
 			_log.Logger.Infow("Context cancelled")

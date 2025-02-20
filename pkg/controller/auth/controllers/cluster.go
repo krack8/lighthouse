@@ -76,7 +76,7 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 		Id:            cluster.ID.Hex(),
 		Name:          cluster.Name,
 		Token:         cluster.Token.RawTokenHash,
-		ControllerURL: config.GrpcServer,
+		ControllerURL: config.ControllerGrpcServerHost,
 		SecretName:    config.AgentSecretName,
 	}
 
@@ -129,7 +129,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse \\\n --set agent.enabled=true \\\n --set config.controller.grpc.tls.enabled=true \\\n --set config.controller.grpc.tls.skipVerification=false  \\\n --set agent.group=" + Cluster.AgentGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set config.controller.grpc.host=" + config.GrpcServer,
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse \\\n --set agent.enabled=true \\\n --set config.controller.grpc.tls.enabled=true \\\n --set config.controller.grpc.tls.skipVerification=false  \\\n --set agent.group=" + Cluster.AgentGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set config.controller.grpc.host=" + config.ControllerGrpcServerHost,
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
