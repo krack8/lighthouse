@@ -14,10 +14,10 @@ type ResourceGroup string
 
 const (
 	//Permission categories
-	DEFAULT    PermissionCategory = "DEFAULT"
-	CLUSTER    PermissionCategory = "CLUSTER"
-	MANAGEMENT PermissionCategory = "MANAGEMENT"
-	HELM       PermissionCategory = "HELM"
+	DEFAULT         PermissionCategory = "DEFAULT"
+	KUBERNETES      PermissionCategory = "KUBERNETES"
+	USER_MANAGEMENT PermissionCategory = "USER_MANAGEMENT"
+	HELM            PermissionCategory = "HELM"
 
 	//CLUSTER Permission names
 	DEFAULT_PERMISSION                PermissionName = "DEFAULT_PERMISSION"
