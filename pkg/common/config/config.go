@@ -41,9 +41,9 @@ func InitEnvironmentVariables(filenames ...string) {
 	}
 	if strings.ToLower(os.Getenv("AUTH_ENABLED")) == False {
 		Auth = false
-		log.Logger.Infow("Started with AUTH enabled", "[AUTH]", Auth)
-	} else {
 		log.Logger.Infow("Started with AUTH disabled", "[AUTH]", Auth)
+	} else {
+		log.Logger.Infow("Started with AUTH enabled", "[AUTH]", Auth)
 	}
 	if strings.ToLower(os.Getenv("CONTROLLER_GRPC_TLS_ENABLED")) == True {
 		log.Logger.Infow("Controller grpc server tls is enabled. Using tls config", "[Grpc-Server-Tls]", ControllerGrpcTlsEnabled)
