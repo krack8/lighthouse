@@ -10,7 +10,7 @@ const routes: Routes = [
     component: UserListComponent,
     data: {
       title: 'Management | User',
-      permissions: ['MANAGE_USER']
+      permissions: ['VIEW_USER']
     },
     canActivate: [AuthGuard]
   },
