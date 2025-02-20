@@ -48,8 +48,8 @@ func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
 // CreateClusterHandler handles creating a new Cluster.
 func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	var request struct {
-		Name          string `json:"name"`
-		ControllerURl string `json:"grpc_url"`
+		Name                     string `json:"name"`
+		controllerGrpcServerHost string `json:"controller_grpc_host_url"`
 	}
 
 	// Bind the JSON payload to the request struct
@@ -59,7 +59,7 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	}
 
 	// Create the cluster
-	cluster, err := uc.ClusterService.CreateAgentCluster(request.Name, request.ControllerURl)
+	cluster, err := uc.ClusterService.CreateAgentCluster(request.Name, request.controllerGrpcServerHost)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
@@ -67,17 +67,17 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 
 	// Prepare the response with additional information
 	response := struct {
-		Id            string `json:"id"`
-		Name          string `json:"name"`
-		Token         string `json:"token"`
-		ControllerURL string `json:"grpc_url"`
-		SecretName    string `json:"secret_name"`
+		Id                       string `json:"id"`
+		Name                     string `json:"name"`
+		Token                    string `json:"token"`
+		ControllerGrpcServerHost string `json:"controller_grpc_host_url"`
+		SecretName               string `json:"secret_name"`
 	}{
-		Id:            cluster.ID.Hex(),
-		Name:          cluster.Name,
-		Token:         cluster.Token.RawTokenHash,
-		ControllerURL: config.ControllerGrpcServerHost,
-		SecretName:    config.AgentSecretName,
+		Id:                       cluster.ID.Hex(),
+		Name:                     cluster.Name,
+		Token:                    cluster.Token.RawTokenHash,
+		ControllerGrpcServerHost: config.ControllerGrpcServerHost,
+		SecretName:               config.AgentSecretName,
 	}
 
 	// Respond with the newly created cluster
