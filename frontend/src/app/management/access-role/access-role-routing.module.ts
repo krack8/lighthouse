@@ -13,7 +13,7 @@ const routes: Routes = [
     data: {
       title: 'Roles',
       toolbarTitle: 'Roles',
-      permissions: ['MANAGE_ROLE']
+      permissions: ['VIEW_ROLE']
     }
   },
   {

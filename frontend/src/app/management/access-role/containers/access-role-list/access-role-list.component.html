@@ -60,6 +60,8 @@
                   <h3 class="permission_container_title">Permission List</h3>
                   <div class="flex items-center ml-4 lg:ml-auto">
                     <a
+                      *ngIf="role?.created_by !== 'SYSTEM'"
+                      [disabled]="role?.created_by === 'SYSTEM'"
                       class="permission_btn"
                       [routerLink]="['/manage/roles', role?.id, 'edit']"
                       mat-flat-button

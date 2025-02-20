@@ -49,14 +49,14 @@ export const SIDENAV_LIST: SidenavLink[] = [
         type: 'link',
         label: 'Users',
         route: '/manage/users',
-        permissionName: 'ROLE_ADMIN',
+        permissionName: 'VIEW_USER',
         id: 'users'
       },
       {
         type: 'link',
         label: 'Roles',
         route: '/manage/roles',
-        permissionName: 'ROLE_ADMIN',
+        permissionName: '"VIEW_ROLE"',
         id: 'roles'
       }
     ]
