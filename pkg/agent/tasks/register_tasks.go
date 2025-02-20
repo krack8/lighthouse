@@ -164,7 +164,6 @@ func InitTaskRegistry() {
 	//replicaSet
 	RegisterTask(k8s2.ReplicaSetService().GetReplicaSetList, k8s2.GetReplicaSetListInputParams{})
 	RegisterTask(k8s2.ReplicaSetService().GetReplicaSetDetails, k8s2.GetReplicaSetDetailsInputParams{})
-	RegisterTask(k8s2.ReplicaSetService().GetReplicaSetStats, k8s2.GetReplicaSetStatsInputParams{})
 	RegisterTask(k8s2.ReplicaSetService().DeployReplicaSet, k8s2.DeployReplicaSetInputParams{})
 	RegisterTask(k8s2.ReplicaSetService().DeleteReplicaSet, k8s2.DeleteReplicaSetInputParams{})
 

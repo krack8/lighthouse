@@ -202,7 +202,6 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// ReplicaSet
 	httpRg.GET("/replicaset", api2.ReplicaSetController().GetReplicaSetList)
 	httpRg.GET("/replicaset/:name", api2.ReplicaSetController().GetReplicaSetDetails)
-	httpRg.GET("/replicaset/stats", api2.ReplicaSetController().GetReplicaSetStats)
 	httpRg.POST("/replicaset", api2.ReplicaSetController().DeployReplicaSet)
 	httpRg.DELETE("/replicaset/:name", api2.ReplicaSetController().DeleteReplicaSet)
 
