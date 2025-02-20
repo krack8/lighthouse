@@ -32,14 +32,12 @@ go mod tidy
 #### 6. Run Controller
 
 ```azure
-cd pkg/controller
-go run main.go
+go run pkg/controller/main.go
 ```
 
 #### 7. Run Agent
 ```azure
-cd pkg/agent
-go run main.go
+go run pkg/agent/main.go
 ```
 
 #### 7. Run Frontend
