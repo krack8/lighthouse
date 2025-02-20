@@ -25,12 +25,12 @@ func main() {
 	k8s.InitiateKubeClientSet()
 
 	// For demonstration, we'll just run a single worker that belongs to "GroupA".
-	groupName := config.WorkerGroup
+	groupName := config.AgentGroup
 	controllerURL := config.GrpcServer
 	secretName := config.AgentSecretName
 	resourceNamespace := config.ResourceNamespace
 
-	groupName, err := utils.GetWorkerGroup(secretName, resourceNamespace)
+	groupName, err := utils.GetAgentGroup(secretName, resourceNamespace)
 	if err != nil {
 		log.Fatalf("Failed to get "+secretName+" secret: %v", err)
 	}
