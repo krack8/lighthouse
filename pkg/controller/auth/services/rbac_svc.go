@@ -301,10 +301,10 @@ func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResp
 
 	// Process roles and permissions
 	permissionMap := map[enum.PermissionCategory]*[]dto.PermissionDTO{
-		enum.DEFAULT:    &response.Default,
-		enum.CLUSTER:    &response.Cluster,
-		enum.MANAGEMENT: &response.Management,
-		enum.HELM:       &response.HelmApps,
+		enum.DEFAULT:         &response.Default,
+		enum.KUBERNETES:      &response.Cluster,
+		enum.USER_MANAGEMENT: &response.Management,
+		enum.HELM:            &response.HelmApps,
 		// Map new categories here
 	}
 

@@ -11,7 +11,7 @@ type Cluster struct {
 	Name          string             `json:"name" bson:"name"`
 	ClusterType   enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "WORKER"
 	Token         TokenValidation    `json:"-" bson:"token"`
-	WorkerGroup   string             `json:"worker_group" bson:"worker_group"`
+	AgentGroup    string             `json:"agent_group" bson:"agent_group"`
 	ControllerURL string             `json:"controller_url" bson:"controller_url"`
 	IsActive      bool               `json:"is_active" bson:"is_active"`
 	Details       interface{}        `json:"details" bson:"details"`

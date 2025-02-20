@@ -86,14 +86,14 @@ func IsAgentAuthTokenAndGroupValid(authToken, groupName string) (bool, bool) {
 	}
 
 	// Add nil check before accessing ClusterID
-	if clusterDetails == nil || clusterDetails.WorkerGroup == "" {
+	if clusterDetails == nil || clusterDetails.AgentGroup == "" {
 		log.Logger.Warnw("Invalid Group: cluster group is missing in DB", "groupName", groupName)
 		return true, false
 	}
 
-	if clusterDetails.WorkerGroup != groupName {
+	if clusterDetails.AgentGroup != groupName {
 		log.Logger.Warnw("Invalid cluster group. The group is not registered with this cluster",
-			"expected", clusterDetails.WorkerGroup,
+			"expected", clusterDetails.AgentGroup,
 			"received", groupName)
 		return true, false
 	}
