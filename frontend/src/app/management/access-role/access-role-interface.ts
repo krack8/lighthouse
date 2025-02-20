@@ -1,34 +1,41 @@
-export interface IEndpoint {
-  route: string;
-  method: string;
-}
+// task: Task = {
+//   name: 'Indeterminate',
+//   completed: false,
+//   color: 'primary',
+//   subtasks: [
+//     {name: 'Primary', completed: false, color: 'primary'},
+//     {name: 'Accent', completed: false, color: 'accent'},
+//     {name: 'Warn', completed: false, color: 'warn'},
+//   ],
+// };
 
 export interface IRole {
   id: string;
-  name: string;
   description: string;
-  permissions: IPermission[];
-  status;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  updated_by: string;
+  roleName: string;
+  listOfPermission: IPermissionListObject;
+  createdDate: string;
+  createdBy: string;
+  updatedDate: string;
 }
 
 export interface IPermission {
   id: string;
   name: string;
   description?: string;
-  endpoint_list: IEndpoint[];
-  category?: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  updated_by: string;
+}
+
+export interface IPermissionListObject {
+  [key: string]: IPermission[];
 }
 
 export interface IFormPermission extends IPermission {
-  label: string;
   checked: boolean;
+}
+
+export interface IFormCategoryPermission {
+  name: string;
+  label?: string;
+  completed: boolean;
+  permissions: IFormPermission[];
 }

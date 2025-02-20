@@ -9,15 +9,17 @@
         <mat-horizontal-stepper #stepper [linear]="false" class="w-full role-stepper">
           <mat-step [stepControl]="roleForm" style="pointer-events: none" @fadeInUp>
             <form [formGroup]="roleForm">
-              <div class="grid sm:grid-cols-2 xxl:grid-cols-3 gap-4">
-                <mat-form-field appearance="outline" class="custom-mat-form-field role-name-mat-form-field">
+              <div class="flex flex-col">
+                <mat-form-field appearance="outline" class="custom-mat-form-field role-name-mat-form-field mt-2">
                   <mat-label>Role Name</mat-label>
-                  <input formControlName="name" id="role-name" matInput required />
-                  <mat-error *ngIf="roleForm?.get('name')?.touched && roleForm.get('name')?.hasError('required')" class="form-error"
+                  <input formControlName="roleName" id="role-name" matInput required />
+                  <mat-error
+                    *ngIf="roleForm?.get('roleName')?.touched && roleForm.get('roleName')?.hasError('required')"
+                    class="form-error"
                     >Role Name is required</mat-error
                   >
                 </mat-form-field>
-                <mat-form-field class="custom-mat-form-field role-desc-mat-form-field" appearance="outline">
+                <mat-form-field class="custom-mat-form-field role-desc-mat-form-field mt-2" appearance="outline">
                   <mat-label>Description</mat-label>
                   <textarea cols="1" formControlName="description" id="description" matInput></textarea>
                 </mat-form-field>
@@ -45,18 +47,31 @@
               </div>
               <div class="_role-expansion_container">
                 <div class="_role-expansion_row">
-                  <div class="_role-expansion-panel">
-                    <div class="_role-expansion-panel-header">
-                      <mat-checkbox
-                        color="primary"
-                        class="mr-4"
-                        [checked]="allComplete"
-                        [indeterminate]="someComplete()"
-                        (change)="setAll($event.checked)"
-                      ></mat-checkbox>
-                      <div class="w-full">ALL</div>
-                    </div>
-                    <div class="px-8 py-6">
+                  <mat-accordion class="role-accordion" multi>
+                    <mat-expansion-panel class="_role-expansion-panel-header" disabled>
+                      <mat-expansion-panel-header class="mat-row">
+                        <div class="table w-full">
+                          <div class="role-cell role-cell_name">Category</div>
+                        </div>
+                      </mat-expansion-panel-header>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel
+                      *ngFor="let category of permissions | filter : searchAccess"
+                      class="_role-expansion-panel"
+                    >
+                      <mat-expansion-panel-header class="mat-row">
+                        <mat-checkbox
+                          [checked]="category.completed"
+                          color="primary"
+                          [id]="'access-' + category.name | lowercase"
+                          [name]="category.name"
+                          class="mr-4"
+                          (change)="setAll($event)"
+                          [indeterminate]="someChecked(category.name)"
+                          (click)="stopPropagation($event)"
+                        ></mat-checkbox>
+                        <div class="w-full">{{ category.label }}</div>
+                      </mat-expansion-panel-header>
                       <div class="permission-wrapper">
                         <table class="_table">
                           <thead>
@@ -66,9 +81,10 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr *ngFor="let permission of permissions | filter: searchAccess; let i = index">
+                            <tr *ngFor="let permission of category.permissions; let i = index">
                               <td>
                                 <mat-checkbox
+                                  #permissionCheckbox
                                   color="primary"
                                   [id]="permission.name | lowercase"
                                   class="mr-4"
@@ -76,8 +92,8 @@
                                   [(ngModel)]="permission.checked"
                                   [value]="permission.id"
                                   [ngModelOptions]="{ standalone: true }"
-                                  (ngModelChange)="updateAllComplete()"
-                                  ><span class="ml-2">{{ permission.label }}</span></mat-checkbox
+                                  (change)="permissionCheckEvent($event, category.name)"
+                                  ><span class="ml-2">{{ permission.name | strReplace : '_' }}</span></mat-checkbox
                                 >
                               </td>
                               <td>
@@ -87,13 +103,15 @@
                           </tbody>
                         </table>
                       </div>
-                    </div>
-                  </div>
+                    </mat-expansion-panel>
+                  </mat-accordion>
                 </div>
               </div>
             </form>
             <div class="actions mt-8 flex justify-end">
-              <button [disabled]="roleForm.invalid" mat-flat-button color="accent" id="preview" (click)="next()">Preview</button>
+              <button [disabled]="roleForm.invalid" mat-flat-button matStepperNext color="accent" id="preview">
+                Preview
+              </button>
             </div>
           </mat-step>
           <mat-step>
@@ -103,16 +121,16 @@
                 <div class="info-name-box max-w-sm mb-8" fxLayout="row" fxLayoutAlign="start center">
                   <div>
                     <p class="_label">Role Name</p>
-                    <p class="_val">{{ roleForm.value.name }}</p>
+                    <p class="_val">{{ roleForm.value.roleName }}</p>
                   </div>
                 </div>
-                <div>
-                  <div class="prev-category">
-                    <h3 class="prev-category__title">Access</h3>
+                <div *ngFor="let cat of permissions">
+                  <div class="prev-category" *ngIf="isCategoryContainerPermission($any(cat).name)">
+                    <h3 class="prev-category__title">{{ cat.name }}</h3>
                     <div class="prev-category__permission">
-                      <span *ngFor="let __permission of permissions">
+                      <span *ngFor="let __permission of cat.permissions">
                         <div *ngIf="__permission.checked" class="permission-chip mt-2">
-                          {{ __permission.label }}
+                          {{ __permission.name | strReplace : '_' }}
                         </div>
                       </span>
                     </div>

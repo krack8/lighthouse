@@ -6,8 +6,8 @@ import (
 	"fmt"
 	db "github.com/krack8/lighthouse/pkg/controller/auth/config"
 	"github.com/krack8/lighthouse/pkg/controller/auth/dto"
-	enum2 "github.com/krack8/lighthouse/pkg/controller/auth/enum"
-	models2 "github.com/krack8/lighthouse/pkg/controller/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,7 +28,7 @@ func NewRbacService(collection Collection) *RbacService {
 }
 
 // CreatePermission creates a new permission
-func (r *RbacService) CreatePermission(permission models2.Permission) (primitive.ObjectID, error) {
+func (r *RbacService) CreatePermission(permission models.Permission) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -40,7 +40,7 @@ func (r *RbacService) CreatePermission(permission models2.Permission) (primitive
 }
 
 // CreateRole creates a new role
-func (r *RbacService) CreateRole(role models2.Role) (primitive.ObjectID, error) {
+func (r *RbacService) CreateRole(role models.Role) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -66,18 +66,18 @@ func (r *RbacService) CreateRole(role models2.Role) (primitive.ObjectID, error) 
 // AssignRole assigns roles to a user.
 func (r *RbacService) AssignRole(username string, roleIds []string) error {
 	// Find user by username
-	var user models2.User
+	var user models.User
 	err := db.UserCollection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
 	if err != nil {
 		return errors.New("user not found")
 	}
 
 	// Loop through roleNames and add roles
-	var roles []models2.Role
+	var roles []models.Role
 	for _, roleId := range roleIds {
 		objectID, err := primitive.ObjectIDFromHex(roleId)
-		var role models2.Role
-		err = db.RoleCollection.FindOne(context.Background(), bson.M{"_id": objectID, "status": enum2.VALID}).Decode(&role)
+		var role models.Role
+		err = db.RoleCollection.FindOne(context.Background(), bson.M{"_id": objectID, "status": enum.VALID}).Decode(&role)
 		if err != nil {
 			return fmt.Errorf("role '%s' not found with Id", objectID)
 		}
@@ -130,7 +130,7 @@ func normalizeRoute(route string) string {
 }
 
 // GetAllRoles retrieves all roles
-func (r *RbacService) GetAllRoles() ([]models2.Role, error) {
+func (r *RbacService) GetAllRoles() ([]models.Role, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -147,7 +147,7 @@ func (r *RbacService) GetAllRoles() ([]models2.Role, error) {
 	}(cursor, ctx)
 
 	// Slice to store roles
-	var roles []models2.Role
+	var roles []models.Role
 
 	// Decode all roles
 	if err = cursor.All(ctx, &roles); err != nil {
@@ -158,7 +158,7 @@ func (r *RbacService) GetAllRoles() ([]models2.Role, error) {
 }
 
 // GetRoleByID retrieves a specific role by its ID
-func (r *RbacService) GetRoleByID(roleID string) (*models2.Role, error) {
+func (r *RbacService) GetRoleByID(roleID string) (*models.Role, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -169,8 +169,8 @@ func (r *RbacService) GetRoleByID(roleID string) (*models2.Role, error) {
 	}
 
 	// Find the role by ID
-	var role models2.Role
-	err = db.RoleCollection.FindOne(ctx, bson.M{"_id": objectID, "status": enum2.VALID}).Decode(&role)
+	var role models.Role
+	err = db.RoleCollection.FindOne(ctx, bson.M{"_id": objectID, "status": enum.VALID}).Decode(&role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve role: %v", err)
 	}
@@ -189,14 +189,14 @@ func (r *RbacService) DeleteRoleByID(roleID string) error {
 	_, err = db.RoleCollection.UpdateOne(
 		context.Background(),
 		bson.M{"_id": objectID},
-		bson.M{"$set": bson.M{"status": enum2.DELETED}},
+		bson.M{"$set": bson.M{"status": enum.DELETED}},
 	)
 
 	return nil
 }
 
 // GetAllPermissions retrieves all permissions
-func (r *RbacService) GetAllPermissions() ([]models2.Permission, error) {
+func (r *RbacService) GetAllPermissions() (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -213,18 +213,21 @@ func (r *RbacService) GetAllPermissions() ([]models2.Permission, error) {
 	}(cursor, ctx)
 
 	// Slice to store permissions
-	var permissions []models2.Permission
+	var permissions []models.Permission
 
 	// Decode all permissions
 	if err = cursor.All(ctx, &permissions); err != nil {
 		return nil, fmt.Errorf("failed to decode permissions: %v", err)
 	}
-
-	return permissions, nil
+	var categorizedPermissions = make(map[enum.PermissionCategory][]models.Permission)
+	for _, permissions := range permissions {
+		categorizedPermissions[permissions.Category] = append(categorizedPermissions[permissions.Category], permissions)
+	}
+	return categorizedPermissions, nil
 }
 
 // GetPermissionByID retrieves a specific permission by its ID
-func (r *RbacService) GetPermissionByID(permissionID string) (*models2.Permission, error) {
+func (r *RbacService) GetPermissionByID(permissionID string) (*models.Permission, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -235,7 +238,7 @@ func (r *RbacService) GetPermissionByID(permissionID string) (*models2.Permissio
 	}
 
 	// Find the permission by ID
-	var permission models2.Permission
+	var permission models.Permission
 	err = db.PermissionCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&permission)
 	if err != nil {
 
@@ -246,7 +249,7 @@ func (r *RbacService) GetPermissionByID(permissionID string) (*models2.Permissio
 }
 
 // GetPermissionsByCategory retrieves permissions by their category
-func (r *RbacService) GetPermissionsByCategory(category string) ([]models2.Permission, error) {
+func (r *RbacService) GetPermissionsByCategory(category string) ([]models.Permission, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -263,7 +266,7 @@ func (r *RbacService) GetPermissionsByCategory(category string) ([]models2.Permi
 	}(cursor, ctx)
 
 	// Slice to store permissions
-	var permissions []models2.Permission
+	var permissions []models.Permission
 
 	// Decode all permissions
 	if err = cursor.All(ctx, &permissions); err != nil {
@@ -297,11 +300,11 @@ func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResp
 	}
 
 	// Process roles and permissions
-	permissionMap := map[enum2.PermissionCategory]*[]dto.PermissionDTO{
-		enum2.DEFAULT:    &response.Default,
-		enum2.CLUSTER:    &response.Cluster,
-		enum2.MANAGEMENT: &response.Management,
-		enum2.HELM:       &response.HelmApps,
+	permissionMap := map[enum.PermissionCategory]*[]dto.PermissionDTO{
+		enum.DEFAULT:    &response.Default,
+		enum.CLUSTER:    &response.Cluster,
+		enum.MANAGEMENT: &response.Management,
+		enum.HELM:       &response.HelmApps,
 		// Map new categories here
 	}
 
@@ -310,7 +313,7 @@ func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResp
 	for _, role := range user.Roles {
 		for _, perm := range role.Permissions {
 			// Skip invalid or duplicate permissions
-			if perm.Status != enum2.VALID || seenPermissions[perm.ID] {
+			if perm.Status != enum.VALID || seenPermissions[perm.ID] {
 				continue
 			}
 			seenPermissions[perm.ID] = true
@@ -330,7 +333,7 @@ func (r *RbacService) GetPermissionsByUser(username string) (*dto.PermissionResp
 	return response, nil
 }
 
-func (r *RbacService) UpdateRole(role models2.Role) error {
+func (r *RbacService) UpdateRole(role models.Role) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -342,7 +345,7 @@ func (r *RbacService) UpdateRole(role models2.Role) error {
 	// Create update filter
 	filter := bson.M{
 		"_id":    role.ID,
-		"status": enum2.VALID,
+		"status": enum.VALID,
 	}
 
 	// Create update document
@@ -370,7 +373,7 @@ func (r *RbacService) UpdateRole(role models2.Role) error {
 	return nil
 }
 
-func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit int) ([]models2.User, int64, error) {
+func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit int) ([]models.User, int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -381,7 +384,7 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	matchStage := bson.D{
 		{"$match", bson.D{
 			{"roles._id", roleID},
-			{"status", enum2.VALID},
+			{"status", enum.VALID},
 		}},
 	}
 
@@ -438,7 +441,7 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 	}(cursor, ctx)
 
 	// Decode results
-	var users []models2.User
+	var users []models.User
 	if err = cursor.All(ctx, &users); err != nil {
 		return nil, 0, err
 	}
@@ -447,10 +450,10 @@ func (r *RbacService) GetUsersByRoleID(roleID primitive.ObjectID, page, limit in
 }
 
 // GetRoleByName fetch roles
-func GetRoleByName(name string) ([]models2.Role, error) {
-	var roles []models2.Role
-	var singleRole models2.Role
-	filter := bson.M{"name": name, "status": enum2.VALID}
+func GetRoleByName(name string) ([]models.Role, error) {
+	var roles []models.Role
+	var singleRole models.Role
+	filter := bson.M{"name": name, "status": enum.VALID}
 	if err := db.RoleCollection.FindOne(context.Background(), filter).Decode(&singleRole); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("role not found")
