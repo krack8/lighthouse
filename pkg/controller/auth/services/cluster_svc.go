@@ -141,7 +141,7 @@ func (s *ClusterService) CreateAgentCluster(name, controllerURL string) (*models
 		Name:          name,
 		ClusterType:   enum.WORKER, // Set default cluster type to WORKER
 		Token:         agentToken,
-		WorkerGroup:   agentClusterID.Hex(),
+		AgentGroup:    agentClusterID.Hex(),
 		IsActive:      false,
 		ControllerURL: controllerURL,
 		Status:        enum.VALID,

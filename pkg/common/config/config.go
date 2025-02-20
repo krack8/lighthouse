@@ -18,7 +18,7 @@ var Auth = false
 var InternalServer = false
 var SkipServerTlsVerification = false
 var TlsServerCustomCa = ""
-var WorkerGroup string
+var AgentGroup string
 var GrpcServer string
 var AgentSecretName string
 var ResourceNamespace string
@@ -61,7 +61,7 @@ func InitEnvironmentVariables(filenames ...string) {
 	KubeConfigFile = os.Getenv("KUBE_CONFIG_FILE")
 	isK8 = os.Getenv("IS_K8")
 	TlsServerCustomCa = os.Getenv("TLS_SERVER_CUSTOM_CA")
-	WorkerGroup = os.Getenv("AGENT_GROUP")
+	AgentGroup = os.Getenv("AGENT_GROUP")
 	GrpcServer = os.Getenv("GRPC_SERVER")
 	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
 	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")

@@ -214,7 +214,7 @@ func InitializeClusters() {
 			ID:            agentClusterID,
 			Name:          clusterName,
 			ClusterType:   enum.WORKER,
-			WorkerGroup:   agentClusterID.Hex(),
+			AgentGroup:    agentClusterID.Hex(),
 			Token:         agentToken,
 			Status:        enum.VALID,
 			ClusterStatus: enum.PENDING,

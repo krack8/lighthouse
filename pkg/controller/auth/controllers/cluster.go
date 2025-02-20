@@ -99,8 +99,8 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 		return
 	}
 
-	if removed := core.GetAgentManager().RemoveAgentByGroupName(cluster.WorkerGroup); !removed {
-		_ = fmt.Errorf("failed to remove worker group: %s", cluster.WorkerGroup)
+	if removed := core.GetAgentManager().RemoveAgentByGroupName(cluster.AgentGroup); !removed {
+		_ = fmt.Errorf("failed to remove agent group: %s", cluster.AgentGroup)
 	}
 	// Call the service to delete the role
 	err = uc.ClusterService.DeleteClusterByID(id)
@@ -130,7 +130,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse \\\n --set auth.enabled=true \\\n --set agent.enabled=true \\\n --set agent.group=" + Cluster.WorkerGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set controller.grpc.url=" + config.GrpcServer,
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse \\\n --set agent.enabled=true \\\n --set config.controller.grpc.tls.enabled=true \\\n --set config.controller.grpc.tls.skipVerification=false  \\\n --set agent.group=" + Cluster.AgentGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set config.controller.grpc.host=" + config.GrpcServer,
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
