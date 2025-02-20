@@ -12,7 +12,7 @@ type Cluster struct {
 	ClusterType   enum.ClusterType   `json:"cluster_type" bson:"cluster_type"` // "MASTER", "WORKER"
 	Token         TokenValidation    `json:"-" bson:"token"`
 	AgentGroup    string             `json:"agent_group" bson:"agent_group"`
-	ControllerURL string             `json:"controller_url" bson:"controller_url"`
+	ControllerURL string             `json:"grpc_url" bson:"grpc_url"`
 	IsActive      bool               `json:"is_active" bson:"is_active"`
 	Details       interface{}        `json:"details" bson:"details"`
 	Status        enum.Status        `json:"status" bson:"status"`
