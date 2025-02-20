@@ -8,7 +8,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -50,7 +49,7 @@ func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
 func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 	var request struct {
 		Name          string `json:"name"`
-		ControllerURl string `json:"controller_url"`
+		ControllerURl string `json:"grpc_url"`
 	}
 
 	// Bind the JSON payload to the request struct
@@ -71,14 +70,14 @@ func (uc *ClusterController) CreateAgentClusterHandler(c *gin.Context) {
 		Id            string `json:"id"`
 		Name          string `json:"name"`
 		Token         string `json:"token"`
-		ControllerURL string `json:"controller_url"`
+		ControllerURL string `json:"grpc_url"`
 		SecretName    string `json:"secret_name"`
 	}{
 		Id:            cluster.ID.Hex(),
 		Name:          cluster.Name,
 		Token:         cluster.Token.RawTokenHash,
-		ControllerURL: os.Getenv("CONTROLLER_URL"),
-		SecretName:    os.Getenv("AGENT_SECRET_NAME"),
+		ControllerURL: config.GrpcServer,
+		SecretName:    config.AgentSecretName,
 	}
 
 	// Respond with the newly created cluster
