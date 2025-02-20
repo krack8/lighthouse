@@ -194,8 +194,8 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 	return authToken, nil
 }
 
-// Helper function to get worker group from environment or secret
-func GetWorkerGroup(secretName, namespace string) (string, error) {
+// Helper function to get agent group from environment or secret
+func GetAgentGroup(secretName, namespace string) (string, error) {
 	// First try environment variable
 	groupName := os.Getenv("AGENT_GROUP")
 	if groupName != "" {
