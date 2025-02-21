@@ -129,15 +129,15 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 	clientSet := k8s.GetKubeClientSet()
 
 	// Create namespace if it doesn't exist
-	err := CreateNamespaceIfNotExists(namespace)
-	if err != nil {
-		return "", err
-	}
+	//err := CreateNamespaceIfNotExists(namespace)
+	//if err != nil {
+	//	return "", err
+	//}
 
 	secretClient := clientSet.CoreV1().Secrets(namespace)
 
 	// Check if secret exists
-	_, err = secretClient.Get(context.Background(), name, metav1.GetOptions{})
+	_, err := secretClient.Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Create new secret
