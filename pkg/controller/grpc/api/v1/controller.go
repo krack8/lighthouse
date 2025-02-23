@@ -7,6 +7,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
+	"strings"
 )
 
 type ControllerServer struct {
@@ -132,6 +133,49 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				currentAgent.Unlock()
 				if ok {
 					ch <- taskRes
+				} else {
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
+				}
+			}
+		case *pb.TaskStreamRequest_LogsResult:
+			// The worker is streaming logs
+			taskRes := payload.LogsResult
+			log.Logger.Infow(fmt.Sprintf("Received task result from agent: task_id=%s",
+				taskRes.TaskId), "task-result", taskRes.TaskId)
+
+			// Notify whoever is waiting for this task result (our HTTP handler).
+			if currentAgent != nil {
+				currentAgent.Lock()
+				ch, ok := currentAgent.ResultChMap[taskRes.TaskId]
+				currentAgent.Unlock()
+				if ok {
+					// If it's a log streaming task, send the logs incrementally
+					var logs []string
+					log.Logger.Infow("printing logs: ", "print", taskRes.Output)
+					//err := json.Unmarshal([]byte(taskRes.Output), &logs)
+					logs = strings.Split(taskRes.Output, "\n")
+					if err != nil {
+						log.Logger.Errorw("Failed to unmarshal logs", "err", err)
+						ch <- &pb.TaskResult{
+							Success: false,
+							Output:  "Failed to unmarshal logs",
+						}
+						return nil
+					}
+
+					for idx, logLine := range logs {
+						fmt.Println(fmt.Sprintf("%d --> %s", idx, logLine))
+						ch <- &pb.TaskResult{
+							Success: true,
+							Output:  fmt.Sprintf("%s", logLine), // Send each log line individually
+						}
+					}
+
+					// Send a final message to indicate the end of the log stream
+					ch <- &pb.TaskResult{
+						Success: true,
+						Output:  "", // Or a specific message indicating the end of the stream
+					}
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
 				}

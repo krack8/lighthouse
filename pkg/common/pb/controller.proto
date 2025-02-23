@@ -19,6 +19,7 @@ message TaskStreamRequest {
   oneof payload {
     WorkerIdentification worker_info = 1;
     TaskResult task_result = 2;
+    LogsResult logs_result = 3;
   }
 }
 
@@ -33,6 +34,11 @@ message TaskResult {
   string output = 3;
 }
 
+message LogsResult {
+  string task_id = 1;
+  string output = 2;
+}
+
 // The controller can send two kinds of messages back to the worker:
 //  1) Task: "Please execute this task with ID <task_id> and some payload"
 //  2) Ack:  "Acknowledgement for something, or simple keepalive"
@@ -40,10 +46,18 @@ message TaskStreamResponse {
   oneof payload {
     Task new_task = 1;
     Ack ack = 2;
+    PodLogsStream new_pod_logs_stream = 3;
   }
 }
 
 message Task {
+  string id = 1;
+  string name = 2;
+  string payload = 3;
+  string input = 4;
+}
+
+message PodLogsStream {
   string id = 1;
   string name = 2;
   string payload = 3;

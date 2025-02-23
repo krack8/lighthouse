@@ -214,6 +214,59 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	}
 }
 
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		return nil, errors.New("agent unreachable")
+	}
+
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.TaskResult, 1)
+
+	w.mu.Lock()
+	w.ResultChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Actually send the task to the agent.
+	err := w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+			NewPodLogsStream: &pb.PodLogsStream{
+				Id:      taskID,
+				Payload: taskName,
+				Name:    taskName,
+				Input:   string(input),
+			},
+		},
+	})
+	if err != nil {
+		w.mu.Lock()
+		delete(w.ResultChMap, taskID)
+		w.mu.Unlock()
+		return nil, err
+	}
+
+	defer func() {
+		w.mu.Lock()
+		delete(w.ResultChMap, taskID)
+		w.mu.Unlock()
+	}()
+
+	// Wait for the agent to respond with a result or time out
+	select {
+	case res := <-resultCh:
+		//// Send response to the user
+		//if !res.Success {
+		//	return nil, errors.New(res.Output)
+		//}
+		return res, nil
+	case <-time.After(60 * time.Second):
+		return nil, errors.New("agent response timed out")
+	}
+}
+
 // PickAgent returns any agent from the specified group (round-robin or random).
 // For simplicity, let's just pick the first.
 func (s *AgentManager) PickAgent(id string) *AgentConnection {
