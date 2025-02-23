@@ -119,7 +119,7 @@ func GetSecret(name, namespace string) (string, error) {
 }
 
 // CreateOrUpdateSecret creates or updates a secret with the given auth token
-func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string, error) {
+func CreateOrUpdateSecret(name, namespace, authToken, clusterId, runMode string) (string, error) {
 	// Prepare secret data (no need to base64 encode, Kubernetes will do it)
 	secretData := map[string][]byte{
 		"AUTH_TOKEN":  []byte(authToken),
@@ -169,7 +169,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 		return "", fmt.Errorf("failed to fetch secret: %w", err)
 	}
 
-	runMode := config.RunMode
+	log.Logger.Infow("--------run mode---------------------"+config.RunMode, "", "")
 	if runMode != "PRODUCTION" {
 		// Update existing secret
 		log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),

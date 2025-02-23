@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/common/config"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
@@ -156,8 +157,7 @@ func InitializeClusters() {
 	if err != nil {
 		log.Logger.Errorw("Error counting clusters", "err", err.Error())
 	}
-
-	if clusterCount == 0 {
+	if clusterCount == 0 || clusterCount == 1 {
 		agentClusterID := primitive.NewObjectID()
 		// Generate a raw token
 		crypto, _ := utils.NewCryptoImpl()
@@ -173,69 +173,80 @@ func InitializeClusters() {
 			log.Logger.Errorw("Error failed to create combined token", "err", err.Error())
 		}
 
+		var existingCluster models.Cluster
+		if clusterCount == 1 {
+			err = ClusterCollection.FindOne(context.Background(), bson.M{"status": enum.VALID}).Decode(&existingCluster)
+			combinedToken = existingCluster.Token.CombinedToken
+			agentClusterID = existingCluster.ID
+			if err != nil {
+				log.Logger.Errorw("Error: failed to fetch first cluster entry from DB", "err", err.Error())
+			}
+		}
 		k8s.InitiateKubeClientSet()
 		// create the secret
-		_, err = utils.CreateOrUpdateSecret(os.Getenv("AGENT_SECRET_NAME"), os.Getenv("RESOURCE_NAMESPACE"), combinedToken, agentClusterID.Hex())
+		_, err = utils.CreateOrUpdateSecret(config.AgentSecretName, config.ResourceNamespace, combinedToken, agentClusterID.Hex(), config.RunMode)
 		if err != nil {
 			log.Logger.Errorw("Error failed to get secret", "err", err.Error())
 		}
 
-		// Generate a bcrypt hash of the raw token with a default cost
-		hashRawToken, err := bcrypt.GenerateFromPassword([]byte(rawToken), bcrypt.DefaultCost)
-		if err != nil {
-			log.Logger.Errorw("Error generating token hash", "err", err.Error())
-		}
+		if clusterCount == 0 {
+			// Generate a bcrypt hash of the raw token with a default cost
+			hashRawToken, err := bcrypt.GenerateFromPassword([]byte(rawToken), bcrypt.DefaultCost)
+			if err != nil {
+				log.Logger.Errorw("Error generating token hash", "err", err.Error())
+			}
 
-		// Create token validations
-		agentToken := models.TokenValidation{
-			ID:            primitive.NewObjectID(),
-			ClusterID:     agentClusterID,
-			RawTokenHash:  string(hashRawToken),
-			CombinedToken: combinedToken,
-			IsValid:       true,
-			ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year
-			Status:        enum.VALID,
-			TokenStatus:   enum.TokenStatusValid,
-			CreatedBy:     string(enum.SYSTEM),
-			UpdatedBy:     string(enum.SYSTEM),
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
-		}
+			// Create token validations
+			agentToken := models.TokenValidation{
+				ID:            primitive.NewObjectID(),
+				ClusterID:     agentClusterID,
+				RawTokenHash:  string(hashRawToken),
+				CombinedToken: combinedToken,
+				IsValid:       true,
+				ExpiresAt:     time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+				Status:        enum.VALID,
+				TokenStatus:   enum.TokenStatusValid,
+				CreatedBy:     string(enum.SYSTEM),
+				UpdatedBy:     string(enum.SYSTEM),
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			}
 
-		_, err = TokenCollection.InsertOne(context.Background(), agentToken)
-		if err != nil {
-			log.Logger.Errorw("Error creating token validations", "err", err.Error())
-		}
+			_, err = TokenCollection.InsertOne(context.Background(), agentToken)
+			if err != nil {
+				log.Logger.Errorw("Error creating token validations", "err", err.Error())
+			}
 
-		clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
-		controllerGrpcServerHost := SetEnvWithDefault("CONTROLLER_GRPC_SERVER_HOST", "localhost:50051")
-		// Create worker cluster
-		agentCluster := models.Cluster{
-			ID:                       agentClusterID,
-			Name:                     clusterName,
-			ClusterType:              enum.WORKER,
-			AgentGroup:               agentClusterID.Hex(),
-			Token:                    agentToken,
-			Status:                   enum.VALID,
-			ClusterStatus:            enum.PENDING,
-			ControllerGrpcServerHost: controllerGrpcServerHost,
-			CreatedBy:                string(enum.SYSTEM),
-			UpdatedBy:                string(enum.SYSTEM),
-			CreatedAt:                time.Now(),
-			UpdatedAt:                time.Now(),
-			IsActive:                 true,
-		}
+			clusterName := SetEnvWithDefault("DEFAULT_CLUSTER_NAME", "default-cluster")
+			controllerGrpcServerHost := SetEnvWithDefault("CONTROLLER_GRPC_SERVER_HOST", "localhost:50051")
+			// Create worker cluster
+			agentCluster := models.Cluster{
+				ID:                       agentClusterID,
+				Name:                     clusterName,
+				ClusterType:              enum.WORKER,
+				AgentGroup:               agentClusterID.Hex(),
+				Token:                    agentToken,
+				Status:                   enum.VALID,
+				ClusterStatus:            enum.PENDING,
+				ControllerGrpcServerHost: controllerGrpcServerHost,
+				CreatedBy:                string(enum.SYSTEM),
+				UpdatedBy:                string(enum.SYSTEM),
+				CreatedAt:                time.Now(),
+				UpdatedAt:                time.Now(),
+				IsActive:                 true,
+			}
 
-		// Insert clusters
-		clusters := []interface{}{agentCluster}
-		_, err = ClusterCollection.InsertMany(context.Background(), clusters)
-		if err != nil {
-			log.Logger.Errorw("Error creating default clusters", "err", err.Error())
-		}
+			// Insert clusters
+			clusters := []interface{}{agentCluster}
+			_, err = ClusterCollection.InsertMany(context.Background(), clusters)
+			if err != nil {
+				log.Logger.Errorw("Error creating default clusters", "err", err.Error())
+			}
 
-		log.Logger.Info("Default clusters and token validations created successfully")
-	} else {
-		log.Logger.Warn("Clusters already exist. No default clusters created.")
+			log.Logger.Info("Default clusters and token validations created successfully")
+		} else {
+			log.Logger.Warn("Clusters already exist. No default cluster created.")
+		}
 	}
 }
 
