@@ -11,6 +11,8 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	"io"
+	corev1 "k8s.io/api/core/v1"
 	"log"
 	"strings"
 	"sync"
@@ -18,6 +20,7 @@ import (
 )
 
 var taskMutex sync.Mutex
+var logsMutex sync.Mutex
 
 func main() {
 	_log.InitializeLogger()
@@ -111,6 +114,71 @@ func main() {
 							_log.Logger.Errorw("Failed to send task result", "err", err)
 						}
 					}(task.Id, task.Payload, task)
+
+				case *pb.TaskStreamResponse_NewPodLogsStream:
+					podLogsTask := payload.NewPodLogsStream
+					_log.Logger.Infow("Agent received a new pod logs task: ID=%s, payload=%s",
+						podLogsTask.Id, podLogsTask.Payload)
+					go func(taskID, taskPayload string, task *pb.PodLogsStream) {
+						logsMutex.Lock()
+						defer logsMutex.Unlock()
+						var input k8s.GetPodLogsInputParams
+						err = json.Unmarshal([]byte(podLogsTask.Input), &input)
+						if err != nil {
+							_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
+						}
+						logResult := &pb.LogsResult{}
+						podLogOptions := corev1.PodLogOptions{Follow: true}
+						if input.Container != "" {
+							podLogOptions.Container = input.Container
+						}
+						req := k8s.GetKubeClientSet().CoreV1().Pods(input.NamespaceName).GetLogs(input.Pod, &podLogOptions)
+						podLogs, err := req.Stream(context.Background())
+						if err != nil {
+							_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
+						}
+						defer podLogs.Close()
+						logResult.TaskId = taskID
+
+						buf := make([]byte, 2048)
+						for {
+							numBytes, err := podLogs.Read(buf)
+							_log.Logger.Infow("Pod logs read", "numBytes", string(buf[:numBytes]))
+							if err == io.EOF {
+								_log.Logger.Errorw("error reading pod logs stream", "err", err)
+								break
+							}
+							if err != nil {
+								_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
+								break
+							}
+
+							//// Create and send LogMessage through gRPC stream
+							//logMessage := &pb.LogsResult{
+							//	//... populate log message fields
+							//
+							//	Output: string(buf[:numBytes]),
+							//}
+							logResult.Output = string(buf[:numBytes])
+							if err := stream.Send(&pb.TaskStreamRequest{
+								Payload: &pb.TaskStreamRequest_LogsResult{
+									LogsResult: logResult,
+								},
+							}); err != nil {
+								_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
+								break
+							}
+						}
+						logResult.Output = ""
+						resultMsg := &pb.TaskStreamRequest{
+							Payload: &pb.TaskStreamRequest_LogsResult{
+								LogsResult: logResult,
+							},
+						}
+						if err = stream.Send(resultMsg); err != nil {
+							_log.Logger.Errorw("Failed to send task result", "err", err)
+						}
+					}(podLogsTask.Id, podLogsTask.Payload, podLogsTask)
 
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Agent received an ACK from server: "+payload.Ack.Message, "info", "ACK")

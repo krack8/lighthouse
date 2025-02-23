@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/core"
+	"io"
 	corev1 "k8s.io/api/core/v1"
 	"strconv"
 )
@@ -16,6 +18,7 @@ type PodControllerInterface interface {
 	GetPodDetails(ctx *gin.Context)
 	GetPodStats(ctx *gin.Context)
 	GetPodLogs(ctx *gin.Context)
+	GetPodLogsStream(ctx *gin.Context)
 	DeployPod(ctx *gin.Context)
 	DeletePod(ctx *gin.Context)
 }
@@ -301,4 +304,71 @@ func (ctrl *podController) GetPodLogs(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, result)
+}
+
+func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
+	//var result ResponseDTO
+	input := new(k8s.GetPodLogsInputParams)
+	input.Pod = ctx.Param("name")
+	queryNamespace := ctx.Query("namespace")
+	if queryNamespace == "" {
+		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
+		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+	input.NamespaceName = queryNamespace
+	input.Container = ctx.Query("container")
+	if ctx.Query("lines") != "" {
+		tailLines, err := strconv.ParseInt(ctx.Query("lines"), 10, 64)
+		if err == nil {
+			input.TailLines = &tailLines
+		}
+	}
+	if ctx.Query("since") != "" {
+		sinceSeconds, err := strconv.ParseInt(ctx.Query("since"), 10, 64)
+		if err == nil {
+			input.SinceSeconds = &sinceSeconds
+		}
+	}
+	input.Timestamps = ctx.Query("timestamps")
+	input.Previous = ctx.Query("previous")
+	taskName := "PodLogsStream"
+	logRequestedTaskController("pod", taskName)
+	inputTask, err := json.Marshal(input)
+	if err != nil {
+		logErrMarshalTaskController(taskName, err)
+	}
+	res, err := core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup)
+	if err != nil {
+		SendErrorResponse(ctx, err.Error())
+		return
+	}
+	// Send the logs as a stream to the client
+	ctx.Stream(func(w io.Writer) bool {
+		//if !res.Success {
+		//	fmt.Fprintf(w, "Error: %s\n", res.Output)
+		//	return false
+		//}
+		//err = json.Unmarshal([]byte(res.Output), &logs)
+		//if err != nil {
+		//	fmt.Fprintf(w, "Error unmarshalling logs: %v\n", err)
+		//	return false
+		//}
+		fmt.Fprintf(w, "%s\n", res.Output)
+		return false
+		// Close the stream after sending all logs
+	})
+	//err = json.Unmarshal([]byte(res.Output), &result)
+	//if err != nil {
+	//	log.Logger.Errorw("Unmarshal response error", "error", err, "response", string(res.Output))
+	//	SendErrorResponse(ctx, err.Error())
+	//	return
+	//}
+	//SendResponse(ctx, result)
 }
