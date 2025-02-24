@@ -129,7 +129,7 @@ func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
 		HelmCommand string `json:"helm_command"`
 	}{
 		RepoCommand: "helm repo add krack8 https://krack8.github.io/helm-charts",
-		HelmCommand: "helm install lighthouse --create-namespace --namespace " + config.ResourceNamespace + " krack8/lighthouse --version 1.0.0 \\\n --set agent.enabled=true \\\n --set config.controller.grpc.tls.enabled=true \\\n --set config.controller.grpc.tls.skipVerification=false  \\\n --set agent.group=" + Cluster.AgentGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set config.controller.grpc.host=" + config.ControllerGrpcServerHost,
+		HelmCommand: "helm install lighthouse --create-namespace --namespace " + "lighthouse" + " krack8/lighthouse --version 0.1.0 \\\n --set agent.enabled=true \\\n --set config.controller.grpc.tls.enabled=true \\\n --set config.controller.grpc.tls.skipVerification=false  \\\n --set agent.group=" + Cluster.AgentGroup + " \\\n --set auth.token=" + Cluster.Token.CombinedToken + " \\\n --set config.controller.grpc.host=" + config.ControllerGrpcServerHost,
 	}
 
 	utils.RespondWithJSON(c, http.StatusOK, response)
