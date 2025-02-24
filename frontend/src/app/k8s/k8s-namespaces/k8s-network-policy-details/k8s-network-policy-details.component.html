@@ -37,25 +37,13 @@
         <h2 class="kube-card__title">Spec</h2>
         <div class="kube-card__content">
           <div class="flex flex-wrap -mx-2">
+
             <div class="px-2 w-full sm:w-1/2 mt-6">
               <div class="kc-dataset">
-                <div class="kc-dataset__name">Ingress</div>
-                <h3 class="kc-dataset__value mt-4" *ngFor="let obj of data?.spec?.ingress; let last = last">
-                  <div class="kc-dataset mb-2">
-                    <div class="kc-dataset__name px-2">From</div>
-                    <h3 class="kc-dataset__value" *ngFor="let sub_obj of obj.from">
-                      <div class="kc-dataset__name px-4">Namespace Selector</div>
-                      <div class="kc-dataset__name px-6">Match Labels</div>
-
-                      <div class="kc-dataset">
-                        <h3 class="kc-dataset__value" *ngFor="let item of sub_obj.namespaceSelector.matchLabels | keyvalue">
-                          <span class="kc-dataset-key px-8"> {{ item.key }} </span> : {{ item.value }}
-                        </h3>
-                      </div>
-                    </h3>
-                  </div>
-                  <hr *ngIf="!last" class="mb-4" />
-                </h3>
+                <kc-expansion-data-viewer-template
+                  [label]="'Ingress'"
+                  [data]="data?.spec?.ingress"
+                ></kc-expansion-data-viewer-template>
               </div>
             </div>
 
@@ -68,15 +56,6 @@
               </div>
             </div>
 
-            <div class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
-              <div class="kc-dataset">
-                <div class="kc-dataset__name">Ingress</div>
-                <div *ngFor="let item of data?.spec?.ingress">
-                  <kc-json-data-viewer-template [data]="item"></kc-json-data-viewer-template>
-                </div>
-              </div>
-            </div>
-
             <div *ngIf="data?.spec?.egress?.length > 0" class="px-2 w-full lg:w-3/12 sm:w-1/2 mt-6">
               <div class="kc-dataset">
                 <div class="kc-dataset__name">Egress</div>
@@ -85,6 +64,7 @@
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
       </div>

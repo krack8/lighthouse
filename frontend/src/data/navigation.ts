@@ -56,7 +56,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
         type: 'link',
         label: 'Roles',
         route: '/manage/roles',
-        permissionName: '"VIEW_ROLE"',
+        permissionName: 'VIEW_ROLE',
         id: 'roles'
       }
     ]

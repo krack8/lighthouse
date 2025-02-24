@@ -38,14 +38,12 @@ const childrenRoutes: Route[] = [
       {
         path: 'users',
         loadChildren: () => import('./management/user/user.module').then(m => m.UserModule),
-        canLoad: [AdminGuard],
         data: {
           containerEnabled: true
         }
       },
       {
         path: 'roles',
-        canLoad: [AdminGuard],
         loadChildren: () => import('./management/access-role/access-role.module').then(m => m.AccessRoleModule),
         data: {
           containerEnabled: true
