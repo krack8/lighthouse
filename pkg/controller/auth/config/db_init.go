@@ -163,7 +163,8 @@ func InitializeClusters() {
 		log.Logger.Errorw("Error counting clusters", "err", err.Error())
 	}
 
-	if clusterCount == 0 || validClusterCount == 1 {
+	//TODO:remove all validClusterCount==1 condition after implementing the agent auth refresh and revoke token feature.
+	if clusterCount == 0 || validClusterCount <= 1 {
 		agentClusterID := primitive.NewObjectID()
 		// Generate a raw token
 		crypto, _ := utils.NewCryptoImpl()
@@ -179,7 +180,7 @@ func InitializeClusters() {
 			log.Logger.Errorw("Error failed to create combined token", "err", err.Error())
 		}
 
-		//if controller fails to create the init auth secret for agent after a restart it will retry to create the registered secret.
+		//If controller fails to create the init auth secret for agent or if somehow the init secret is deleted. After a restart it will retry to create the registered secret.
 		var existingCluster models.Cluster
 		if validClusterCount == 1 {
 			err = ClusterCollection.FindOne(context.Background(), bson.M{"status": enum.VALID}).Decode(&existingCluster)
@@ -197,7 +198,7 @@ func InitializeClusters() {
 			log.Logger.Errorw("Error failed to get secret", "err", err.Error())
 		}
 
-		if clusterCount == 0 {
+		if (clusterCount == 0 && config.RunMode == "PRODUCTION") || (validClusterCount <= 1 && config.RunMode != "PRODUCTION") {
 			// Generate a bcrypt hash of the raw token with a default cost
 			hashRawToken, err := bcrypt.GenerateFromPassword([]byte(rawToken), bcrypt.DefaultCost)
 			if err != nil {
