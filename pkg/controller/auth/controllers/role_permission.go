@@ -165,7 +165,7 @@ func (rbac *RbacController) AssignRolesHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Roles %v assigned to user '%s'", request.RoleIds, request.Username)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Roles are assigned to user '%s'", request.Username)})
 }
 
 // GetAllRolesHandler retrieves all roles

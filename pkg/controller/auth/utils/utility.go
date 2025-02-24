@@ -12,7 +12,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
 )
 
 func HashPassword(password string) string {
@@ -169,8 +168,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 		return "", fmt.Errorf("failed to fetch secret: %w", err)
 	}
 
-	runMode := config.RunMode
-	if runMode != "PRODUCTION" {
+	if config.RunMode != "PRODUCTION" {
 		// Update existing secret
 		log.Logger.Infow(fmt.Sprintf("Secret %s exists in namespace %s. Updating it...", name, namespace),
 			"info", "secret-update")
@@ -198,7 +196,7 @@ func CreateOrUpdateSecret(name, namespace, authToken, clusterId string) (string,
 // Helper function to get agent group from environment or secret
 func GetAgentGroup(secretName, namespace string) (string, error) {
 	// First try environment variable
-	groupName := os.Getenv("AGENT_GROUP")
+	groupName := config.AgentGroup
 	if groupName != "" {
 		return groupName, nil
 	}
