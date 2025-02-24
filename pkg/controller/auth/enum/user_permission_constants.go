@@ -83,7 +83,7 @@ const (
 	MANAGE_CUSTOM_RESOURCE_DEFINITION PermissionName = "MANAGE_K8S_CUSTOM_RESOURCE_DEFINITION"
 	VIEW_LOGS                         PermissionName = "VIEW_LOGS"
 	VIEW_ENDPOINTS                    PermissionName = "VIEW_NAMESPACE_ENDPOINTS"
-	MANAGE_ENDPOINTS                  PermissionName = "MANAGE_NAMESPACE_ENDPOINTS_ENDPOINTS"
+	MANAGE_ENDPOINTS                  PermissionName = "MANAGE_NAMESPACE_ENDPOINTS"
 	VIEW_ENDPOINT_SLICE               PermissionName = "VIEW_NAMESPACE_ENDPOINT_SLICE"
 	MANAGE_ENDPOINT_SLICE             PermissionName = "MANAGE_NAMESPACE_ENDPOINT_SLICE"
 	VIEW_PDB                          PermissionName = "VIEW_NAMESPACE_PDB"
