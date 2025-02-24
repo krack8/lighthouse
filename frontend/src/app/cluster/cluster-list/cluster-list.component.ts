@@ -46,7 +46,7 @@ export class ClusterListComponent implements OnInit {
     this.userType = this.requesterService.get().userInfo?.user_type;
     this.permissions = this.permissionSvc.userPermissionsSnapshot;
     this.k8sRoute = this.setK8sRoute();
-    this.toolbarService.changeData({ title: 'Cluster' });
+    this.toolbarService.changeData({ title: 'Clusters' });
     this.getCluster();
   }
 

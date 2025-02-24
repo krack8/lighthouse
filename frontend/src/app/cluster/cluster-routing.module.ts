@@ -1,8 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ClusterListComponent } from './cluster-list/cluster-list.component';
 import { RoleGuardService } from '@core-ui/guards';
-import { ClusterResolver } from './cluster.resolver';
+import { ClusterListComponent } from './cluster-list/cluster-list.component';
 
 const routes: Routes = [
   {
@@ -11,7 +10,7 @@ const routes: Routes = [
     component: ClusterListComponent,
     canActivate: [RoleGuardService],
     data: {
-      title: 'Cluster',
+      title: 'Clusters',
       toolbarTitle: 'Cluster List',
       permissions: ['*']
     }
