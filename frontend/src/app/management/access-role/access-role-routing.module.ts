@@ -2,14 +2,14 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AccessRoleFormComponent } from './containers/access-role-form/access-role-form.component';
 import { AccessRoleListComponent } from './containers/access-role-list/access-role-list.component';
-import { AuthGuard } from '@core-ui/guards';
+import { RoleGuardService } from '@core-ui/guards';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     component: AccessRoleListComponent,
-    canActivate: [AuthGuard],
+    canActivate: [RoleGuardService],
     data: {
       title: 'Roles',
       toolbarTitle: 'Roles',
@@ -19,7 +19,7 @@ const routes: Routes = [
   {
     path: 'create',
     component: AccessRoleFormComponent,
-    canActivate: [AuthGuard],
+    canActivate: [RoleGuardService],
     data: {
       title: 'Create Role',
       toolbarTitle: 'Roles',
@@ -29,7 +29,7 @@ const routes: Routes = [
   {
     path: ':id/edit',
     component: AccessRoleFormComponent,
-    canActivate: [AuthGuard],
+    canActivate: [RoleGuardService],
     data: {
       title: 'Update Role',
       toolbarTitle: 'Roles',

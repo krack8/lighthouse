@@ -28,7 +28,7 @@
       </div>
 
       <div class="mt-6" *ngIf="user?.user_type !== 'ADMIN'">
-        <div class="flex items-end pb-4">
+        <div *hasAnyAuthority="'MANAGE_USER'" class="flex items-end pb-4">
           <h3 class="text-xl font-medium">Roles</h3>
           <button class="ml-auto" mat-flat-button color="accent" (click)="updateRole()">Update Roles</button>
         </div>

@@ -19,7 +19,7 @@
           </button>
         </div>
       </div>
-      <a class="ml-auto rounded-full" routerLink="/manage/roles/create" color="primary" id="create-role" mat-flat-button>
+      <a *hasAnyAuthority="'MANAGE_ROLE'" class="ml-auto rounded-full" routerLink="/manage/roles/create" color="primary" id="create-role" mat-flat-button>
         <div class="flex items-center">
           <mat-icon [icIcon]="icAdd" class="mr-2"></mat-icon>
           <span>Create Role</span>
@@ -58,7 +58,7 @@
               <div>
                 <div class="flex items-center pb-3">
                   <h3 class="permission_container_title">Permission List</h3>
-                  <div class="flex items-center ml-4 lg:ml-auto">
+                  <div *hasAnyAuthority="'MANAGE_ROLE'" class="flex items-center ml-4 lg:ml-auto">
                     <a
                       *ngIf="role?.created_by !== 'SYSTEM'"
                       [disabled]="role?.created_by === 'SYSTEM'"
