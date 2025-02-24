@@ -153,11 +153,17 @@ func InitRBAC() {
 
 // InitializeClusters creates default clusters if none exist
 func InitializeClusters() {
-	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
+	clusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{})
 	if err != nil {
 		log.Logger.Errorw("Error counting clusters", "err", err.Error())
 	}
-	if clusterCount == 0 || clusterCount == 1 {
+
+	validClusterCount, err := ClusterCollection.CountDocuments(context.Background(), bson.M{"status": enum.VALID})
+	if err != nil {
+		log.Logger.Errorw("Error counting clusters", "err", err.Error())
+	}
+
+	if clusterCount == 0 || validClusterCount == 1 {
 		agentClusterID := primitive.NewObjectID()
 		// Generate a raw token
 		crypto, _ := utils.NewCryptoImpl()
@@ -173,8 +179,9 @@ func InitializeClusters() {
 			log.Logger.Errorw("Error failed to create combined token", "err", err.Error())
 		}
 
+		//if controller fails to create the init auth secret for agent after a restart it will retry to create the registered secret.
 		var existingCluster models.Cluster
-		if clusterCount == 1 {
+		if validClusterCount == 1 {
 			err = ClusterCollection.FindOne(context.Background(), bson.M{"status": enum.VALID}).Decode(&existingCluster)
 			combinedToken = existingCluster.Token.CombinedToken
 			agentClusterID = existingCluster.ID
@@ -182,9 +189,10 @@ func InitializeClusters() {
 				log.Logger.Errorw("Error: failed to fetch first cluster entry from DB", "err", err.Error())
 			}
 		}
+
 		k8s.InitiateKubeClientSet()
 		// create the secret
-		_, err = utils.CreateOrUpdateSecret(config.AgentSecretName, config.ResourceNamespace, combinedToken, agentClusterID.Hex(), config.RunMode)
+		_, err = utils.CreateOrUpdateSecret(config.AgentSecretName, config.ResourceNamespace, combinedToken, agentClusterID.Hex())
 		if err != nil {
 			log.Logger.Errorw("Error failed to get secret", "err", err.Error())
 		}
@@ -245,7 +253,7 @@ func InitializeClusters() {
 
 			log.Logger.Info("Default clusters and token validations created successfully")
 		} else {
-			log.Logger.Warn("Clusters already exist. No default cluster created.")
+			log.Logger.Info("No default cluster created.")
 		}
 	}
 }
