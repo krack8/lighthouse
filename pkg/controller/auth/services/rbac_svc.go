@@ -135,7 +135,7 @@ func (r *RbacService) GetAllRoles() ([]models.Role, error) {
 	defer cancel()
 
 	// Find all roles
-	cursor, err := db.RoleCollection.Find(ctx, bson.M{})
+	cursor, err := db.RoleCollection.Find(ctx, bson.M{"status": enum.VALID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve roles: %v", err)
 	}
@@ -201,7 +201,7 @@ func (r *RbacService) GetAllPermissions() (interface{}, error) {
 	defer cancel()
 
 	// Find all permissions
-	cursor, err := db.PermissionCollection.Find(ctx, bson.M{})
+	cursor, err := db.PermissionCollection.Find(ctx, bson.M{"status": enum.VALID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve permissions: %v", err)
 	}

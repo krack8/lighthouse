@@ -108,11 +108,11 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting cluster"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error detaching cluster"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s deleted successfully", id)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s detached successfully", id)})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {

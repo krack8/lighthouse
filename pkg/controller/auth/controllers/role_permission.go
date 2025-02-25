@@ -222,7 +222,7 @@ func (rbac *RbacController) DeleteRoleHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Role %s deleted successfully", roleID)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Role deleted successfully")})
 }
 
 // GetAllPermissionsHandler retrieves all permissions
