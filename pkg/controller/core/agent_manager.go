@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"sync"
@@ -15,9 +16,10 @@ import (
 type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
-	GroupName   string
-	ResultChMap map[string]chan *pb.TaskResult // map of taskID -> channel that receives result
-	mu          sync.Mutex
+	GroupName         string
+	ResultChMap       map[string]chan *pb.TaskResult
+	ResultStreamChMap map[string]chan *pb.LogsResult // map of taskID -> channel that receives result
+	mu                sync.Mutex
 }
 
 type AgentManager struct {
@@ -214,7 +216,7 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	}
 }
 
-func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName string, input []byte, groupName string) (*pb.TaskResult, error) {
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName string, input []byte, groupName string, conn *websocket.Conn) (*pb.LogsResult, error) {
 	w := s.PickAgent(groupName)
 	if w == nil {
 		return nil, errors.New("agent unreachable")
@@ -224,10 +226,10 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 	taskID := uuid.NewString()
 
 	// Prepare a channel to receive the agent’s response.
-	resultCh := make(chan *pb.TaskResult)
+	resultCh := make(chan *pb.LogsResult)
 
 	w.mu.Lock()
-	w.ResultChMap[taskID] = resultCh
+	w.ResultStreamChMap[taskID] = resultCh
 	w.mu.Unlock()
 
 	// Actually send the task to the agent.
@@ -243,7 +245,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 	})
 	if err != nil {
 		w.mu.Lock()
-		delete(w.ResultChMap, taskID)
+		delete(w.ResultStreamChMap, taskID)
 		w.mu.Unlock()
 		return nil, err
 	}
@@ -261,7 +263,18 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 		//if !res.Success {
 		//	return nil, errors.New(res.Output)
 		//}
-		return res, nil
+		//err = conn.WriteMessage(websocket.TextMessage, res.Output)
+		//if err != nil {
+		//	break
+		//}
+		for res = range resultCh {
+			err = conn.WriteMessage(websocket.TextMessage, res.Output)
+			if err != nil {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		return nil, err
 	case <-time.After(60 * time.Second):
 		return nil, errors.New("agent response timed out")
 	}

@@ -11,7 +11,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type PodControllerInterface interface {
@@ -360,17 +359,11 @@ func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	res, err := core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup)
+	_, err = core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup, conn)
 	if err != nil {
+
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
 	// Send the logs as a stream to the client
-	for {
-		err = conn.WriteMessage(websocket.TextMessage, []byte(res.Output))
-		if err != nil {
-			break
-		}
-		time.Sleep(200 * time.Millisecond)
-	}
 }

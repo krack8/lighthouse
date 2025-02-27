@@ -7,6 +7,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
+	"strings"
 )
 
 type ControllerServer struct {
@@ -104,9 +105,10 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 			// Create the worker connection instance.
 			// Create the agent connection instance.
 			currentAgent = &core.AgentConnection{
-				Stream:      stream,
-				GroupName:   groupName,
-				ResultChMap: make(map[string]chan *pb.TaskResult),
+				Stream:            stream,
+				GroupName:         groupName,
+				ResultChMap:       make(map[string]chan *pb.TaskResult),
+				ResultStreamChMap: make(map[string]chan *pb.LogsResult),
 			}
 
 			// Add to the server’s group map.
@@ -139,39 +141,25 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 		case *pb.TaskStreamRequest_LogsResult:
 			// The worker is streaming logs
 			taskRes := payload.LogsResult
-			log.Logger.Infow(fmt.Sprintf("Received task result from agent: task_id=%s",
+			log.Logger.Infow(fmt.Sprintf("Received logs result from agent: task_id=%s",
 				taskRes.TaskId), "task-result", taskRes.TaskId)
 
 			// Notify whoever is waiting for this task result (our HTTP handler).
 			if currentAgent != nil {
 				currentAgent.Lock()
-				ch, ok := currentAgent.ResultChMap[taskRes.TaskId]
+				ch, ok := currentAgent.ResultStreamChMap[taskRes.TaskId]
 				currentAgent.Unlock()
 				if ok {
-					// If it's a log streaming task, send the logs incrementally
-					var logs []string
-					log.Logger.Infow("printing logs: ", "print", string(taskRes.Output))
-					if err != nil {
-						log.Logger.Errorw("Failed to unmarshal logs", "err", err)
-						ch <- &pb.TaskResult{
-							Success: false,
-							Output:  "Failed to unmarshal logs",
-						}
-						return nil
-					}
+					logOutput := string(taskRes.Output)
 
-					for idx, logLine := range logs {
-						fmt.Println(fmt.Sprintf("%d --> %s", idx, logLine))
-						ch <- &pb.TaskResult{
-							Success: true,
-							Output:  logLine, // Send each log line individually
-						}
-					}
+					// Split the logs by newline to get individual log lines
+					logs := strings.Split(logOutput, "\n")
 
-					// Send a final message to indicate the end of the log stream
-					ch <- &pb.TaskResult{
-						Success: true,
-						Output:  "[DONE]", // Or a specific message indicating the end of the stream
+					// Send each log line individually
+					for _, logLine := range logs {
+						ch <- &pb.LogsResult{
+							Output: []byte(logLine),
+						}
 					}
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")

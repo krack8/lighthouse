@@ -130,8 +130,7 @@ func main() {
 						if err != nil {
 							_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
 						}
-						//logResult := &pb.LogsResult{}
-						taskResult := &pb.TaskResult{}
+						logResult := &pb.LogsResult{}
 						podLogOptions := corev1.PodLogOptions{Follow: true}
 						if input.Container != "" {
 							podLogOptions.Container = input.Container
@@ -142,7 +141,7 @@ func main() {
 							_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 						}
 						defer podLogs.Close()
-						taskResult.TaskId = taskID
+						logResult.TaskId = taskID
 
 						buf := make([]byte, 2048)
 						for {
@@ -156,24 +155,15 @@ func main() {
 								_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 								break
 							}
-							taskResult.Output = string(buf[:numBytes])
+							logResult.Output = buf[:numBytes]
 							if err := stream.Send(&pb.TaskStreamRequest{
-								Payload: &pb.TaskStreamRequest_TaskResult{
-									TaskResult: taskResult,
+								Payload: &pb.TaskStreamRequest_LogsResult{
+									LogsResult: logResult,
 								},
 							}); err != nil {
 								_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 								break
 							}
-						}
-						taskResult.Output = ""
-						resultMsg := &pb.TaskStreamRequest{
-							Payload: &pb.TaskStreamRequest_TaskResult{
-								TaskResult: taskResult,
-							},
-						}
-						if err = stream.Send(resultMsg); err != nil {
-							_log.Logger.Errorw("Failed to send logs result", "err", err)
 						}
 					}(podLogsTask.Id, podLogsTask.Payload, podLogsTask)
 				case *pb.TaskStreamResponse_Ack:
