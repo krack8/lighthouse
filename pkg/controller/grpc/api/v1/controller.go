@@ -7,7 +7,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
-	"strings"
 )
 
 type ControllerServer struct {
@@ -150,16 +149,8 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				ch, ok := currentAgent.ResultStreamChMap[taskRes.TaskId]
 				currentAgent.Unlock()
 				if ok {
-					logOutput := string(taskRes.Output)
-
-					// Split the logs by newline to get individual log lines
-					logs := strings.Split(logOutput, "\n")
-
-					// Send each log line individually
-					for _, logLine := range logs {
-						ch <- &pb.LogsResult{
-							Output: []byte(logLine),
-						}
+					ch <- &pb.LogsResult{
+						Output: taskRes.Output,
 					}
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")

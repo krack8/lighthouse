@@ -259,10 +259,6 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 	// Wait for the agent to respond with a result or time out
 	select {
 	case res := <-resultCh:
-		//// Send response to the user
-		//if !res.Success {
-		//	return nil, errors.New(res.Output)
-		//}
 		//err = conn.WriteMessage(websocket.TextMessage, res.Output)
 		//if err != nil {
 		//	break
