@@ -15,7 +15,6 @@ func main() {
 	_log.InitializeLogger()
 
 	cfg.InitEnvironmentVariables()
-
 	// Init Agent Connection Manager
 	core.InitAgentConnectionManager()
 
