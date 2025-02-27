@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { UserListComponent } from './user-list/user-list.component';
 import { UserDetailsComponent } from './user-details/user-details.component';
-import { AuthGuard } from '@core-ui/guards';
+import { RoleGuardService } from '@core-ui/guards';
 
 const routes: Routes = [
   {
@@ -12,7 +12,7 @@ const routes: Routes = [
       title: 'Management | User',
       permissions: ['VIEW_USER']
     },
-    canActivate: [AuthGuard]
+    canActivate: [RoleGuardService]
   },
   {
     path: ':id',
@@ -21,7 +21,7 @@ const routes: Routes = [
       title: 'Management | User | Details',
       permissions: ['MANAGE_USER']
     },
-    canActivate: [AuthGuard]
+    canActivate: [RoleGuardService]
   }
 ];
 

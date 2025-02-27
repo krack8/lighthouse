@@ -33,13 +33,16 @@ func main() {
 	secretName := config.AgentSecretName
 	resourceNamespace := config.ResourceNamespace
 
-	groupName, err := utils.GetAgentGroup(secretName, resourceNamespace)
-	if err != nil {
-		log.Fatalf("Failed to get "+secretName+" secret: %v", err)
-	}
-	// Validate and provide a default if needed
-	if groupName == "" {
-		_log.Logger.Errorw("Missing env variable AGENT_GROUP", "err", "AGENT_GROUP env variable is not found in kubernetes secret")
+	if config.IsAuth() {
+		agentGroupName, err := utils.GetAgentGroup(secretName, resourceNamespace)
+		if err != nil {
+			log.Fatalf("Failed to get "+secretName+" secret: %v", err)
+		}
+		groupName = agentGroupName
+		// Group name is required
+		if groupName == "" {
+			_log.Logger.Errorw("Missing env variable AGENT_GROUP", "err", "AGENT_GROUP env variable is not found in kubernetes secret")
+		}
 	}
 
 	_log.Logger.Infow("Starting agent", "groupName", groupName)

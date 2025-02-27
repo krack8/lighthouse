@@ -11,10 +11,9 @@
         <div *ngIf="clusterList?.length > 0 && !serverError">
           <!-- Topbar -->
           <div class="mb-3 flex items-center flex-wrap">
-            <h3 class="title">Clusters</h3>
-            <div class="ml-auto flex items-center gap-2">
+            <div class="ml-auto flex items-center gap-2 px-4">
               <button
-                *hasAnyAuthority="'CREATE_CLUSTER'"
+                *hasAnyAuthority="'ADD_CLUSTER'"
                 (click)="routeToDetails()"
                 class="rounded-full pl-3"
                 mat-raised-button
