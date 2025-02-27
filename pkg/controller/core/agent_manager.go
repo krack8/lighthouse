@@ -224,7 +224,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 	taskID := uuid.NewString()
 
 	// Prepare a channel to receive the agent’s response.
-	resultCh := make(chan *pb.TaskResult, 1)
+	resultCh := make(chan *pb.TaskResult)
 
 	w.mu.Lock()
 	w.ResultChMap[taskID] = resultCh
@@ -248,11 +248,11 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 		return nil, err
 	}
 
-	defer func() {
-		w.mu.Lock()
-		delete(w.ResultChMap, taskID)
-		w.mu.Unlock()
-	}()
+	//defer func() {
+	//	w.mu.Lock()
+	//	delete(w.ResultChMap, taskID)
+	//	w.mu.Unlock()
+	//}()
 
 	// Wait for the agent to respond with a result or time out
 	select {

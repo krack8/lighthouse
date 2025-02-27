@@ -173,7 +173,6 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/pod", api2.PodController().GetPodList)
 	httpRg.GET("/pod/:name", api2.PodController().GetPodDetails)
 	httpRg.GET("/pod/logs/:name", api2.PodController().GetPodLogs)
-	httpRg.GET("/pod/logs-stream/:name", api2.PodController().GetPodLogsStream)
 	httpRg.POST("/pod", api2.PodController().DeployPod)
 	httpRg.DELETE("/pod/:name", api2.PodController().DeletePod)
 	httpRg.GET("/pod/stats", api2.PodController().GetPodStats)

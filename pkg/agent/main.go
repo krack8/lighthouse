@@ -130,7 +130,8 @@ func main() {
 						if err != nil {
 							_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
 						}
-						logResult := &pb.LogsResult{}
+						//logResult := &pb.LogsResult{}
+						taskResult := &pb.TaskResult{}
 						podLogOptions := corev1.PodLogOptions{Follow: true}
 						if input.Container != "" {
 							podLogOptions.Container = input.Container
@@ -141,7 +142,7 @@ func main() {
 							_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 						}
 						defer podLogs.Close()
-						logResult.TaskId = taskID
+						taskResult.TaskId = taskID
 
 						buf := make([]byte, 2048)
 						for {
@@ -155,34 +156,26 @@ func main() {
 								_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 								break
 							}
-
-							//// Create and send LogMessage through gRPC stream
-							//logMessage := &pb.LogsResult{
-							//	//... populate log message fields
-							//
-							//	Output: string(buf[:numBytes]),
-							//}
-							logResult.Output = string(buf[:numBytes])
+							taskResult.Output = string(buf[:numBytes])
 							if err := stream.Send(&pb.TaskStreamRequest{
-								Payload: &pb.TaskStreamRequest_LogsResult{
-									LogsResult: logResult,
+								Payload: &pb.TaskStreamRequest_TaskResult{
+									TaskResult: taskResult,
 								},
 							}); err != nil {
 								_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 								break
 							}
 						}
-						logResult.Output = ""
+						taskResult.Output = ""
 						resultMsg := &pb.TaskStreamRequest{
-							Payload: &pb.TaskStreamRequest_LogsResult{
-								LogsResult: logResult,
+							Payload: &pb.TaskStreamRequest_TaskResult{
+								TaskResult: taskResult,
 							},
 						}
 						if err = stream.Send(resultMsg); err != nil {
-							_log.Logger.Errorw("Failed to send task result", "err", err)
+							_log.Logger.Errorw("Failed to send logs result", "err", err)
 						}
 					}(podLogsTask.Id, podLogsTask.Payload, podLogsTask)
-
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Agent received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 

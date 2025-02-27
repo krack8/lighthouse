@@ -7,7 +7,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/core"
-	"strings"
 )
 
 type ControllerServer struct {
@@ -151,9 +150,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				if ok {
 					// If it's a log streaming task, send the logs incrementally
 					var logs []string
-					log.Logger.Infow("printing logs: ", "print", taskRes.Output)
-					//err := json.Unmarshal([]byte(taskRes.Output), &logs)
-					logs = strings.Split(taskRes.Output, "\n")
+					log.Logger.Infow("printing logs: ", "print", string(taskRes.Output))
 					if err != nil {
 						log.Logger.Errorw("Failed to unmarshal logs", "err", err)
 						ch <- &pb.TaskResult{
@@ -167,14 +164,14 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 						fmt.Println(fmt.Sprintf("%d --> %s", idx, logLine))
 						ch <- &pb.TaskResult{
 							Success: true,
-							Output:  fmt.Sprintf("%s", logLine), // Send each log line individually
+							Output:  logLine, // Send each log line individually
 						}
 					}
 
 					// Send a final message to indicate the end of the log stream
 					ch <- &pb.TaskResult{
 						Success: true,
-						Output:  "", // Or a specific message indicating the end of the stream
+						Output:  "[DONE]", // Or a specific message indicating the end of the stream
 					}
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")

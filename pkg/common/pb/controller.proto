@@ -36,7 +36,7 @@ message TaskResult {
 
 message LogsResult {
   string task_id = 1;
-  string output = 2;
+  bytes output = 2;
 }
 
 // The controller can send two kinds of messages back to the worker:

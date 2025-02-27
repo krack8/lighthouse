@@ -2,15 +2,16 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/core"
-	"io"
 	corev1 "k8s.io/api/core/v1"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 type PodControllerInterface interface {
@@ -306,8 +307,23 @@ func (ctrl *podController) GetPodLogs(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 	//var result ResponseDTO
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		return
+	}
+	log.Logger.Debugw("ws connected", "websocket", "connected")
+	defer conn.Close()
+
 	input := new(k8s.GetPodLogsInputParams)
 	input.Pod = ctx.Param("name")
 	queryNamespace := ctx.Query("namespace")
@@ -350,25 +366,11 @@ func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 		return
 	}
 	// Send the logs as a stream to the client
-	ctx.Stream(func(w io.Writer) bool {
-		//if !res.Success {
-		//	fmt.Fprintf(w, "Error: %s\n", res.Output)
-		//	return false
-		//}
-		//err = json.Unmarshal([]byte(res.Output), &logs)
-		//if err != nil {
-		//	fmt.Fprintf(w, "Error unmarshalling logs: %v\n", err)
-		//	return false
-		//}
-		fmt.Fprintf(w, "%s\n", res.Output)
-		return false
-		// Close the stream after sending all logs
-	})
-	//err = json.Unmarshal([]byte(res.Output), &result)
-	//if err != nil {
-	//	log.Logger.Errorw("Unmarshal response error", "error", err, "response", string(res.Output))
-	//	SendErrorResponse(ctx, err.Error())
-	//	return
-	//}
-	//SendResponse(ctx, result)
+	for {
+		err = conn.WriteMessage(websocket.TextMessage, []byte(res.Output))
+		if err != nil {
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }
