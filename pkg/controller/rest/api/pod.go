@@ -361,7 +361,6 @@ func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 	}
 	_, err = core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup, conn)
 	if err != nil {
-
 		SendErrorResponse(ctx, err.Error())
 		return
 	}

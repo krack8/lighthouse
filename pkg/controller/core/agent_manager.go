@@ -269,10 +269,14 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 				break
 			}
 			time.Sleep(200 * time.Millisecond)
+			w.Stream.Send(&pb.TaskStreamResponse{})
 		}
 		return nil, err
 	case <-time.After(60 * time.Second):
 		return nil, errors.New("agent response timed out")
+	case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
+		log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
+		return nil, ctx.Err()
 	}
 }
 
