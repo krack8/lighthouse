@@ -7,6 +7,7 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	api2 "github.com/krack8/lighthouse/pkg/controller/rest/api"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
 )
@@ -40,6 +41,8 @@ func StartHttServer() {
 	r.POST("/api/auth/login", controllers.LoginHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
+
+	r.GET("ws/pod/logs/stream/:name", api2.PodController().GetPodLogsStream)
 
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {

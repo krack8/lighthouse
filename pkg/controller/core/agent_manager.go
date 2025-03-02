@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"sync"
@@ -15,9 +16,10 @@ import (
 type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
-	GroupName   string
-	ResultChMap map[string]chan *pb.TaskResult // map of taskID -> channel that receives result
-	mu          sync.Mutex
+	GroupName         string
+	ResultChMap       map[string]chan *pb.TaskResult
+	ResultStreamChMap map[string]chan *pb.LogsResult // map of taskID -> channel that receives result
+	mu                sync.Mutex
 }
 
 type AgentManager struct {
@@ -211,6 +213,70 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 		return res, nil
 	case <-time.After(60 * time.Second):
 		return nil, errors.New("agent response timed out")
+	}
+}
+
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName string, input []byte, groupName string, conn *websocket.Conn) (*pb.LogsResult, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		return nil, errors.New("agent unreachable")
+	}
+
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.LogsResult)
+
+	w.mu.Lock()
+	w.ResultStreamChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Actually send the task to the agent.
+	err := w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+			NewPodLogsStream: &pb.PodLogsStream{
+				Id:      taskID,
+				Payload: taskName,
+				Name:    taskName,
+				Input:   string(input),
+			},
+		},
+	})
+	if err != nil {
+		w.mu.Lock()
+		delete(w.ResultStreamChMap, taskID)
+		w.mu.Unlock()
+		return nil, err
+	}
+
+	//defer func() {
+	//	w.mu.Lock()
+	//	delete(w.ResultChMap, taskID)
+	//	w.mu.Unlock()
+	//}()
+
+	// Wait for the agent to respond with a result or time out
+	select {
+	case res := <-resultCh:
+		//err = conn.WriteMessage(websocket.TextMessage, res.Output)
+		//if err != nil {
+		//	break
+		//}
+		for res = range resultCh {
+			err = conn.WriteMessage(websocket.TextMessage, res.Output)
+			if err != nil {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+			w.Stream.Send(&pb.TaskStreamResponse{})
+		}
+		return nil, err
+	case <-time.After(60 * time.Second):
+		return nil, errors.New("agent response timed out")
+	case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
+		log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
+		return nil, ctx.Err()
 	}
 }
 
