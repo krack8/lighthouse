@@ -25,6 +25,8 @@ import { K8sNodesService } from './k8s-nodes.service';
 import { NodeDetailsComponent } from './node-details/node-details.component';
 import { NodeListComponent } from './node-list/node-list.component';
 import { NodeTaintDialogComponent } from './node-list/node-taint-dialog/node-taint-dialog.component';
+import { NgApexchartsModule } from 'ng-apexcharts';
+
 
 @NgModule({
   declarations: [NodeListComponent, NodeDetailsComponent, NodeTaintDialogComponent],
@@ -52,7 +54,8 @@ import { NodeTaintDialogComponent } from './node-list/node-taint-dialog/node-tai
     MatProgressBarModule,
     MatCheckboxModule,
     MetadataTemplateComponent,
-    ExpansionDataViewerTemplateComponent
+    ExpansionDataViewerTemplateComponent,
+    NgApexchartsModule
   ],
   providers: [K8sNodesService]
 })

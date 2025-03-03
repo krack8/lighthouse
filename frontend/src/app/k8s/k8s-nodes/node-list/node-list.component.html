@@ -40,6 +40,81 @@
       </div>
     </div>
 
+    <div *ngIf="statsLoaded">
+      <div class="mt-2 flex flex-wrap">
+        <div class="vpc-overview-box md:w-1/3 flex mr-6">
+          <div>
+            <h2 class="mt-6">Total CPU</h2>
+            <apx-chart [colors]="cpuChart.color" [series]="cpuChart.series" [chart]="chartOptions.chart"
+              [plotOptions]="chartOptions.plotOptions" [labels]="cpuChart.labels"></apx-chart>
+          </div>
+
+          <div class="mt-8 text-center graph-info">
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 color-used"></mat-icon>
+              Used <span>: {{ (graphStats?.node_cpu_usage?.toFixed(2) | number) || 'N/A'}} core ( {{cpuUsagePercentage}}
+                % )</span>
+            </h6>
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 color-available"></mat-icon>
+              Allocatable <span>: {{ (graphStats?.node_cpu_allocatable?.toFixed(2) | number) || 'N/A'}} core (
+                {{CpuAllocatablePercentage}} % )</span>
+            </h6>
+            <h6 class="flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 base-color"></mat-icon>
+              Capacity <span>: {{ (graphStats?.node_cpu_capacity | number) || 'N/A' }} core</span>
+            </h6>
+          </div>
+        </div>
+
+
+        <div class="vpc-overview-box md:w-1/3 flex mr-6">
+          <div>
+            <h2 class="mt-6">Total Memory</h2>
+            <apx-chart [colors]="memoryChart.color" [series]="memoryChart.series" [chart]="chartOptions.chart"
+              [plotOptions]="chartOptions.plotOptions" [labels]="memoryChart.labels"></apx-chart>
+          </div>
+
+          <div class="mt-8 text-center graph-info">
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 color-used"></mat-icon>
+              Used <span>: {{ (graphStats?.node_memory_usage?.toFixed(2) | number) || 'N/A'}} GB
+                ( {{MemoryUsagePercentage}} % )</span>
+            </h6>
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 color-available"></mat-icon>
+              Allocatable <span>: {{ (graphStats?.node_memory_allocatable?.toFixed(2) | number) || 'N/A'}} GB
+                ( {{MemoryAllocatablePercentage}} % )</span>
+            </h6>
+            <h6 class="flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 base-color"></mat-icon>
+              Capacity <span>: {{ (graphStats?.node_memory_capacity?.toFixed(2) | number) || 'N/A' }} GB</span>
+            </h6>
+          </div>
+        </div>
+
+
+        <div class="vpc-overview-box md:w-1/3 flex ">
+          <div>
+            <h2 class="mt-6">Total Pods</h2>
+            <apx-chart [colors]="podChart.color" [series]="podChart.series" [chart]="chartOptions.chart"
+              [plotOptions]="chartOptions.plotOptions" [labels]="podChart.labels"></apx-chart>
+          </div>
+
+          <div class="text-center graph-info mt-28">
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 color-used"></mat-icon>
+              Pods <span>: {{graphStats?.deployed_pod_count || 'N/A'}}</span>
+            </h6>
+            <h6 class=" flex items-center">
+              <mat-icon [icIcon]="icCircle" class="circle mr-2 base-color"></mat-icon>
+              Capacity <span>: {{graphStats?.pod_capacity || 'N/A'}}</span>
+            </h6>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="w-full px-0 mt-2">
       <div *ngIf="nodeList?.length && !isLoading">
         <div>
