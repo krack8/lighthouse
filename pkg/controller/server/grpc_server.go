@@ -6,11 +6,22 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	v1 "github.com/krack8/lighthouse/pkg/controller/grpc/api/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"net"
+	"time"
 )
 
 func StartGrpcServer() {
-	s := grpc.NewServer()
+	// Keep alive policy
+	kaParams := keepalive.ServerParameters{
+		MaxConnectionIdle:     5 * time.Minute,  // Allow idle connections for 5 minutes
+		MaxConnectionAge:      0,                // No forced connection expiration
+		MaxConnectionAgeGrace: 1 * time.Minute,  // Grace period before closing connection
+		Time:                  30 * time.Second, // Send keepalive ping every 30s (adjust if needed)
+		Timeout:               10 * time.Second, // Wait 10s for keepalive response
+	}
+
+	s := grpc.NewServer(grpc.KeepaliveParams(kaParams))
 
 	pb.RegisterControllerServer(s, &v1.ControllerServer{})
 
