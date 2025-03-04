@@ -42,7 +42,7 @@
 
     <div *ngIf="statsLoaded">
       <div class="mt-2 flex flex-wrap">
-        <div class="vpc-overview-box md:w-1/3 flex mr-6">
+        <div class="vpc-overview-box md:w-1/3 mr-6">
           <div>
             <h2 class="mt-6">Total CPU</h2>
             <apx-chart [colors]="cpuChart.color" [series]="cpuChart.series" [chart]="chartOptions.chart"
@@ -68,7 +68,7 @@
         </div>
 
 
-        <div class="vpc-overview-box md:w-1/3 flex mr-6">
+        <div class="vpc-overview-box md:w-1/3 mr-6">
           <div>
             <h2 class="mt-6">Total Memory</h2>
             <apx-chart [colors]="memoryChart.color" [series]="memoryChart.series" [chart]="chartOptions.chart"
@@ -94,7 +94,7 @@
         </div>
 
 
-        <div class="vpc-overview-box md:w-1/3 flex ">
+        <div class="vpc-overview-box md:w-1/3">
           <div>
             <h2 class="mt-6">Total Pods</h2>
             <apx-chart [colors]="podChart.color" [series]="podChart.series" [chart]="chartOptions.chart"

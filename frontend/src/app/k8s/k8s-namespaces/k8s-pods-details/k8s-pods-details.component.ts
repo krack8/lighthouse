@@ -26,7 +26,6 @@ import { K8sPodsContainerLogComponent } from './k8s-pods-container-log/k8s-pods-
 })
 export class K8sPodsDetailsComponent implements OnInit {
   icCircle = icCircle;
-
   isLoading: boolean = true;
   data: any;
   eventsData: any;
@@ -42,6 +41,7 @@ export class K8sPodsDetailsComponent implements OnInit {
   clusterId: string;
   lokiDetails: any;
   title = 'Pods';
+  graphStats: any;
 
   constructor(
     private _namespaceService: K8sNamespacesService,
@@ -67,6 +67,10 @@ export class K8sPodsDetailsComponent implements OnInit {
       next: res => {
         if (res?.data?.Result?.metadata?.name) {
           this.data = res?.data?.Result;
+          this.graphStats = {
+            TotalCPU : res?.data?.CPU,
+            TotalMemory : res?.data?.Memory,
+          }
           this.isLoading = false;
         }
       },
