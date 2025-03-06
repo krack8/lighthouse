@@ -102,7 +102,7 @@ func (s *AgentManager) RemoveAgentByGroupName(groupName string) bool {
 // disconnectWorker handles immediate worker disconnection
 func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	if w == nil || w.Stream == nil {
-		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group: "+w.GroupName)
+		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group")
 		return
 	}
 
@@ -250,28 +250,68 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 		return nil, err
 	}
 
-	//defer func() {
-	//	w.mu.Lock()
-	//	delete(w.ResultChMap, taskID)
-	//	w.mu.Unlock()
-	//}()
+	defer func() {
+		w.mu.Lock()
+		delete(w.ResultStreamChMap, taskID)
+		w.mu.Unlock()
+	}()
 
 	// Wait for the agent to respond with a result or time out
 	select {
 	case res := <-resultCh:
-		//err = conn.WriteMessage(websocket.TextMessage, res.Output)
-		//if err != nil {
-		//	break
-		//}
-		for res = range resultCh {
-			err = conn.WriteMessage(websocket.TextMessage, res.Output)
-			if err != nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-			w.Stream.Send(&pb.TaskStreamResponse{})
+		err = conn.WriteMessage(websocket.TextMessage, res.Output)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+		// Create a ticker for sending messages every 3 seconds
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case res = <-resultCh:
+				err = conn.WriteMessage(websocket.TextMessage, res.Output)
+				if err != nil {
+					ticker.Stop()
+					return nil, err
+				}
+			case <-ticker.C:
+				// Send a message to the gRPC stream every 3 seconds
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: "heartbeat",
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+			case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
+				log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
+				ticker.Stop()
+				return nil, ctx.Err()
+			}
+		}
+		//for res = range resultCh {
+		//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
+		//	if err != nil {
+		//		break
+		//	}
+		//	time.Sleep(100 * time.Millisecond)
+		//	err = w.Stream.Send(&pb.TaskStreamResponse{
+		//		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+		//			NewPodLogsStream: &pb.PodLogsStream{
+		//				Id:      taskID,
+		//				Payload: taskName,
+		//				Name:    taskName,
+		//				Input:   string(input),
+		//			},
+		//		},
+		//	})
+		//}
 	case <-time.After(60 * time.Second):
 		return nil, errors.New("agent response timed out")
 	case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
