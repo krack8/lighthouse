@@ -241,4 +241,17 @@ export class K8sPodsDetailsComponent implements OnInit {
       position: { top: '0', right: '0' }
     });
   }
+
+  navigateToTerminal(containerName: string) {
+    const queryParams = new URLSearchParams({
+      domain: btoa('ws://localhost:8080/ws/pod/'+ this.data?.metadata?.name +'/exec'),
+      containerName: containerName,
+      pod: this.data?.metadata?.name || '',
+      namespace: this.data?.metadata?.namespace || '',
+      clusterId: this.clusterId || ''
+    }).toString();
+  
+    const url = `/k8s/terminal?${queryParams}`;
+    window.open(url, '_blank');
+  }
 }
