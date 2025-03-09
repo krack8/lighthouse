@@ -15,10 +15,12 @@ service Controller {
 // A worker can send two kinds of messages in the stream:
 //  1) WorkerIdentification: "I belong to group X, here is my auth token"
 //  2) TaskResult: "I finished task <task_id>, here is the result"
+// TODO: comment
 message TaskStreamRequest {
   oneof payload {
     WorkerIdentification worker_info = 1;
     TaskResult task_result = 2;
+    TerminalExecResponse exec_resp = 3;
   }
 }
 
@@ -36,10 +38,12 @@ message TaskResult {
 // The controller can send two kinds of messages back to the worker:
 //  1) Task: "Please execute this task with ID <task_id> and some payload"
 //  2) Ack:  "Acknowledgement for something, or simple keepalive"
+// TODO: comment
 message TaskStreamResponse {
   oneof payload {
     Task new_task = 1;
     Ack ack = 2;
+    TerminalExecRequest exec_req = 3;
   }
 }
 
@@ -52,4 +56,19 @@ message Task {
 
 message Ack {
   string message = 1;
+}
+
+// TODO: Comments
+message TerminalExecRequest {
+  string task_id = 1;
+  string input = 2; // Input will contain pod, container, namespace
+  bytes command = 3;
+  bool close_conn = 4;
+}
+
+// TODO: Comments
+message TerminalExecResponse {
+  string task_id = 1;
+  bool success = 2;
+  bytes output = 3;
 }

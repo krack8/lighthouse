@@ -6,7 +6,8 @@ import (
 	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
-	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	middleware "github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	api2 "github.com/krack8/lighthouse/pkg/controller/rest/api"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
 )
@@ -14,6 +15,7 @@ import (
 func StartHttServer() {
 	//gin.DisableConsoleColor()
 	r := gin.Default()
+
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"*", "http://localhost:4200"}
 	corsConfig.AllowMethods = []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete}
@@ -29,7 +31,7 @@ func StartHttServer() {
 		// Apply the AuthMiddleware to the / routes
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())
 	}
-	// Get the application port from the environment
+	//// Get the application port from the environment
 	port := cfg.ServerPort
 
 	router.AddApiRoutes(httpRouter)
@@ -40,6 +42,8 @@ func StartHttServer() {
 	r.POST("/api/auth/login", controllers.LoginHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
+	//
+	r.GET("/ws/pod/:name/exec", api2.PodController().ExecPod)
 
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {

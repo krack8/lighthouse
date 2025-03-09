@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,9 +17,10 @@ import (
 type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
-	GroupName   string
-	ResultChMap map[string]chan *pb.TaskResult // map of taskID -> channel that receives result
-	mu          sync.Mutex
+	GroupName             string
+	ResultChMap           map[string]chan *pb.TaskResult           // map of taskID -> channel that receives result
+	TerminalExecRespChMap map[string]chan *pb.TerminalExecResponse // map of taskID -> channel that receives result
+	mu                    sync.Mutex
 }
 
 type AgentManager struct {
@@ -212,6 +215,129 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	case <-time.After(60 * time.Second):
 		return nil, errors.New("agent response timed out")
 	}
+}
+
+// SendTerminalExecRequestToAgent sends a terminal exec request to a particular agent’s Stream.
+// Returns a channel on which the result will be delivered.
+func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input string, groupName string, conn *websocket.Conn) (*pb.TerminalExecResponse, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		return nil, errors.New("agent unreachable")
+	}
+
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.TerminalExecResponse, 1)
+
+	w.mu.Lock()
+	w.TerminalExecRespChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Sending an init message
+	// TODO: error handle
+	w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_ExecReq{
+			ExecReq: &pb.TerminalExecRequest{
+				TaskId:    taskID,
+				Input:     input,
+				Command:   []byte{},
+				CloseConn: false,
+			},
+		},
+	})
+
+	rCtx, rCancel := context.WithCancel(context.Background())
+
+	// Actually send the task to the agent.
+	// Goroutine to listen for browser input and send to Agent
+	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
+		for {
+			_, command, err := conn.ReadMessage()
+			if err != nil {
+				var cloneConn = false
+				log.Logger.Error("WebSocket read error: ", err.Error())
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+					fmt.Println("WebSocket closed normally:", err)
+					cloneConn = true
+				} else if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseProtocolError, websocket.CloseInternalServerErr) {
+					fmt.Println("Unexpected WebSocket closure:", err)
+					cloneConn = true
+				} else if errors.Is(err, websocket.ErrCloseSent) {
+					fmt.Println("Close frame was sent, connection closing:", err)
+					cloneConn = true
+				} else if strings.Contains(err.Error(), "EOF") {
+					fmt.Println("WebSocket connection closed unexpectedly (EOF):", err)
+					cloneConn = true
+				} else if strings.Contains(err.Error(), "use of closed network connection") {
+					fmt.Println("Connection was already closed:", err)
+					cloneConn = true
+				} else {
+					fmt.Println("Unrecognized WebSocket read error:", err)
+				}
+
+				// TODO: need to writer go routine
+				if cloneConn {
+					fmt.Println("[DEBUG] Stopping Connection")
+					cancel()
+
+					// TODO: need to close agent connection
+					w.Stream.Send(&pb.TaskStreamResponse{
+						Payload: &pb.TaskStreamResponse_ExecReq{
+							ExecReq: &pb.TerminalExecRequest{
+								TaskId:    taskID,
+								Input:     input,
+								Command:   []byte{},
+								CloseConn: true,
+							},
+						},
+					})
+
+					break
+				}
+
+			} else {
+				fmt.Println("[DEBUG] message: ", string(command))
+				w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:    taskID,
+							Input:     input,
+							Command:   command,
+							CloseConn: false,
+						},
+					},
+				})
+			}
+		}
+	}(conn, rCtx, rCancel)
+
+	// Wait for the agent to respond with a result or time out
+	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
+		for {
+			select {
+			case res := <-resultCh:
+				// Send response to the user
+
+				log.Logger.Info("got message from agent: ", res)
+				conn.WriteMessage(websocket.TextMessage, res.Output)
+
+				//if !res.Success {
+				//	return nil, errors.New(string(res.Output))
+				//}
+				//return res, nil
+			case <-ctx.Done():
+				log.Logger.Info("[DEBUG] Closing socat. Deleting all ... ")
+				w.mu.Lock()
+				conn.Close()
+				delete(w.ResultChMap, taskID)
+				w.mu.Unlock()
+				return
+			}
+		}
+	}(conn, rCtx, rCancel)
+	return nil, nil
 }
 
 // PickAgent returns any agent from the specified group (round-robin or random).

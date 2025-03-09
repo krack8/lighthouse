@@ -2,12 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	corev1 "k8s.io/api/core/v1"
+	"net/http"
 	"strconv"
 )
 
@@ -196,6 +199,62 @@ func (ctrl *podController) DeletePod(ctx *gin.Context) {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+	SendResponse(ctx, result)
+}
+
+func (ctrl *podController) ExecPod(ctx *gin.Context) {
+	var result ResponseDTO
+	input := new(k8s.PodExecInputParams)
+	fmt.Println("[DEBUG] Came here 1...: ")
+
+	input.PodName = ctx.Param("name")
+
+	queryNamespace := ctx.Query("namespace")
+	if queryNamespace == "" {
+		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
+		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+	containerName := ctx.Query("container")
+	if containerName == "" {
+		log.Logger.Errorw("Container required in query params", "value", containerName)
+		SendErrorResponse(ctx, "Container required in query params")
+		return
+	}
+	input.NamespaceName = queryNamespace
+	input.ContainerName = containerName
+
+	log.Logger.Infof("[DEBUG] Got input, %s, %s, %s", input.PodName, input.NamespaceName, input.ContainerName)
+	inputTask, err := json.Marshal(input)
+	if err != nil {
+		log.Logger.Errorw("unable to marshal Pod Exec Task input", "err", err.Error())
+	}
+
+	var wsocket = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true // Allow all origins
+		},
+	}
+	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Logger.Errorw("unable to initiate websocket connection", "err", err.Error())
+		SendErrorResponse(ctx, "Unable to initiate websocket connection")
+		return
+	}
+
+	fmt.Println("[DEBUG] Came here 3...: ")
+	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, string(inputTask), clusterGroup, conn)
+	if err != nil {
+		SendErrorResponse(ctx, err.Error())
+		return
+	}
+
 	SendResponse(ctx, result)
 }
 

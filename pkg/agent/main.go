@@ -154,7 +154,15 @@ func main() {
 						log.Fatalf("Detached from server. Disconnected !!")
 						return
 					}
-
+				case *pb.TaskStreamResponse_ExecReq:
+					task := payload.ExecReq
+					_log.Logger.Infof("Agent received a new pod exec task: ID=%s, payload=%s",
+						task.TaskId, task.Input)
+					err := tasks.PodExecTask(task.TaskId, task.Input, task.Command, task.CloseConn, stream)
+					if err != nil {
+						_log.Logger.Errorw("Failed to send pod exec result", "err", err)
+						return
+					}
 				default:
 					_log.Logger.Infow("Unknown payload from server.", "payload", "default")
 				}

@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 )
 
+var restConfig *rest.Config
 var clientSet *kubernetes.Clientset
 var dynamicClientSet *dynamic.DynamicClient
 var snapshotV1ClientSet *snapshotV1.SnapshotV1Client
@@ -26,16 +27,15 @@ var networkingV1beta1ClientSet *networkingv1beta1.NetworkingV1beta1Client
 
 func InitiateKubeClientSet() {
 	var kubeConfig *string
-	var restConfig *rest.Config
 	var err error
 
 	if config.IsK8() {
 		restConfig, err = clientcmd.BuildConfigFromFlags("", "")
 	} else {
 		if home := homedir.HomeDir(); home != "" {
-			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", config.KubeConfigFile), "(optional) absolute path to the kubeconfig file")
+			kubeConfig = flag.String("kubeconfig", filepath.Join("kube", config.KubeConfigFile), "(optional) absolute path to the kubeconfig file")
 			restConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
-			log.Logger.Info(filepath.Join(home, ".kube", config.KubeConfigFile))
+			log.Logger.Info(filepath.Join("kube", config.KubeConfigFile))
 
 		} else {
 			restConfig, err = clientcmd.BuildConfigFromFlags("", "")
@@ -77,6 +77,10 @@ func InitiateKubeClientSet() {
 		panic(err)
 	}
 
+}
+
+func GetKubeRestConfig() *rest.Config {
+	return restConfig
 }
 
 func GetKubeClientSet() *kubernetes.Clientset {
