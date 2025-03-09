@@ -104,9 +104,10 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 			// Create the worker connection instance.
 			// Create the agent connection instance.
 			currentAgent = &core.AgentConnection{
-				Stream:      stream,
-				GroupName:   groupName,
-				ResultChMap: make(map[string]chan *pb.TaskResult),
+				Stream:                stream,
+				GroupName:             groupName,
+				ResultChMap:           make(map[string]chan *pb.TaskResult),
+				TerminalExecRespChMap: make(map[string]chan *pb.TerminalExecResponse),
 			}
 
 			// Add to the server’s group map.
@@ -137,6 +138,26 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				}
 			}
 
+		case *pb.TaskStreamRequest_ExecResp:
+			// The worker has completed a task and is sending the result.
+			taskRes := payload.ExecResp
+			log.Logger.Infow(fmt.Sprintf("Received Terminal exec response from agent: task_id=%s, success=%v",
+				taskRes.TaskId, taskRes.Success), "task-result", taskRes.Success)
+
+			// TODO: DEBUG
+			log.Logger.Info("got message from agent: ", string(taskRes.Output))
+
+			// Notify whoever is waiting for this task result (our HTTP handler).
+			if currentAgent != nil {
+				currentAgent.Lock()
+				ch, ok := currentAgent.TerminalExecRespChMap[taskRes.TaskId]
+				currentAgent.Unlock()
+				if ok {
+					ch <- taskRes
+				} else {
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
+				}
+			}
 		default:
 			log.Logger.Warnw("Unknown message type from agent stream", "message-type", "unknown")
 		}
