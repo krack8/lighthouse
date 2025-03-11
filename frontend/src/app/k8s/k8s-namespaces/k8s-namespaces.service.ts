@@ -5,6 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import * as endpoints from './k8s-namespaces.endpoints';
 import { Utils } from '@shared-ui/utils';
 import { HttpService } from '@core-ui/services';
+import { utils } from 'protractor';
 
 @Injectable()
 export class K8sNamespacesService {
@@ -812,5 +813,10 @@ export class K8sNamespacesService {
       cluster_id: this.k8sService.clusterIdSnapshot,
       namespace: this.selectedNamespaceSnapshot
     });
+  }
+
+  getTerminalUrl(podName: string){
+    const baseUrl = 'ws://localhost:8080';
+    return baseUrl + Utils.formatString(endpoints.POD_TERMINAL_URL, podName);
   }
 }
