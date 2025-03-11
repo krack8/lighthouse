@@ -263,7 +263,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 				err = conn.WriteMessage(websocket.TextMessage, res.Output)
 				if err != nil {
 					log.Logger.Errorw("unable to get messages from agent", "logs-stream", err.Error())
-					//cancel()
+					cancel()
 				}
 			case <-ticker.C:
 				// Send a message to the gRPC stream every 3 seconds

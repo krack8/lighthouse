@@ -153,7 +153,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 						Output: taskRes.Output,
 					}
 				} else {
-					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for log ask_id=%s", taskRes.TaskId), "channel", "not waiting")
 				}
 			}
 

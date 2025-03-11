@@ -141,7 +141,8 @@ func main() {
 						logTaskMapMutex.Unlock()
 						go func(taskID, taskPayload string, task *pb.PodLogsStream, ctx context.Context) {
 							var input k8s.GetPodLogsInputParams
-							err := json.Unmarshal([]byte(podLogsTask.Input), &input)
+							keepAliveLogs(taskID)
+							err := json.Unmarshal([]byte(task.Input), &input)
 							if err != nil {
 								_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
 							}
@@ -154,6 +155,7 @@ func main() {
 							podLogs, err := req.Stream(ctx)
 							if err != nil {
 								_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
+								cancelTask(taskID)
 							}
 							defer func() {
 								if podLogs != nil {
@@ -174,11 +176,11 @@ func main() {
 									_log.Logger.Infow("Pod logs read", "numBytes", string(buf[:numBytes]))
 									if err == io.EOF {
 										_log.Logger.Errorw("error reading pod logs stream", "err", err)
-										cancelTask(podLogsTask.Id)
+										cancelTask(taskID)
 									}
 									if err != nil {
 										_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
-										cancelTask(podLogsTask.Id)
+										//cancelTask(taskID)
 									}
 									logResult.Output = buf[:numBytes]
 									if err := stream.Send(&pb.TaskStreamRequest{
@@ -187,7 +189,7 @@ func main() {
 										},
 									}); err != nil {
 										_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
-										cancelTask(podLogsTask.Id)
+										cancelTask(taskID)
 									}
 								}
 							}
