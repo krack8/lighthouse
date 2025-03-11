@@ -285,6 +285,9 @@ func cancelTask(taskID string) {
 	defer logTaskMapMutex.Unlock()
 	if task, ok := logTaskMap[taskID]; ok {
 		task.cancel()
+		if task.heartbeat != nil {
+			task.heartbeat.Stop()
+		}
 		delete(logTaskMap, taskID)
 		log.Printf("Cancelled task with ID: %s", taskID)
 	} else {
