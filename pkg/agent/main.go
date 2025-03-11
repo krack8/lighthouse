@@ -22,10 +22,10 @@ import (
 var taskMutex sync.Mutex
 
 // var logsMutex sync.Mutex
-var logTaskMap = make(map[string]heartbeat)
+var logTaskMap = make(map[string]*logTask)
 var logTaskMapMutex = sync.Mutex{}
 
-type heartbeat struct {
+type logTask struct {
 	cancel    context.CancelFunc
 	heartbeat *time.Timer
 }
@@ -136,12 +136,13 @@ func main() {
 						keepAliveLogs(podLogsTask.Id)
 					} else {
 						logsCtx, logsCancel := context.WithCancel(stream.Context())
+						newLogTask := logTask{logsCancel, nil}
 						logTaskMapMutex.Lock()
-						logTaskMap[podLogsTask.Id] = heartbeat{logsCancel, nil}
+						logTaskMap[podLogsTask.Id] = &newLogTask
 						logTaskMapMutex.Unlock()
+						keepAliveLogs(podLogsTask.Id)
 						go func(taskID, taskPayload string, task *pb.PodLogsStream, ctx context.Context) {
 							var input k8s.GetPodLogsInputParams
-							keepAliveLogs(taskID)
 							err := json.Unmarshal([]byte(task.Input), &input)
 							if err != nil {
 								_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
@@ -156,6 +157,7 @@ func main() {
 							if err != nil {
 								_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 								cancelTask(taskID)
+								return
 							}
 							defer func() {
 								if podLogs != nil {
@@ -173,15 +175,16 @@ func main() {
 									return // Exit the goroutine
 								default:
 									numBytes, err := podLogs.Read(buf)
-									_log.Logger.Infow("Pod logs read", "numBytes", string(buf[:numBytes]))
-									if err == io.EOF {
-										_log.Logger.Errorw("error reading pod logs stream", "err", err)
-										cancelTask(taskID)
-									}
 									if err != nil {
-										_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
-										//cancelTask(taskID)
+										if err == io.EOF {
+											_log.Logger.Infow("End of pod logs stream", "taskID", taskID)
+										} else {
+											_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
+										}
+										cancelTask(taskID)
+										return // Exit the goroutine
 									}
+
 									logResult.Output = buf[:numBytes]
 									if err := stream.Send(&pb.TaskStreamRequest{
 										Payload: &pb.TaskStreamRequest_LogsResult{
@@ -260,23 +263,60 @@ func main() {
 func keepAliveLogs(taskID string) {
 	log.Printf("keep alive func task with ID: %s", taskID)
 	logsTimeout := 10 * time.Second
+
 	logTaskMapMutex.Lock()
 	defer logTaskMapMutex.Unlock()
-	if task, ok := logTaskMap[taskID]; ok {
-		if task.heartbeat == nil {
-			task.heartbeat = time.AfterFunc(logsTimeout, func() {
-				log.Printf("logs timeout for task: %s", taskID)
-				task.cancel()
-				delete(logTaskMap, taskID)
-				log.Printf("Cancelled task with ID: %s", taskID)
-			})
-		} else {
-			task.heartbeat.Reset(logsTimeout)
-		}
-	} else {
+
+	task, ok := logTaskMap[taskID]
+	if !ok {
 		log.Printf("No active task found with ID: %s", taskID)
+		return
 	}
+
+	resetHeartbeat(task, taskID, logsTimeout)
 }
+
+func resetHeartbeat(task *logTask, taskID string, logsTimeout time.Duration) {
+	if task.heartbeat != nil {
+		task.heartbeat.Stop()
+	}
+
+	task.heartbeat = time.AfterFunc(logsTimeout, func() {
+		log.Printf("logs timeout for task: %s", taskID)
+		task.cancel()
+		logTaskMapMutex.Lock() // lock for deleting from map
+		delete(logTaskMap, taskID)
+		logTaskMapMutex.Unlock()
+		log.Printf("Cancelled task with ID: %s", taskID)
+	})
+}
+
+//func keepAliveLogs(taskID string) {
+//	log.Printf("keep alive func task with ID: %s", taskID)
+//	logsTimeout := 10 * time.Second
+//	logTaskMapMutex.Lock()
+//	defer logTaskMapMutex.Unlock()
+//	if task, ok := logTaskMap[taskID]; ok {
+//		if task.heartbeat == nil {
+//			task.heartbeat = time.AfterFunc(logsTimeout, func() {
+//				log.Printf("logs timeout for task: %s", taskID)
+//				task.cancel()
+//				delete(logTaskMap, taskID)
+//				log.Printf("Cancelled task with ID: %s", taskID)
+//			})
+//		} else {
+//			task.heartbeat.Stop()
+//			task.heartbeat = time.AfterFunc(logsTimeout, func() {
+//				log.Printf("logs timeout for task: %s", taskID)
+//				task.cancel()
+//				delete(logTaskMap, taskID)
+//				log.Printf("Cancelled task with ID: %s", taskID)
+//			})
+//		}
+//	} else {
+//		log.Printf("No active task found with ID: %s", taskID)
+//	}
+//}
 
 // cancel a task by its id
 func cancelTask(taskID string) {

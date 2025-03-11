@@ -321,7 +321,6 @@ func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 		return
 	}
 	log.Logger.Debugw("ws connected", "websocket", "connected")
-	defer conn.Close()
 
 	input := new(k8s.GetPodLogsInputParams)
 	input.Pod = ctx.Param("name")
