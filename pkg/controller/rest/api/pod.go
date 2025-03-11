@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
@@ -205,8 +204,6 @@ func (ctrl *podController) DeletePod(ctx *gin.Context) {
 func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	var result ResponseDTO
 	input := new(k8s.PodExecInputParams)
-	fmt.Println("[DEBUG] Came here 1...: ")
-
 	input.PodName = ctx.Param("name")
 
 	queryNamespace := ctx.Query("namespace")
@@ -230,15 +227,14 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	input.NamespaceName = queryNamespace
 	input.ContainerName = containerName
 
-	log.Logger.Infof("[DEBUG] Got input, %s, %s, %s", input.PodName, input.NamespaceName, input.ContainerName)
 	inputTask, err := json.Marshal(input)
 	if err != nil {
-		log.Logger.Errorw("unable to marshal Pod Exec Task input", "err", err.Error())
+		log.Logger.Errorw("unable to marshal PodExec Task input", "err", err.Error())
 	}
 
 	var wsocket = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
-			return true // Allow all origins
+			return true
 		},
 	}
 	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
@@ -248,7 +244,6 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("[DEBUG] Came here 3...: ")
 	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, string(inputTask), clusterGroup, conn)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
