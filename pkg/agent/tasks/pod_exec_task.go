@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/krack8/lighthouse/pkg/common/consts"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
@@ -16,23 +16,22 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"log"
-	"strings"
 	"sync"
+	"time"
 )
 
 type PodExecStream struct {
-	stdinWriter   *io.PipeWriter
-	stdinReader   *io.PipeReader
-	stdoutReader  *io.PipeReader
-	stdoutWriter  *io.PipeWriter
-	stderrReader  *io.PipeReader
-	stderrWriter  *io.PipeWriter
-	terminalQueue *TerminalSizeQueue
-	execSession   remotecommand.Executor
-	mutex         sync.Mutex
-	ctx           context.Context
-	cancel        context.CancelFunc
-	wg            sync.WaitGroup
+	stdinWriter      *io.PipeWriter
+	stdinReader      *io.PipeReader
+	stdoutReader     *io.PipeReader
+	stdoutWriter     *io.PipeWriter
+	stderrReader     *io.PipeReader
+	stderrWriter     *io.PipeWriter
+	terminalQueue    *TerminalSizeQueue
+	execStream       remotecommand.Executor
+	execStreamCtx    context.Context
+	execStreamCancel context.CancelFunc
+	wg               sync.WaitGroup
 }
 
 type TerminalSizeQueue struct {
@@ -40,108 +39,50 @@ type TerminalSizeQueue struct {
 }
 
 var taskPodExecStreams = make(map[string]*PodExecStream)
-var taskMutex sync.Mutex
+var mutex sync.Mutex
+var heartbeatTimers = make(map[string]*time.Timer)
 
-func PodExecTask(taskId string, input string, command []byte, isCloseConn bool, stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) error {
-	payload := k8s.PodExecInputParams{}
+func PodExecTask(taskId string, payloadType string, input string, command []byte, grpcStream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) error {
+	inputPayload := k8s.PodExecInputParams{}
 
-	err := json.Unmarshal([]byte(input), &payload)
+	err := json.Unmarshal([]byte(input), &inputPayload)
 	if err != nil {
-		_log.Logger.Error("Agent input error: ", err.Error())
+		_log.Logger.Error(fmt.Sprintf("Closing Stream! Input payload error: %s", err.Error()), "TaskID", taskId, "Payload", payloadType)
 		return err
 	}
 
-	streamExec, isNewStream, err := getExecStream(taskId, payload.NamespaceName, payload.PodName, payload.ContainerName, k8s.GetKubeRestConfig())
+	streamExec, err := getExecStream(taskId, inputPayload.NamespaceName, inputPayload.PodName, inputPayload.ContainerName, k8s.GetKubeRestConfig())
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get exec stream: %v", err))
+		_log.Logger.Error(fmt.Sprintf("Closing Stream! Failed to get pod exec stream: %s", err.Error()), "TaskID", taskId, "Payload", payloadType)
+		return err
 	}
 
-	if isCloseConn == true {
-		log.Println("[DEBUG] Received stop connection message from output, closing streams")
-		streamExec.Close()
-		delete(taskPodExecStreams, taskId)
+	if payloadType == consts.TaskPodExecCloseConn {
+		log.Println("[DEBUG] Received stop connection message from output, closing streams", "TaskID", taskId, "Payload", payloadType)
+		streamExec.Close(taskId)
 		return nil
+
+	} else if payloadType == consts.TaskPodExecHeartbeat {
+		log.Println("[DEBUG] Received heart beat message", "TaskID", taskId, "Payload", payloadType)
+		streamExec.checkHeartbeat(taskId)
+		return nil
+
+	} else if payloadType == consts.TaskPodExecInitConn {
+		log.Println("[DEBUG] Received init connection", "TaskID", taskId, "Payload", payloadType)
+		go streamExec.startPodExecStreamReader(taskId, grpcStream)
 	}
 
-	// Goroutine to handle input streaming
-	go func(streamExec *PodExecStream, command []byte) {
-		log.Println("[DEBUG] Input command:", string(command))
-		var msg map[string]uint16
-
-		if err := json.Unmarshal(command, &msg); err != nil {
-			if streamExec.stdinWriter == nil {
-				log.Println("[DEBUG] No in writer found")
-				return
-			}
-
-			_, err = streamExec.stdinWriter.Write(command)
-			if err != nil {
-				log.Println("[DEBUG] Error writing to stdin:", err)
-				return
-			}
-
-		} else {
-			streamExec.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
-				Width:  msg["cols"],
-				Height: msg["rows"],
-			}
-			log.Println("[DEBUG] Updated terminal size:", msg["cols"], "x", msg["rows"])
-		}
-	}(streamExec, command)
-
-	// Goroutine to handle output streaming
-	if isNewStream == true {
-		//streamExec.wg.Add(1)
-		go func(streamExec *PodExecStream) {
-			//defer streamExec.wg.Done()
-			buf := make([]byte, 2048)
-			for {
-				n, err := streamExec.stdoutReader.Read(buf)
-				if err != nil {
-					if err == io.EOF {
-						log.Println("[DEBUG] End of file ...")
-						return
-					} else if errors.Is(err, io.ErrClosedPipe) {
-						log.Println("[DEBUG] Attempted to read from a closed pipe")
-						return
-					}
-
-					log.Println("[DEBUG] Error reading stdout:", err)
-					return
-				}
-				if n > 0 {
-					output := buf[:n]
-					outputStr := strings.TrimSpace(string(output))
-
-					log.Println("Pod Output:", outputStr)
-					resultMsg := &pb.TaskStreamRequest{
-						Payload: &pb.TaskStreamRequest_ExecResp{
-							ExecResp: &pb.TerminalExecResponse{
-								TaskId:  taskId,
-								Success: true,
-								Output:  output,
-							},
-						},
-					}
-
-					err = stream.Send(resultMsg)
-					if err != nil {
-						log.Println("Error sending output to gRPC:", err)
-						break
-					}
-				}
-			}
-		}(streamExec)
-	}
+	// Writing commands to pod exec stream
+	go streamExec.writeCommandToPodExecStream(taskId, command)
 	return nil
 }
 
-func getExecStream(taskID, namespace, podName, containerName string, config *rest.Config) (*PodExecStream, bool, error) {
-	taskMutex.Lock()
-	defer taskMutex.Unlock()
+func getExecStream(taskID, namespace, podName, containerName string, config *rest.Config) (*PodExecStream, error) {
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	if stream, exists := taskPodExecStreams[taskID]; exists {
-		return stream, false, nil
+		return stream, nil
 	}
 
 	stdinReader, stdinWriter := io.Pipe()
@@ -150,7 +91,7 @@ func getExecStream(taskID, namespace, podName, containerName string, config *res
 
 	shellCmd := "/bin/bash"
 	if !isShellAvailable(config, namespace, podName, containerName, "/bin/bash") {
-		log.Println("Falling back to /bin/sh")
+		log.Println("[DEBUG] Falling back to /bin/sh")
 		shellCmd = "/bin/sh"
 	}
 
@@ -176,22 +117,22 @@ func getExecStream(taskID, namespace, podName, containerName string, config *res
 
 	exec, err := remotecommand.NewSPDYExecutor(config, "POST", reqURL)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to create SPDY executor: %v", err)
+		return nil, fmt.Errorf("failed to create SPDY executor: %v", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	stream := &PodExecStream{
-		stdinWriter:   stdinWriter,
-		stdinReader:   stdinReader,
-		stdoutReader:  stdoutReader,
-		ctx:           ctx,
-		cancel:        cancel,
-		stdoutWriter:  stdoutWriter,
-		stderrReader:  stderrReader,
-		stderrWriter:  stderrWriter,
-		execSession:   exec,
-		terminalQueue: &TerminalSizeQueue{sizeChan: make(chan *remotecommand.TerminalSize, 1)},
+		stdinWriter:      stdinWriter,
+		stdinReader:      stdinReader,
+		stdoutReader:     stdoutReader,
+		execStreamCtx:    ctx,
+		execStreamCancel: cancel,
+		stdoutWriter:     stdoutWriter,
+		stderrReader:     stderrReader,
+		stderrWriter:     stderrWriter,
+		execStream:       exec,
+		terminalQueue:    &TerminalSizeQueue{sizeChan: make(chan *remotecommand.TerminalSize, 1)},
 	}
 
 	taskPodExecStreams[taskID] = stream
@@ -200,12 +141,62 @@ func getExecStream(taskID, namespace, podName, containerName string, config *res
 	stream.wg.Add(1)
 	go stream.startExecStream()
 
-	return stream, true, nil
+	return stream, nil
+}
+
+func (t *PodExecStream) writeCommandToPodExecStream(taskID string, command []byte) {
+	var msg map[string]uint16
+
+	if err := json.Unmarshal(command, &msg); err != nil {
+		_, err = t.stdinWriter.Write(command)
+		if err != nil {
+			_log.Logger.Error(fmt.Sprintf("Closing Stream! Unable to write message to pod exec stream: %s", err.Error()), "TaskID", taskID)
+			t.Close(taskID)
+			return
+		}
+
+	} else {
+		t.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
+			Width:  msg["cols"],
+			Height: msg["rows"],
+		}
+	}
+}
+
+func (t *PodExecStream) startPodExecStreamReader(taskID string, grpcStream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) {
+	buf := make([]byte, 2048)
+	for {
+		n, err := t.stdoutReader.Read(buf)
+		if err != nil {
+			_log.Logger.Error(fmt.Sprintf("Closing Stream! Unable to read from pod exec stream: %s", err.Error()), "TaskID", taskID)
+			t.Close(taskID)
+			return
+		}
+		if n > 0 {
+			output := buf[:n]
+			resultMsg := &pb.TaskStreamRequest{
+				Payload: &pb.TaskStreamRequest_ExecResp{
+					ExecResp: &pb.TerminalExecResponse{
+						TaskId:  taskID,
+						Success: true,
+						Output:  output,
+					},
+				},
+			}
+
+			err = grpcStream.Send(resultMsg)
+			if err != nil {
+				_log.Logger.Error(fmt.Sprintf("Closing Stream! Failed to send response to controller: %s", err.Error()), "TaskID", taskID)
+				t.Close(taskID)
+				return
+			}
+		}
+	}
 }
 
 func (t *PodExecStream) startExecStream() {
 	defer t.wg.Done()
-	err := t.execSession.StreamWithContext(t.ctx, remotecommand.StreamOptions{
+	err := t.execStream.StreamWithContext(t.execStreamCtx, remotecommand.StreamOptions{
 		Stdin:             t.stdinReader,
 		Stdout:            t.stdoutWriter,
 		Stderr:            t.stderrWriter,
@@ -213,7 +204,7 @@ func (t *PodExecStream) startExecStream() {
 		TerminalSizeQueue: t.terminalQueue,
 	})
 	if err != nil {
-		log.Println("[DEBUG ]Error in exec stream:", err)
+		log.Println("[DEBUG] Error in exec stream:", err)
 		return
 	}
 }
@@ -223,15 +214,14 @@ func (t *TerminalSizeQueue) Next() *remotecommand.TerminalSize {
 	if size == nil {
 		return nil
 	}
-	log.Println(fmt.Sprintf("terminal size to width: %d height: %d", size.Width, size.Height))
 	return size
 }
 
-func (t *PodExecStream) Close() {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
+func (t *PodExecStream) Close(taskID string) {
+	mutex.Lock()
+	defer mutex.Unlock()
 
-	t.cancel()
+	t.execStreamCancel()
 
 	if t.stdoutReader != nil {
 		_ = t.stdoutReader.Close()
@@ -272,7 +262,23 @@ func (t *PodExecStream) Close() {
 			close(t.terminalQueue.sizeChan)
 		}
 	}
-	log.Println("[DEBUG] Closed all pod exec streams successfully")
+
+	delete(taskPodExecStreams, taskID)
+	_log.Logger.Infow(fmt.Sprintf("Closed all connection!"), "TaskID", taskID)
+}
+
+func (t *PodExecStream) checkHeartbeat(taskID string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if timer, exists := heartbeatTimers[taskID]; exists {
+		timer.Stop()
+	}
+
+	heartbeatTimers[taskID] = time.AfterFunc(10*time.Second, func() {
+		_log.Logger.Error(fmt.Sprintf("Closing Stream! Heartbeat Timeout"), "TaskID", taskID)
+		t.Close(taskID)
+	})
 }
 
 func isShellAvailable(config *rest.Config, namespace, pod, container, shell string) bool {
@@ -298,7 +304,6 @@ func isShellAvailable(config *rest.Config, namespace, pod, container, shell stri
 
 	exec, err := remotecommand.NewSPDYExecutor(config, "POST", reqURL)
 	if err != nil {
-		log.Println("Shell", shell, "is not available:", err)
 		return false
 	}
 
@@ -312,7 +317,6 @@ func isShellAvailable(config *rest.Config, namespace, pod, container, shell stri
 	})
 
 	if err != nil {
-		_log.Logger.Error("Error executing shell: ", shell, ":", err)
 		return false
 	}
 	return true

@@ -58,12 +58,16 @@ message Ack {
   string message = 1;
 }
 
-// TODO: Comments
+// The controller can send four kinds of requests  back to the worker:
+//  1) Task Init Connection: "Please execute this task with ID <task_id>, input (struct of {pod, container, namespace}), and payload 'init_conn' for initiating pod exec stream"
+//  3) Task Command: "Please execute this task with ID <task_id>, input (struct of {pod, container, namespace}), and payload 'command', websocket incoming command for sending the pod terminal command"
+//  3) Task Close Connection: "Please execute this task with ID <task_id>, payload 'close_conn' for closing the  the pod terminal stream"
+//  3) Task Heartbeat: "Please execute this task with ID <task_id>, payload 'heartbeat' for sending websocket active heartbeat"
 message TerminalExecRequest {
   string task_id = 1;
   string input = 2; // Input will contain pod, container, namespace
   bytes command = 3;
-  bool close_conn = 4;
+  string payload = 4; // Task type - init_conn, command, close_conn, heartbeat
 }
 
 // TODO: Comments
