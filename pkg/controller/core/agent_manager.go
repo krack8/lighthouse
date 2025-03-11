@@ -244,35 +244,26 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 		},
 	})
 	if err != nil {
+		log.Logger.Warnw("error")
 		w.mu.Lock()
 		delete(w.ResultStreamChMap, taskID)
+		conn.Close()
 		w.mu.Unlock()
 		return nil, err
 	}
 
-	defer func() {
-		w.mu.Lock()
-		delete(w.ResultStreamChMap, taskID)
-		w.mu.Unlock()
-	}()
-
+	wsCtx, wsCancel := context.WithCancel(context.Background())
 	// Wait for the agent to respond with a result or time out
-	select {
-	case res := <-resultCh:
-		err = conn.WriteMessage(websocket.TextMessage, res.Output)
-		if err != nil {
-			return nil, err
-		}
-		// Create a ticker for sending messages every 3 seconds
+	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 		for {
 			select {
-			case res = <-resultCh:
+			case res := <-resultCh:
 				err = conn.WriteMessage(websocket.TextMessage, res.Output)
 				if err != nil {
-					ticker.Stop()
-					return nil, err
+					log.Logger.Errorw("unable to get messages from agent", "logs-stream", err.Error())
+					//cancel()
 				}
 			case <-ticker.C:
 				// Send a message to the gRPC stream every 3 seconds
@@ -287,37 +278,75 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 					},
 				})
 				if err != nil {
-					return nil, err
+					log.Logger.Errorw("unable to send heartbeat to agent", "logs-heartbeat", err)
+					cancel()
 				}
-			case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
-				log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
+			case <-ctx.Done():
+				_ = conn.Close()
 				ticker.Stop()
-				return nil, ctx.Err()
+				w.mu.Lock()
+				delete(w.ResultStreamChMap, taskID)
+				w.mu.Unlock()
+				return
 			}
 		}
-		//for res = range resultCh {
-		//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
-		//	if err != nil {
-		//		break
-		//	}
-		//	time.Sleep(100 * time.Millisecond)
-		//	err = w.Stream.Send(&pb.TaskStreamResponse{
-		//		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-		//			NewPodLogsStream: &pb.PodLogsStream{
-		//				Id:      taskID,
-		//				Payload: taskName,
-		//				Name:    taskName,
-		//				Input:   string(input),
-		//			},
-		//		},
-		//	})
-		//}
-	case <-time.After(60 * time.Second):
-		return nil, errors.New("agent response timed out")
-	case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
-		log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
-		return nil, ctx.Err()
-	}
+	}(conn, wsCtx, wsCancel)
+	return nil, nil
+	//select {
+	//case res := <-resultCh:
+	//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	// Create a ticker for sending messages every 3 seconds
+	//	ticker := time.NewTicker(3 * time.Second)
+	//	defer ticker.Stop()
+	//	for {
+	//		select {
+	//		case res = <-resultCh:
+	//			err = conn.WriteMessage(websocket.TextMessage, res.Output)
+	//			if err != nil {
+	//				ticker.Stop()
+	//				return nil, err
+	//			}
+	//		case <-ticker.C:
+	//			// Send a message to the gRPC stream every 3 seconds
+	//			err = w.Stream.Send(&pb.TaskStreamResponse{
+	//				Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+	//					NewPodLogsStream: &pb.PodLogsStream{
+	//						Id:      taskID,
+	//						Payload: "heartbeat",
+	//						Name:    taskName,
+	//						Input:   string(input),
+	//					},
+	//				},
+	//			})
+	//			if err != nil {
+	//				return nil, err
+	//			}
+	//		case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
+	//			log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
+	//			ticker.Stop()
+	//			return nil, ctx.Err()
+	//		}
+	//	}
+	//for res = range resultCh {
+	//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
+	//	if err != nil {
+	//		break
+	//	}
+	//	time.Sleep(100 * time.Millisecond)
+	//	err = w.Stream.Send(&pb.TaskStreamResponse{
+	//		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+	//			NewPodLogsStream: &pb.PodLogsStream{
+	//				Id:      taskID,
+	//				Payload: taskName,
+	//				Name:    taskName,
+	//				Input:   string(input),
+	//			},
+	//		},
+	//	})
+	//}
 }
 
 // PickAgent returns any agent from the specified group (round-robin or random).
