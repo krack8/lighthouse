@@ -176,6 +176,12 @@ func main() {
 								default:
 									numBytes, err := podLogs.Read(buf)
 									if err != nil {
+										logTaskMapMutex.Lock()
+										_, ok := logTaskMap[taskID]
+										logTaskMapMutex.Unlock()
+										if !ok {
+											return
+										}
 										if err == io.EOF {
 											_log.Logger.Infow("End of pod logs stream", "taskID", taskID)
 										} else {
@@ -284,41 +290,13 @@ func resetHeartbeat(task *logTask, taskID string, logsTimeout time.Duration) {
 	task.heartbeat = time.AfterFunc(logsTimeout, func() {
 		log.Printf("logs timeout for task: %s", taskID)
 		task.cancel()
-		logTaskMapMutex.Lock() // lock for deleting from map
+		logTaskMapMutex.Lock()
 		delete(logTaskMap, taskID)
 		logTaskMapMutex.Unlock()
 		log.Printf("Cancelled task with ID: %s", taskID)
 	})
 }
 
-//func keepAliveLogs(taskID string) {
-//	log.Printf("keep alive func task with ID: %s", taskID)
-//	logsTimeout := 10 * time.Second
-//	logTaskMapMutex.Lock()
-//	defer logTaskMapMutex.Unlock()
-//	if task, ok := logTaskMap[taskID]; ok {
-//		if task.heartbeat == nil {
-//			task.heartbeat = time.AfterFunc(logsTimeout, func() {
-//				log.Printf("logs timeout for task: %s", taskID)
-//				task.cancel()
-//				delete(logTaskMap, taskID)
-//				log.Printf("Cancelled task with ID: %s", taskID)
-//			})
-//		} else {
-//			task.heartbeat.Stop()
-//			task.heartbeat = time.AfterFunc(logsTimeout, func() {
-//				log.Printf("logs timeout for task: %s", taskID)
-//				task.cancel()
-//				delete(logTaskMap, taskID)
-//				log.Printf("Cancelled task with ID: %s", taskID)
-//			})
-//		}
-//	} else {
-//		log.Printf("No active task found with ID: %s", taskID)
-//	}
-//}
-
-// cancel a task by its id
 func cancelTask(taskID string) {
 	log.Printf("Cancel func task with ID: %s", taskID)
 	logTaskMapMutex.Lock()

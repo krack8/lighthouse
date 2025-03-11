@@ -257,15 +257,35 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
+		// remove
+		count := 0
+		//
 		for {
 			select {
 			case res := <-resultCh:
 				err = conn.WriteMessage(websocket.TextMessage, res.Output)
 				if err != nil {
-					log.Logger.Errorw("unable to get messages from agent", "logs-stream", err.Error())
+					log.Logger.Errorw("unable to write to websocket", "logs-stream", err.Error())
 					cancel()
 				}
 			case <-ticker.C:
+				// remove
+				if count == 3 {
+					cancel()
+				}
+				count++
+				//
+				if conn == nil {
+					log.Logger.Warnw("conn is now nil", "logs-stream", taskID)
+					cancel()
+				} else {
+					err = conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second))
+					if err != nil {
+						log.Logger.Warnw("WebSocket ping failed, closing connection", "logs-stream", taskID)
+						cancel()
+					}
+					log.Logger.Infow("conn is active", "logs-stream", taskID)
+				}
 				// Send a message to the gRPC stream every 3 seconds
 				err = w.Stream.Send(&pb.TaskStreamResponse{
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
@@ -282,8 +302,23 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 					cancel()
 				}
 			case <-ctx.Done():
+				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
 				_ = conn.Close()
 				ticker.Stop()
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: "cancel",
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw("unable to send logs cancel to agent", "logs-cancel", err)
+					cancel()
+				}
 				w.mu.Lock()
 				delete(w.ResultStreamChMap, taskID)
 				w.mu.Unlock()
@@ -292,61 +327,6 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 		}
 	}(conn, wsCtx, wsCancel)
 	return nil, nil
-	//select {
-	//case res := <-resultCh:
-	//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	// Create a ticker for sending messages every 3 seconds
-	//	ticker := time.NewTicker(3 * time.Second)
-	//	defer ticker.Stop()
-	//	for {
-	//		select {
-	//		case res = <-resultCh:
-	//			err = conn.WriteMessage(websocket.TextMessage, res.Output)
-	//			if err != nil {
-	//				ticker.Stop()
-	//				return nil, err
-	//			}
-	//		case <-ticker.C:
-	//			// Send a message to the gRPC stream every 3 seconds
-	//			err = w.Stream.Send(&pb.TaskStreamResponse{
-	//				Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-	//					NewPodLogsStream: &pb.PodLogsStream{
-	//						Id:      taskID,
-	//						Payload: "heartbeat",
-	//						Name:    taskName,
-	//						Input:   string(input),
-	//					},
-	//				},
-	//			})
-	//			if err != nil {
-	//				return nil, err
-	//			}
-	//		case <-ctx.Done(): // Handle context cancellation (e.g., WebSocket closure)
-	//			log.Logger.Infow("logs stream cancelled due to context cancellation", "logs-stream", "cancelled")
-	//			ticker.Stop()
-	//			return nil, ctx.Err()
-	//		}
-	//	}
-	//for res = range resultCh {
-	//	err = conn.WriteMessage(websocket.TextMessage, res.Output)
-	//	if err != nil {
-	//		break
-	//	}
-	//	time.Sleep(100 * time.Millisecond)
-	//	err = w.Stream.Send(&pb.TaskStreamResponse{
-	//		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-	//			NewPodLogsStream: &pb.PodLogsStream{
-	//				Id:      taskID,
-	//				Payload: taskName,
-	//				Name:    taskName,
-	//				Input:   string(input),
-	//			},
-	//		},
-	//	})
-	//}
 }
 
 // PickAgent returns any agent from the specified group (round-robin or random).
