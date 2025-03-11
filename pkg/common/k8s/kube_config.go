@@ -33,9 +33,9 @@ func InitiateKubeClientSet() {
 		restConfig, err = clientcmd.BuildConfigFromFlags("", "")
 	} else {
 		if home := homedir.HomeDir(); home != "" {
-			kubeConfig = flag.String("kubeconfig", filepath.Join("kube", config.KubeConfigFile), "(optional) absolute path to the kubeconfig file")
+			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", config.KubeConfigFile), "(optional) absolute path to the kubeconfig file")
 			restConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
-			log.Logger.Info(filepath.Join("kube", config.KubeConfigFile))
+			log.Logger.Info(filepath.Join(home, ".kube", config.KubeConfigFile))
 
 		} else {
 			restConfig, err = clientcmd.BuildConfigFromFlags("", "")
