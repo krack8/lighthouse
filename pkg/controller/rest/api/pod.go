@@ -230,6 +230,7 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal PodExec Task input", "err", err.Error())
+		return
 	}
 
 	var wsocket = websocket.Upgrader{

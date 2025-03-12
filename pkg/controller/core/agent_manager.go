@@ -266,8 +266,10 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input
 		for {
 			_, command, err := conn.ReadMessage()
 			if err != nil {
+				if w.TerminalExecRespChMap[taskID] == nil {
+					return
+				}
 				log.Logger.Errorw(fmt.Sprintf("WebSocket read error: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
-				cancel()
 				_ = w.Stream.Send(&pb.TaskStreamResponse{
 					Payload: &pb.TaskStreamResponse_ExecReq{
 						ExecReq: &pb.TerminalExecRequest{
@@ -278,6 +280,7 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input
 						},
 					},
 				})
+				cancel()
 				return
 			} else {
 				err := w.Stream.Send(&pb.TaskStreamResponse{
@@ -307,11 +310,15 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input
 		for {
 			select {
 			case res := <-resultCh:
-				err := conn.WriteMessage(websocket.TextMessage, res.Output)
-				if err != nil {
-					log.Logger.Errorw(fmt.Sprintf("Unable to get message from agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+				if res.Success == false {
+					log.Logger.Errorw(fmt.Sprintf("Error response from agent: %s", string(res.Output)), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
 					cancel()
-					return
+				} else {
+					err := conn.WriteMessage(websocket.TextMessage, res.Output)
+					if err != nil {
+						log.Logger.Errorw(fmt.Sprintf("Unable to get message from agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+						cancel()
+					}
 				}
 			case <-ticker.C:
 				// Send a message to the gRPC stream every 3 seconds
@@ -328,7 +335,6 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input
 				if err != nil {
 					log.Logger.Errorw(fmt.Sprintf("Unable to send heartbeat to agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
 					cancel()
-					return
 				}
 			case <-ctx.Done():
 				log.Logger.Infow(fmt.Sprintf("Closing Connection!"), "TaskID", taskID, "TaskType", "PodExec")
