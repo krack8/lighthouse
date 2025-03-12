@@ -1,28 +1,33 @@
 import { ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import icClose from '@iconify/icons-ic/twotone-close';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { K8sNamespacesService } from '@k8s/k8s-namespaces/k8s-namespaces.service';
+import icSearch from '@iconify/icons-ic/twotone-search';
+import icFilter from '@iconify/icons-ic/twotone-filter-list';
 import icEdit from '@iconify/icons-ic/twotone-edit';
 import icExport from '@iconify/icons-ic/twotone-file-upload';
-import icFilter from '@iconify/icons-ic/twotone-filter-list';
 import icClear from '@iconify/icons-ic/twotone-format-clear';
-import icSearch from '@iconify/icons-ic/twotone-search';
-import { K8sNamespacesService } from '@k8s/k8s-namespaces/k8s-namespaces.service';
-import { ToastrService } from '@sdk-ui/ui';
-import { Subject, Subscription } from 'rxjs';
-import { WebSocketSubject } from 'rxjs/webSocket';
+import icClose from '@iconify/icons-ic/twotone-close';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { K8sPodsDetailsComponent } from '../k8s-pods-details.component';
+import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
+import { filter, takeUntil, } from 'rxjs/operators';
+import { Subject, Subscription } from 'rxjs';
+import { Utils } from '@shared-ui/utils';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { K8sPodWebSocketService } from './k8s-pod-ws.service';
+import { ToastrService } from '@sdk-ui/ui';
 
 @Component({
   selector: 'kc-k8s-pods-container-log',
   templateUrl: './k8s-pods-container-log.component.html',
-  styleUrls: ['./k8s-pods-container-log.component.scss']
+  styleUrls: ['./k8s-pods-container-log.component.scss'],
+  providers: [K8sPodWebSocketService],
 })
 export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   @ViewChild('appLogViewContainer', { read: ElementRef, static: false }) private appLogViewContainer!: ElementRef;
   private _destroy$: Subject<void> = new Subject();
-  private retryTimer: any;
+  private  retryTimer: any;
   icSearch = icSearch;
   icEdit = icEdit;
   icFilter = icFilter;
@@ -38,7 +43,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   socket: any;
   liveLogs: string = '';
   external_access_token: string;
-  wsRetryCount: number = 0;
+  wsRetryCount : number = 0;
   retryTime: number = 0;
 
   isLoading: boolean = true;
@@ -48,6 +53,8 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data,
     public dialogRef: MatDialogRef<K8sPodsDetailsComponent>,
     private _namespaceService: K8sNamespacesService,
+    private _k8sPodWebsocketService: K8sPodWebSocketService,
+    private dialog: MatDialog,
     private cd: ChangeDetectorRef,
     public snackBar: MatSnackBar,
     private _formBuilder: UntypedFormBuilder,
@@ -61,7 +68,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
       lines: [100],
       since: [''],
       previous: [{ value: false, disabled: this.data?.restart > 0 ? false : true }],
-      follow: [false]
+      follow: [true],
     });
 
     this.fetchLogs();
@@ -71,17 +78,102 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     this._destroy$.next();
     this._destroy$.complete();
     if (this.wsSubscription) {
+      console.log('unsubscribing wsSubscription');
       this.wsSubscription.unsubscribe();
       this.wsSubject.complete();
     }
-    if (this.retryTimer) {
-      clearTimeout(this.retryTimer);
-    }
+    // if (this.retryTimer) {
+    //   clearTimeout(this.retryTimer);
+    // }
   }
 
   fetchLogs(): void {
     this.isLoading = true;
-    this.getStaticLogs(); // only static logs
+    clearTimeout(this.retryTimer);
+    if (this.wsSubscription) {
+      console.log('subscription is on');
+      this.wsSubject.complete();
+      this.wsSubscription.unsubscribe();
+    }
+    if (this.logForm?.get('follow').value === true) {
+      this.subscribeToWs();
+      // this._k8sPodWebsocketService.getToken().subscribe((res) => {
+      //   if (res['status'] === 'success') {
+      //     if (res['data']['external_access_token']) {
+      //       this.external_access_token = res['data']['external_access_token'];
+      //       this.subscribeToWs();
+      //     }
+      //   }
+      // });
+    } else {
+      this.retryTime = 0;
+      this.wsRetryCount = 0;
+      this.isWsConnected = false;
+      this.getStaticLogs();
+    }
+    }
+
+  subscribeToWs(): void {
+    this.isLoading = true;
+    const qp = this.filterLogs();
+    if (this.retryTime !== 0) {
+      qp['since'] = this.retryTime;
+    }
+    // if (this.external_access_token) {
+    //   qp['access_token'] = this.external_access_token;
+    // } else {
+    //   this.toastr.error('Failed: ', 'no token found!');
+    //   this.isLoading = false;
+    //   return;
+    // }
+    console.log('qp:', qp);
+    const uri = this._k8sPodWebsocketService.getPodsWsUrl(this.data.pod, qp); 
+
+    this.wsSubject = webSocket({
+      url: uri,
+      deserializer: (msg) => {
+        if (msg.type === 'message' && msg.data) {
+          return Utils.processLog(msg.data);
+        }
+        return null;
+      },
+    });
+
+    this.wsSubscription = this.wsSubject
+      .asObservable()
+      .pipe(
+        takeUntil(this._destroy$),
+        filter((log) => log !== null),
+        // retryWhen(errors =>
+        //   errors.pipe(
+        //     tap(err => {
+        //       this.isWsConnected = false;
+        //       this.applySinceFilter(5);
+        //     }) ,
+        //     delay(3000), // Retry after 5 seconds
+        //   )
+        // )
+      )
+      .subscribe({
+        next: (log) => {
+          this.retryTime = 0;
+          console.log('called', this.wsRetryCount);
+          this.processLog(log);
+        },
+        error: (err) => {
+          this.isWsConnected = false;
+          this.retryTime= this.retryTime + 5; // fetch logs since time in seconds
+          console.log('retrying with since =' + this.retryTime + ' seconds');
+          this.retryTimer = setTimeout(() => {
+            this.fetchLogs();             
+          } , 5000);
+          },
+          complete: () => {
+          console.log('is complete');
+          this.isWsConnected = false;
+          this.isLoading = false;
+        },
+      });
   }
 
   filterLogs(): object {
@@ -113,6 +205,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     if (this.logForm?.get('since').value && this.logForm?.get('since').value > 0) {
       payload['since'] = this.logForm?.get('since').value * 60;
     }
+    if (this.retryTime == 0) this.liveLogs = '';
     return payload;
   }
 
@@ -131,6 +224,41 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     this.liveLogs = '';
   }
 
+  // applyFilter(): void {  
+  //   if (this.logForm?.get('follow').value === true) {
+  //     this.wsSubscription.unsubscribe();
+  //     this.liveLogs = '';
+  //     this.fetchLogs();
+  //   } else {
+  //     this.getStaticLogs();
+  //   }
+  // }
+
+  // applyLinesFilter(): void {  
+  //   this.liveLogs = '';
+  //   if (this.logForm?.get('lines').value !== '' && this.logForm?.get('lines').value >= 50) {
+  //     if (this.logForm?.get('follow').value === true) {
+  //       this.wsSubscription.unsubscribe();
+  //       this.fetchLogs();
+  //     } else {
+  //       this.getStaticLogs();
+  //     } 
+  //   }
+  // }
+
+  // applySinceFilter(): void {
+  //   if (this.logForm?.get('since').value !== '' && this.logForm?.get('since').value >= 1) {
+  //     if (this.logForm?.get('follow').value === true) {
+  //       this.wsSubscription.unsubscribe();
+  //       this.liveLogs = '';
+  //       this.fetchLogs();
+  //     } else {
+  //       this.getStaticLogs();
+  //     }
+  //   }
+
+  // }
+
   toggleShowPrevious(): void {
     this.liveLogs = '';
     if (this.logForm?.get('follow').value === false) {
@@ -138,11 +266,22 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     }
   }
 
+  // toggleFollow(): void {
+  //   this.liveLogs = '';
+  //   if (this.logForm?.get('follow').value === true) {
+  //     this.fetchLogs();
+  //   } else {
+  //     if (this.wsSubscription) this.wsSubscription.unsubscribe();
+  //     this.getStaticLogs();
+  //   }
+  // }
+
   getStaticLogs(queryParams?): void {
     this.isLoading = true;
     this.liveLogs = '';
     const qp = this.filterLogs();
-    this._namespaceService.getLogsV1(qp, this.data.pod).subscribe(res => {
+    console.log('qp:', qp);
+    this._namespaceService.getLogsV1(qp, this.data.pod).subscribe((res) => {
       if (res.status === 'success') {
         this.liveLogs += this.transformTerminalLog(res.data);
         // Go to Bottom Log
@@ -153,10 +292,29 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     }),
-      err => {
+      (err) => {
         this.toastr.error('Failed: ', 'Something went wrong!');
         this.isLoading = false;
       };
+  }
+
+  processLog(data: string | string[]) {
+    // Data From WebSocket
+    if (typeof data === 'string') {
+      const isUpdateScrollPosition =
+        this.appLogViewContainer.nativeElement.scrollHeight - this.appLogViewContainer.nativeElement.scrollTop  <=
+        800;
+      this.liveLogs += this.transformTerminalLog(data);
+      
+      // Go to Bottom Log
+      if (isUpdateScrollPosition) {
+        this.scrollLogContainerToBottom();
+        setTimeout(() => {
+          //console.log('scrolling to bottom');
+          this.scrollLogContainerToBottom();
+        }, 10);
+      }
+    }
   }
 
   scrollLogContainerToBottom(): void {
@@ -201,4 +359,5 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     );
     return '<span>' + data + '</span>';
   }
+
 }

@@ -21,9 +21,11 @@ export class K8sPodWebSocketService {
   getPodsWsUrl(name: string, qp?: any): string {
     const filterParams = qp;
 
-    const logsWsUrl = this.k8sService.clusterInfoSnapshot.lighthouseWsUrl;
+    //const logsWsUrl = this.k8sService.clusterInfoSnapshot.lighthouseWsUrl;
 
-    let uri = `${logsWsUrl}/ws/v1/pod/logs/${name}?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
+    const logsWsUrl = 'http://localhost:8080';
+
+    let uri = `${logsWsUrl}/ws/pod/logs/stream/${name}?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
     if (filterParams.lines) {
       uri += `&lines=${filterParams.lines}`;
     }
