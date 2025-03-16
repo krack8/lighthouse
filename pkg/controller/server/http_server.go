@@ -7,7 +7,6 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 	middleware "github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
-	api2 "github.com/krack8/lighthouse/pkg/controller/rest/api"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
 )
@@ -27,14 +26,17 @@ func StartHttServer() {
 
 	// Setting API Base Path for HTTP APIs
 	httpRouter := r.Group("api/v1")
+	wsRouter := r.Group("ws/v1")
 	if cfg.IsAuth() {
 		// Apply the AuthMiddleware to the / routes
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())
+		wsRouter = r.Group("ws/v1", middleware.AuthMiddleware())
 	}
 	//// Get the application port from the environment
 	port := cfg.ServerPort
 
 	router.AddApiRoutes(httpRouter)
+	router.AddWsApiRoutes(wsRouter)
 	r.GET("/health", Home().Health)
 	r.GET("/", Home().Index)
 	// Define the login route separately without middleware
@@ -42,8 +44,6 @@ func StartHttServer() {
 	r.POST("/api/auth/login", controllers.LoginHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
-	//
-	r.GET("/ws/pod/:name/exec", api2.PodController().ExecPod)
 
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {
