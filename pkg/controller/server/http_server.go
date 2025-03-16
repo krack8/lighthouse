@@ -43,6 +43,7 @@ func StartHttServer() {
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
 
 	r.GET("ws/pod/logs/stream/:name", api2.PodController().GetPodLogsStream)
+	r.GET("/api/pod/logs/stream/:name", api2.PodController().GetPodLogsStreamForHttpStream)
 
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {
