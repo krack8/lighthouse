@@ -281,3 +281,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/volume-snapshot-class", api2.VolumeSnapshotClassController().GetVolumeSnapshotClassList)
 	httpRg.GET("/volume-snapshot-class/:name", api2.VolumeSnapshotClassController().GetVolumeSnapshotClassDetails)
 }
+
+func AddWsApiRoutes(wsRg *gin.RouterGroup) {
+	wsRg.GET("/pod/:name/exec", api2.PodController().ExecPod)
+}

@@ -222,7 +222,7 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input string, groupName string, conn *websocket.Conn) (*pb.TerminalExecResponse, error) {
 	w := s.PickAgent(groupName)
 	if w == nil {
-		log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to get agent: agent unreachable"), "TaskType", "PodExec")
+		log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to get agent: agent unreachable"), "TaskType", "PodExec", "AgentGroup", groupName)
 		conn.Close()
 		return nil, errors.New("agent unreachable")
 	}
