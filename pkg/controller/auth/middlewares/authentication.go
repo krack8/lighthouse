@@ -20,22 +20,18 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var token string
 
-		// Extract the Authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			authHeader = c.GetHeader("Sec-WebSocket-Protocol")
+		token, exists := c.GetQuery("token")
+		if exists == false {
+			// Extract the Authorization header
+			authHeader := c.GetHeader("Authorization")
 			if authHeader == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
 				c.Abort()
 				return
-
 			} else {
-				token = authHeader
+				// Remove "Bearer " prefix from the token if present
+				token = strings.TrimPrefix(authHeader, "Bearer ")
 			}
-
-		} else {
-			// Remove "Bearer " prefix from the token if present
-			token = strings.TrimPrefix(authHeader, "Bearer ")
 		}
 
 		if token == "" {
