@@ -405,17 +405,21 @@ func (ctrl *podController) GetPodLogsStreamForHttpStream(ctx *gin.Context) {
 		logErrMarshalTaskController(taskName, err)
 	}
 	// Set headers for server-sent events (SSE)
-	ctx.Writer.Header().Set("Content-Type", "text/event-stream")
-	ctx.Writer.Header().Set("Cache-Control", "no-cache")
-	ctx.Writer.Header().Set("Connection", "keep-alive")
-
-	flusher, ok := ctx.Writer.(http.Flusher)
-	if !ok {
-		log.Logger.Errorw("Streaming unsupported!", "stream-err", err)
-		SendErrorResponse(ctx, "Streaming unsupported")
-		return
-	}
-	_, _ = core.GetAgentManager().SendPodLogsStreamReqToAgentForHttpStream(ctx, taskName, inputTask, clusterGroup, flusher)
+	//ctx.Writer.Header().Set("Content-Type", "text/event-stream")
+	//ctx.Writer.Header().Set("Cache-Control", "no-cache")
+	//ctx.Writer.Header().Set("Connection", "keep-alive")
+	//new
+	ctx.Header("Content-Type", "text/plain")
+	ctx.Header("Transfer-Encoding", "chunked")
+	ctx.Status(http.StatusOK)
+	//ctx.Writer.Flush()
+	//flusher, ok := ctx.Writer.(http.Flusher)
+	//if !ok {
+	//	log.Logger.Errorw("Streaming unsupported!", "stream-err", err)
+	//	SendErrorResponse(ctx, "Streaming unsupported")
+	//	return
+	//}
+	_, _ = core.GetAgentManager().SendPodLogsStreamReqToAgentForHttpStream(ctx, taskName, inputTask, clusterGroup)
 	//if err != nil {
 	//	SendErrorResponse(ctx, err.Error())
 	//	return
