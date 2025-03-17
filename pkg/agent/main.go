@@ -25,6 +25,12 @@ var taskMutex sync.Mutex
 var logTaskMap = make(map[string]*logTask)
 var logTaskMapMutex = sync.Mutex{}
 
+const (
+	PodLogBoolTrue     = "y"
+	PodLogBoolFalse    = "n"
+	TailLinesThreshold = int64(2500)
+)
+
 type logTask struct {
 	cancel    context.CancelFunc
 	heartbeat *time.Timer
@@ -152,6 +158,26 @@ func main() {
 							if input.Container != "" {
 								podLogOptions.Container = input.Container
 							}
+							zero := int64(0)
+							if input.TailLines != nil && *input.TailLines != zero {
+								if *input.TailLines > TailLinesThreshold {
+									threshold := TailLinesThreshold
+									podLogOptions.TailLines = &threshold
+								} else {
+									podLogOptions.TailLines = input.TailLines
+								}
+							}
+							if input.SinceSeconds != nil && *input.SinceSeconds > zero {
+								podLogOptions.SinceSeconds = input.SinceSeconds
+							}
+							// checking timestamps
+							switch input.Timestamps {
+							case PodLogBoolTrue:
+								podLogOptions.Timestamps = true
+							case PodLogBoolFalse:
+								podLogOptions.Timestamps = false
+							}
+
 							req := k8s.GetKubeClientSet().CoreV1().Pods(input.NamespaceName).GetLogs(input.Pod, &podLogOptions)
 							podLogs, err := req.Stream(ctx)
 							if err != nil {
@@ -202,6 +228,7 @@ func main() {
 									}
 								}
 							}
+
 						}(podLogsTask.Id, podLogsTask.Payload, podLogsTask, logsCtx)
 					}
 				case *pb.TaskStreamResponse_Ack:

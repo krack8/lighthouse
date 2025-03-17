@@ -411,6 +411,7 @@ func (ctrl *podController) GetPodLogsStreamForHttpStream(ctx *gin.Context) {
 	//new
 	ctx.Header("Content-Type", "text/plain")
 	ctx.Header("Transfer-Encoding", "chunked")
+	ctx.Writer.Header().Set("Connection", "close")
 	ctx.Status(http.StatusOK)
 	//ctx.Writer.Flush()
 	//flusher, ok := ctx.Writer.(http.Flusher)

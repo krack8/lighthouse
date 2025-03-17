@@ -415,6 +415,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 			case <-ctx.Done():
 				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
 				ticker.Stop()
+				gctx.Writer.Flush()
 				err = w.Stream.Send(&pb.TaskStreamResponse{
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
 						NewPodLogsStream: &pb.PodLogsStream{
