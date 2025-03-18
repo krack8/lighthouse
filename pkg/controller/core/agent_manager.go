@@ -19,9 +19,9 @@ import (
 type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
-	GroupName         string
-	ResultChMap       map[string]chan *pb.TaskResult
-	ResultStreamChMap map[string]chan *pb.LogsResult // map of taskID -> channel that receives result
+	GroupName             string
+	ResultChMap           map[string]chan *pb.TaskResult
+	ResultStreamChMap     map[string]chan *pb.LogsResult           // map of taskID -> channel that receives result
 	TerminalExecRespChMap map[string]chan *pb.TerminalExecResponse // map of taskID -> channel that receives result
 	mu                    sync.Mutex
 }
@@ -286,7 +286,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
 						NewPodLogsStream: &pb.PodLogsStream{
 							Id:      taskID,
-							Payload: "heartbeat",
+							Payload: consts.LogsTaskHeartbeat,
 							Name:    taskName,
 							Input:   string(input),
 						},
@@ -304,7 +304,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
 						NewPodLogsStream: &pb.PodLogsStream{
 							Id:      taskID,
-							Payload: "cancel",
+							Payload: consts.LogsTaskCancel,
 							Name:    taskName,
 							Input:   string(input),
 						},
@@ -538,7 +538,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
 						NewPodLogsStream: &pb.PodLogsStream{
 							Id:      taskID,
-							Payload: "heartbeat",
+							Payload: consts.LogsTaskHeartbeat,
 							Name:    taskName,
 							Input:   string(input),
 						},
@@ -556,7 +556,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
 						NewPodLogsStream: &pb.PodLogsStream{
 							Id:      taskID,
-							Payload: "cancel",
+							Payload: consts.LogsTaskCancel,
 							Name:    taskName,
 							Input:   string(input),
 						},
