@@ -1,29 +1,33 @@
-import { Injectable } from '@angular/core';
-import { K8sService } from '@k8s/k8s.service';
-import { K8sNamespacesService } from '../../k8s-namespaces.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Inject, Injectable, NgZone, Optional } from '@angular/core';
+import { APP_ENV } from '@core-ui/constants';
+import { IAppEnv } from '@core-ui/interfaces';
 import { RequesterService } from '@core-ui/services';
+import { K8sService } from '@k8s/k8s.service';
+import { Observable } from 'rxjs';
+import { K8sNamespacesService } from '../../k8s-namespaces.service';
 
 export const LOCAL_STORAGE_LIGHTHOUSE_LOG_KEY = 'ngx-webstorage|kc-lighthouse-logs-token';
 
 @Injectable()
 export class K8sPodWebSocketService {
   baseUrl: string;
-  lighthouseLogUrl: string;
 
   constructor(
+    @Optional() @Inject(APP_ENV) private _env: IAppEnv,
     private k8sService: K8sService,
     private namespaceService: K8sNamespacesService,
-    private http: HttpClient,
-    private requester: RequesterService
-  ) {}
+    private requester: RequesterService,
+    private ngZone: NgZone
+  ) {
+    this.baseUrl = _env?.apiEndPoint;
+  }
 
   getPodsWsUrl(name: string, qp?: any): string {
     const filterParams = qp;
 
     const logsWsUrl = this.k8sService.clusterInfoSnapshot.lighthouseWsUrl;
 
-    let uri = `${logsWsUrl}/ws/v1/pod/logs/${name}?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
+    let uri = `${this.baseUrl}/pod/logs/stream/${name}?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
     if (filterParams.lines) {
       uri += `&lines=${filterParams.lines}`;
     }
@@ -42,17 +46,47 @@ export class K8sPodWebSocketService {
     return uri;
   }
 
-  getToken() {
-    if (this.k8sService.clusterInfoSnapshot.lighthouseLogUrl) {
-      const baseUrl = this.k8sService.clusterInfoSnapshot.lighthouseLogUrl;
+  getPodLogsStream(url: string): Observable<string> {
+    return new Observable<string>((observer) => {  
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${this.requester.get().token}`);
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState >= 3) {
+          if (xhr.status === 200) {
+            this.ngZone.run(() => {
+              observer.next(xhr.responseText);
+            });
+          } else if (xhr.readyState === 4 && xhr.status !== 200) {
+            this.ngZone.run(() => {
+              observer.error(`Error: ${xhr.status} - ${xhr.statusText}`);
+            });
+          }
+        }
+      };
+      xhr.onerror = (error) => {
+        this.ngZone.run(() => {
+          observer.error(error); 
+        });
+      };
 
-      // let trimmedUrl = baseUrl.split('https://');
-      // const tempBaseUrl = 'http://' + trimmedUrl[1];
-
-      const url = `${baseUrl}/api/v1/authenticate`;
-
-      const params = new HttpParams().set('cluster_id', this.k8sService.clusterIdSnapshot);
-      return this.http.get(url, { params });
-    }
+      xhr.send();
+        return () => {
+        xhr.abort();
+      };
+    });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
