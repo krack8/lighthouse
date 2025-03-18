@@ -369,24 +369,27 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 		return nil, err
 	}
 
-	wsCtx, wsCancel := context.WithCancel(context.Background())
-	// Wait for the agent to respond with a result or time out
+	wsCtx, wsCancel := context.WithCancel(ctx.Request.Context())
 	func(gctx *gin.Context, ctx context.Context, cancel context.CancelFunc) {
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 		for {
 			select {
 			case res := <-resultCh:
+				if res.Cancel {
+					log.Logger.Errorw("agent cancelled log streaming", "logs-stream-cancelled", res.TaskId)
+					cancel()
+				}
 				_, err := gctx.Writer.Write(res.Output)
 				if err != nil {
 					log.Logger.Errorw("unable to write to HTTP stream", "logs-stream", err.Error())
 					cancel()
 				}
-				gctx.Writer.Flush()
 			case <-ticker.C:
 				if gctx.Writer.Status() != http.StatusOK {
 					// If the response status is not OK, the client may have disconnected
-					fmt.Println("Client disconnected, closing stream.")
+					log.Logger.Infow("client is disconnected. closing stream", "logs-stream", taskID)
+					cancel()
 				}
 				_, err = gctx.Writer.Write([]byte(""))
 				if err != nil {
@@ -410,8 +413,6 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 					log.Logger.Errorw("unable to send heartbeat to agent", "logs-heartbeat", err)
 					cancel()
 				}
-			case <-gctx.Done():
-				cancel()
 			case <-ctx.Done():
 				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
 				ticker.Stop()

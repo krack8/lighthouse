@@ -150,7 +150,9 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				currentAgent.Unlock()
 				if ok {
 					ch <- &pb.LogsResult{
+						TaskId: taskRes.TaskId,
 						Output: taskRes.Output,
+						Cancel: taskRes.Cancel,
 					}
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for log ask_id=%s", taskRes.TaskId), "channel", "not waiting")

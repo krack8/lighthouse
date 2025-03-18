@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/config"
@@ -11,6 +12,7 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	"google.golang.org/grpc"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	"log"
@@ -137,23 +139,23 @@ func main() {
 					_log.Logger.Infow("Agent received a new pod logs task: ID=%s, payload=%s",
 						podLogsTask.Id, podLogsTask.Payload)
 					if podLogsTask.Payload == "cancel" {
-						cancelTask(podLogsTask.Id)
+						cancelTask(podLogsTask.Id, stream)
 					} else if podLogsTask.Payload == "heartbeat" {
-						keepAliveLogs(podLogsTask.Id)
+						keepAliveLogs(podLogsTask.Id, stream)
 					} else {
 						logsCtx, logsCancel := context.WithCancel(stream.Context())
 						newLogTask := logTask{logsCancel, nil}
 						logTaskMapMutex.Lock()
 						logTaskMap[podLogsTask.Id] = &newLogTask
 						logTaskMapMutex.Unlock()
-						keepAliveLogs(podLogsTask.Id)
+						keepAliveLogs(podLogsTask.Id, stream)
 						go func(taskID, taskPayload string, task *pb.PodLogsStream, ctx context.Context) {
 							var input k8s.GetPodLogsInputParams
 							err := json.Unmarshal([]byte(task.Input), &input)
 							if err != nil {
 								_log.Logger.Errorw("Failed to unmarshal pod logs input", "err", err)
 							}
-							logResult := &pb.LogsResult{}
+							logResult := &pb.LogsResult{TaskId: taskID, Cancel: false}
 							podLogOptions := corev1.PodLogOptions{Follow: true}
 							if input.Container != "" {
 								podLogOptions.Container = input.Container
@@ -182,22 +184,22 @@ func main() {
 							podLogs, err := req.Stream(ctx)
 							if err != nil {
 								_log.Logger.Errorw("failed to get pod logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
-								cancelTask(taskID)
-								return
+								cancelTask(taskID, stream)
 							}
 							defer func() {
 								if podLogs != nil {
 									_ = podLogs.Close()
 								}
 							}()
-							logResult.TaskId = taskID
 
 							buf := make([]byte, 2048)
 							for {
 								select {
 								case <-ctx.Done():
 									_log.Logger.Infow("log streaming task cancelled", "logs-stream", "cancelled")
-									_ = podLogs.Close()
+									if podLogs != nil {
+										_ = podLogs.Close()
+									}
 									return // Exit the goroutine
 								default:
 									numBytes, err := podLogs.Read(buf)
@@ -213,7 +215,7 @@ func main() {
 										} else {
 											_log.Logger.Errorw("failed to read logs of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 										}
-										cancelTask(taskID)
+										cancelTask(taskID, stream)
 										return // Exit the goroutine
 									}
 
@@ -224,8 +226,9 @@ func main() {
 										},
 									}); err != nil {
 										_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
-										cancelTask(taskID)
+										cancelTask(taskID, stream)
 									}
+									time.Sleep(1 * time.Second)
 								}
 							}
 
@@ -293,7 +296,7 @@ func main() {
 	}
 }
 
-func keepAliveLogs(taskID string) {
+func keepAliveLogs(taskID string, stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) {
 	log.Printf("keep alive func task with ID: %s", taskID)
 	logsTimeout := 10 * time.Second
 
@@ -306,26 +309,28 @@ func keepAliveLogs(taskID string) {
 		return
 	}
 
-	resetHeartbeat(task, taskID, logsTimeout)
+	resetHeartbeat(task, taskID, logsTimeout, stream)
 }
 
-func resetHeartbeat(task *logTask, taskID string, logsTimeout time.Duration) {
+func resetHeartbeat(task *logTask, taskID string, logsTimeout time.Duration, stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) {
 	if task.heartbeat != nil {
 		task.heartbeat.Stop()
 	}
 
 	task.heartbeat = time.AfterFunc(logsTimeout, func() {
-		log.Printf("logs timeout for task: %s", taskID)
-		task.cancel()
-		logTaskMapMutex.Lock()
-		delete(logTaskMap, taskID)
-		logTaskMapMutex.Unlock()
-		log.Printf("Cancelled task with ID: %s", taskID)
+		_log.Logger.Infow(fmt.Sprintf("logs timeout for task: %s", taskID), "logs-timeout", taskID)
+		cancelTask(taskID, stream)
+		//log.Printf("logs timeout for task: %s", taskID)
+		//task.cancel()
+		//logTaskMapMutex.Lock()
+		//delete(logTaskMap, taskID)
+		//logTaskMapMutex.Unlock()
+		//log.Printf("Cancelled task with ID: %s", taskID)
 	})
 }
 
-func cancelTask(taskID string) {
-	log.Printf("Cancel func task with ID: %s", taskID)
+func cancelTask(taskID string, stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) {
+	_log.Logger.Infow(fmt.Sprintf("Cancelling func task with ID: %s", taskID), "log-cancel", taskID)
 	logTaskMapMutex.Lock()
 	defer logTaskMapMutex.Unlock()
 	if task, ok := logTaskMap[taskID]; ok {
@@ -334,8 +339,22 @@ func cancelTask(taskID string) {
 			task.heartbeat.Stop()
 		}
 		delete(logTaskMap, taskID)
-		log.Printf("Cancelled task with ID: %s", taskID)
+		_log.Logger.Infow("Cancelled task", "log-cancel", taskID)
+		if err := stream.Send(&pb.TaskStreamRequest{
+			Payload: &pb.TaskStreamRequest_LogsResult{
+				LogsResult: &pb.LogsResult{TaskId: taskID, Output: nil, Cancel: true},
+			},
+		}); err != nil {
+			_log.Logger.Errorw("failed to send log closed message", "log-cancel", taskID)
+		}
 	} else {
-		log.Printf("No active task found with ID: %s", taskID)
+		_log.Logger.Warnw("No active task found", "log-cancel", taskID)
+		if err := stream.Send(&pb.TaskStreamRequest{
+			Payload: &pb.TaskStreamRequest_LogsResult{
+				LogsResult: &pb.LogsResult{TaskId: taskID, Output: nil, Cancel: true},
+			},
+		}); err != nil {
+			_log.Logger.Errorw("failed to send log closed message [No active task found]", "log-cancel", taskID)
+		}
 	}
 }
