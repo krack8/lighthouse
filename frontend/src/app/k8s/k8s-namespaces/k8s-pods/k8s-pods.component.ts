@@ -54,7 +54,6 @@ export class K8sPodsComponent implements OnInit {
   searchTerm: string = '';
   queryParams: any;
   stats: any;
-  terminalUrl: string;
   clusterId: string;
   statsLoaded: boolean = false;
   resourceToken: string = '';
@@ -75,7 +74,6 @@ export class K8sPodsComponent implements OnInit {
 
   ngOnInit(): void {
     this.toolbarService.changeData({ title: this.title });
-    this.terminalUrl = this.k8sService.clusterInfoSnapshot.terminalUrl; // Dynamic terminal url
     this.clusterId = this.k8sService.clusterIdSnapshot;
     this.route.queryParams.subscribe(params => {
       if (params) {
@@ -412,5 +410,9 @@ export class K8sPodsComponent implements OnInit {
 
   btoa(string) {
     return btoa(string);
+  }
+
+  getTerminalUrl(pod: any) {
+    return this.namespaceService.getTerminalUrl(pod);
   }
 }

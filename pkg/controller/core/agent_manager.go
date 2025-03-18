@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/krack8/lighthouse/pkg/common/consts"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"net/http"
@@ -21,7 +22,8 @@ type AgentConnection struct {
 	GroupName         string
 	ResultChMap       map[string]chan *pb.TaskResult
 	ResultStreamChMap map[string]chan *pb.LogsResult // map of taskID -> channel that receives result
-	mu                sync.Mutex
+	TerminalExecRespChMap map[string]chan *pb.TerminalExecResponse // map of taskID -> channel that receives result
+	mu                    sync.Mutex
 }
 
 type AgentManager struct {
@@ -319,6 +321,139 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName
 			}
 		}
 	}(conn, wsCtx, wsCancel)
+	return nil, nil
+}
+
+// SendTerminalExecRequestToAgent sends a terminal exec request to a particular agent’s Stream.
+// Returns a channel on which the result will be delivered.
+func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input string, groupName string, conn *websocket.Conn) (*pb.TerminalExecResponse, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to get agent: agent unreachable"), "TaskType", "PodExec", "AgentGroup", groupName)
+		conn.Close()
+		return nil, errors.New("agent unreachable")
+	}
+
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.TerminalExecResponse, 1)
+
+	w.mu.Lock()
+	w.TerminalExecRespChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Sending an init connection message
+	err := w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_ExecReq{
+			ExecReq: &pb.TerminalExecRequest{
+				TaskId:  taskID,
+				Input:   input,
+				Command: []byte{},
+				Payload: consts.TaskPodExecInitConn,
+			},
+		},
+	})
+
+	if err != nil {
+		w.mu.Lock()
+		log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to initiate connection: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+		delete(w.TerminalExecRespChMap, taskID)
+		conn.Close()
+		w.mu.Unlock()
+		return nil, err
+	}
+
+	rCtx, rCancel := context.WithCancel(context.Background())
+
+	// Send the task to the agent.
+	// Goroutine to listen for websocket input and send to Agent
+	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
+		for {
+			_, command, err := conn.ReadMessage()
+			if err != nil {
+				if w.TerminalExecRespChMap[taskID] == nil {
+					return
+				}
+				log.Logger.Errorw(fmt.Sprintf("WebSocket read error: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				_ = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: []byte{},
+							Payload: consts.TaskPodExecCloseConn,
+						},
+					},
+				})
+				cancel()
+				return
+			} else {
+				err := w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: command,
+							Payload: consts.TaskPodExecCommand,
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw(fmt.Sprintf("Unable to send command to agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+					cancel()
+					return
+				}
+			}
+		}
+	}(conn, rCtx, rCancel)
+
+	// Wait for the agent to respond with a result or time out
+	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
+		// Create a ticker for sending messages every 3 seconds
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case res := <-resultCh:
+				if res.Success == false {
+					log.Logger.Errorw(fmt.Sprintf("Error response from agent: %s", string(res.Output)), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+					cancel()
+				} else {
+					err := conn.WriteMessage(websocket.TextMessage, res.Output)
+					if err != nil {
+						log.Logger.Errorw(fmt.Sprintf("Unable to get message from agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+						cancel()
+					}
+				}
+			case <-ticker.C:
+				// Send a message to the gRPC stream every 3 seconds
+				err := w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: []byte{},
+							Payload: consts.TaskPodExecHeartbeat,
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw(fmt.Sprintf("Unable to send heartbeat to agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+					cancel()
+				}
+			case <-ctx.Done():
+				log.Logger.Infow(fmt.Sprintf("Closing Connection!"), "TaskID", taskID, "TaskType", "PodExec")
+				w.mu.Lock()
+				conn.Close()
+				ticker.Stop()
+				delete(w.TerminalExecRespChMap, taskID)
+				w.mu.Unlock()
+				return
+			}
+		}
+	}(conn, rCtx, rCancel)
 	return nil, nil
 }
 
