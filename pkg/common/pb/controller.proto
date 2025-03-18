@@ -21,7 +21,7 @@ message TaskStreamRequest {
     WorkerIdentification worker_info = 1;
     TaskResult task_result = 2;
     LogsResult logs_result = 3;
-    TerminalExecResponse exec_resp = 3;
+    TerminalExecResponse exec_resp = 4;
   }
 }
 
