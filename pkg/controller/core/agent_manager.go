@@ -220,110 +220,6 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	}
 }
 
-func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx context.Context, taskName string, input []byte, groupName string, conn *websocket.Conn) (*pb.LogsResult, error) {
-	w := s.PickAgent(groupName)
-	if w == nil {
-		return nil, errors.New("agent unreachable")
-	}
-
-	// Generate a task ID.
-	taskID := uuid.NewString()
-
-	// Prepare a channel to receive the agent’s response.
-	resultCh := make(chan *pb.LogsResult)
-
-	w.mu.Lock()
-	w.ResultStreamChMap[taskID] = resultCh
-	w.mu.Unlock()
-
-	// Actually send the task to the agent.
-	err := w.Stream.Send(&pb.TaskStreamResponse{
-		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-			NewPodLogsStream: &pb.PodLogsStream{
-				Id:      taskID,
-				Payload: taskName,
-				Name:    taskName,
-				Input:   string(input),
-			},
-		},
-	})
-	if err != nil {
-		log.Logger.Warnw("error")
-		w.mu.Lock()
-		delete(w.ResultStreamChMap, taskID)
-		conn.Close()
-		w.mu.Unlock()
-		return nil, err
-	}
-
-	wsCtx, wsCancel := context.WithCancel(context.Background())
-	// Wait for the agent to respond with a result or time out
-	go func(conn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) {
-		ticker := time.NewTicker(3 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case res := <-resultCh:
-				err = conn.WriteMessage(websocket.TextMessage, res.Output)
-				if err != nil {
-					log.Logger.Errorw("unable to write to websocket", "logs-stream", err.Error())
-					cancel()
-				}
-			case <-ticker.C:
-				if conn == nil {
-					log.Logger.Warnw("conn is now nil", "logs-stream", taskID)
-					cancel()
-				} else {
-					err = conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second))
-					if err != nil {
-						log.Logger.Warnw("WebSocket ping failed, closing connection", "logs-stream", taskID)
-						cancel()
-					}
-					log.Logger.Infow("conn is active", "logs-stream", taskID)
-				}
-				// Send a message to the gRPC stream every 3 seconds
-				err = w.Stream.Send(&pb.TaskStreamResponse{
-					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-						NewPodLogsStream: &pb.PodLogsStream{
-							Id:      taskID,
-							Payload: consts.LogsTaskHeartbeat,
-							Name:    taskName,
-							Input:   string(input),
-						},
-					},
-				})
-				if err != nil {
-					log.Logger.Errorw("unable to send heartbeat to agent", "logs-heartbeat", err)
-					cancel()
-				}
-			case <-ctx.Done():
-				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
-				_ = conn.Close()
-				ticker.Stop()
-				err = w.Stream.Send(&pb.TaskStreamResponse{
-					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
-						NewPodLogsStream: &pb.PodLogsStream{
-							Id:      taskID,
-							Payload: consts.LogsTaskCancel,
-							Name:    taskName,
-							Input:   string(input),
-						},
-					},
-				})
-				if err != nil {
-					log.Logger.Errorw("unable to send logs cancel to agent", "logs-cancel", err)
-					cancel()
-				}
-				w.mu.Lock()
-				delete(w.ResultStreamChMap, taskID)
-				w.mu.Unlock()
-				return
-			}
-		}
-	}(conn, wsCtx, wsCancel)
-	return nil, nil
-}
-
 // SendTerminalExecRequestToAgent sends a terminal exec request to a particular agent’s Stream.
 // Returns a channel on which the result will be delivered.
 func (s *AgentManager) SendTerminalExecRequestToAgent(ctx context.Context, input string, groupName string, conn *websocket.Conn) (*pb.TerminalExecResponse, error) {
@@ -470,7 +366,7 @@ func (s *AgentManager) PickAgent(id string) *AgentConnection {
 	return agents[0]
 }
 
-func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context, taskName string, input []byte, groupName string) (*pb.LogsResult, error) {
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx *gin.Context, taskName string, input []byte, groupName string) (*pb.LogsResult, error) {
 	w := s.PickAgent(groupName)
 	if w == nil {
 		return nil, errors.New("agent unreachable")
@@ -520,6 +416,7 @@ func (s *AgentManager) SendPodLogsStreamReqToAgentForHttpStream(ctx *gin.Context
 					log.Logger.Errorw("unable to write to HTTP stream", "logs-stream", err.Error())
 					cancel()
 				}
+				gctx.Writer.Flush()
 			case <-ticker.C:
 				if gctx.Writer.Status() != http.StatusOK {
 					// If the response status is not OK, the client may have disconnected

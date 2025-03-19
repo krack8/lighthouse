@@ -18,10 +18,9 @@ type PodControllerInterface interface {
 	GetPodDetails(ctx *gin.Context)
 	GetPodStats(ctx *gin.Context)
 	GetPodLogs(ctx *gin.Context)
-	GetPodLogsStream(ctx *gin.Context)
 	DeployPod(ctx *gin.Context)
 	DeletePod(ctx *gin.Context)
-	GetPodLogsStreamForHttpStream(ctx *gin.Context)
+	GetPodLogsStream(ctx *gin.Context)
 }
 
 type podController struct {
@@ -360,22 +359,7 @@ func (ctrl *podController) GetPodLogs(ctx *gin.Context) {
 	SendResponse(ctx, result)
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
 func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
-	//var result ResponseDTO
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-	if err != nil {
-		return
-	}
-	log.Logger.Debugw("ws connected", "websocket", "connected")
-
 	input := new(k8s.GetPodLogsInputParams)
 	input.Pod = ctx.Param("name")
 	queryNamespace := ctx.Query("namespace")
@@ -412,71 +396,9 @@ func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
 	if err != nil {
 		logErrMarshalTaskController(taskName, err)
 	}
-	_, err = core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup, conn)
-	if err != nil {
-		SendErrorResponse(ctx, err.Error())
-		return
-	}
-	// Send the logs as a stream to the client
-}
-
-func (ctrl *podController) GetPodLogsStreamForHttpStream(ctx *gin.Context) {
-	input := new(k8s.GetPodLogsInputParams)
-	input.Pod = ctx.Param("name")
-	queryNamespace := ctx.Query("namespace")
-	if queryNamespace == "" {
-		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
-		SendErrorResponse(ctx, "Namespace required in query params")
-		return
-	}
-	clusterGroup := ctx.Query("cluster_id")
-	if clusterGroup == "" {
-		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
-		SendErrorResponse(ctx, "Cluster id required in query params")
-		return
-	}
-	input.NamespaceName = queryNamespace
-	input.Container = ctx.Query("container")
-	if ctx.Query("lines") != "" {
-		tailLines, err := strconv.ParseInt(ctx.Query("lines"), 10, 64)
-		if err == nil {
-			input.TailLines = &tailLines
-		}
-	}
-	if ctx.Query("since") != "" {
-		sinceSeconds, err := strconv.ParseInt(ctx.Query("since"), 10, 64)
-		if err == nil {
-			input.SinceSeconds = &sinceSeconds
-		}
-	}
-	input.Timestamps = ctx.Query("timestamps")
-	input.Previous = ctx.Query("previous")
-	taskName := "PodLogsStream"
-	logRequestedTaskController("pod", taskName)
-	inputTask, err := json.Marshal(input)
-	if err != nil {
-		logErrMarshalTaskController(taskName, err)
-	}
-	// Set headers for server-sent events (SSE)
-	//ctx.Writer.Header().Set("Content-Type", "text/event-stream")
-	//ctx.Writer.Header().Set("Cache-Control", "no-cache")
-	//ctx.Writer.Header().Set("Connection", "keep-alive")
-	//new
 	ctx.Header("Content-Type", "text/plain")
 	ctx.Header("Transfer-Encoding", "chunked")
 	ctx.Writer.Header().Set("Connection", "close")
 	ctx.Status(http.StatusOK)
-	//ctx.Writer.Flush()
-	//flusher, ok := ctx.Writer.(http.Flusher)
-	//if !ok {
-	//	log.Logger.Errorw("Streaming unsupported!", "stream-err", err)
-	//	SendErrorResponse(ctx, "Streaming unsupported")
-	//	return
-	//}
-	_, _ = core.GetAgentManager().SendPodLogsStreamReqToAgentForHttpStream(ctx, taskName, inputTask, clusterGroup)
-	//if err != nil {
-	//	SendErrorResponse(ctx, err.Error())
-	//	return
-	//}
-	// Send the logs as a stream to the client
+	_, _ = core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup)
 }
