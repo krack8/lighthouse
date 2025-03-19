@@ -26,11 +26,11 @@ func StartHttServer() {
 
 	// Setting API Base Path for HTTP APIs
 	httpRouter := r.Group("api/v1")
-	wsRouter := r.Group("ws/v1")
+	wsRouter := r.Group("ws")
 	if cfg.IsAuth() {
 		// Apply the AuthMiddleware to the / routes
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())
-		wsRouter = r.Group("ws/v1", middleware.AuthMiddleware())
+		//wsRouter = r.Group("ws/v1", middleware.AuthMiddleware())
 	}
 	//// Get the application port from the environment
 	port := cfg.ServerPort
@@ -42,6 +42,7 @@ func StartHttServer() {
 	// Define the login route separately without middleware
 	// Login route
 	r.POST("/api/auth/login", controllers.LoginHandler)
+	r.POST("/api/auth/logout", controllers.LogoutHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
 

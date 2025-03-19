@@ -1,12 +1,19 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
+	api2 "github.com/krack8/lighthouse/pkg/controller/rest/api"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -100,4 +107,70 @@ func parseDurationFromEnv(envKey string) (time.Duration, error) {
 	}
 
 	return parsed, nil
+}
+
+func LogoutHandler(c *gin.Context) {
+	var token string
+
+	token, exists := c.GetQuery("token")
+	if exists == false {
+		// Extract the Authorization header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
+			c.Abort()
+			return
+		} else {
+			// Remove "Bearer " prefix from the token if present
+			token = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+	}
+
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is missing"})
+		c.Abort()
+		return
+	}
+
+	// Validate token and extract claims
+	claims, err := utils.ValidateToken(token, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization token"})
+		c.Abort()
+		return
+	}
+
+	filter := bson.M{"username": claims.Username}
+	// Check if filter is not nil
+	if filter == nil {
+		// Handle the error
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		c.Abort()
+		return
+	}
+
+	// FindOne with error handling
+	result := config.UserCollection.FindOne(context.Background(), filter)
+
+	var user models.User
+	if err := result.Decode(&user); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		c.Abort()
+		return
+	}
+
+	go api2.PodController().ClearAllPodExecConnection(user.ID.Hex())
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Unable to stop all websocket connection: %s", err.Error())})
+	//	c.Abort()
+	//	return
+	//}
+
+	// Send response with the success message
+	c.JSON(http.StatusOK, gin.H{})
 }

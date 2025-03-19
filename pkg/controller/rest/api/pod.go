@@ -1,16 +1,24 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/controller/core"
+	"go.mongodb.org/mongo-driver/bson"
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
+	"sync"
 )
 
 type PodControllerInterface interface {
@@ -26,6 +34,8 @@ type podController struct {
 }
 
 var pc podController
+var podexec_connections = make(map[string][]*websocket.Conn) // Key: UserID, Value: List of WebSocket connections
+var pod_mu sync.Mutex                                        // Mutex to synchronize access to connections map
 
 func PodController() *podController {
 	return &pc
@@ -202,6 +212,49 @@ func (ctrl *podController) DeletePod(ctx *gin.Context) {
 }
 
 func (ctrl *podController) ExecPod(ctx *gin.Context) {
+	// Get Current User
+	var token string
+
+	token, exists := ctx.GetQuery("token")
+	if exists == false {
+		authHeader := ctx.GetHeader("Authorization")
+		if authHeader == "" {
+			log.Logger.Errorw("Authorization token not found")
+			SendErrorResponse(ctx, "Authorization token not found")
+			return
+		}
+		token = strings.TrimPrefix(authHeader, "Bearer ")
+	}
+
+	if token == "" {
+		log.Logger.Errorw("Current User token found")
+		SendErrorResponse(ctx, "User token not found")
+		return
+	}
+
+	claims, err := utils.ValidateToken(token, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		log.Logger.Errorw("Invalid authorization token")
+		SendErrorResponse(ctx, "Invalid authorization token")
+		return
+	}
+
+	filter := bson.M{"username": claims.Username}
+	if filter == nil {
+		log.Logger.Errorw("User not found", "username", claims.Username)
+		SendErrorResponse(ctx, "User not found")
+		return
+	}
+
+	userResult := config.UserCollection.FindOne(context.Background(), filter)
+
+	var currentUser models.User
+	if err := userResult.Decode(&currentUser); err != nil {
+		log.Logger.Errorw("Current User not found", "username", claims.Username)
+		SendErrorResponse(ctx, "User not found")
+		return
+	}
+
 	var result ResponseDTO
 	input := new(k8s.PodExecInputParams)
 	input.PodName = ctx.Param("name")
@@ -250,6 +303,10 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+
+	pod_mu.Lock()
+	podexec_connections[currentUser.ID.Hex()] = append(podexec_connections[currentUser.ID.Hex()], conn)
+	pod_mu.Unlock()
 
 	SendResponse(ctx, result)
 }
@@ -356,4 +413,26 @@ func (ctrl *podController) GetPodLogs(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, result)
+}
+
+func (ctrl *podController) ClearAllPodExecConnection(userID string) error {
+	pod_mu.Lock()
+	defer pod_mu.Unlock()
+
+	connList, exists := podexec_connections[userID]
+	if !exists {
+		log.Logger.Infow("No active connections found for user", "userID", userID)
+		return nil
+	}
+
+	// Close all connections for the user
+	for _, conn := range connList {
+		err := conn.Close()
+		if err != nil {
+			log.Logger.Errorw("Failed to close connection", "userID", userID, "err", err.Error())
+		}
+	}
+
+	delete(podexec_connections, userID)
+	return nil
 }
