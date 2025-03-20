@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
@@ -15,7 +14,6 @@ import (
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	"go.mongodb.org/mongo-driver/bson"
 	corev1 "k8s.io/api/core/v1"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -35,8 +33,8 @@ type podController struct {
 }
 
 var pc podController
-var podexec_connections = make(map[string][]*websocket.Conn) // Key: UserID, Value: List of WebSocket connections
-var pod_mu sync.Mutex                                        // Mutex to synchronize access to connections map
+var user_podexec_task_map = make(map[string][]string) // Key: UserID, Value: List of TaskID's
+var pod_mu sync.Mutex
 
 func PodController() *podController {
 	return &pc
@@ -281,10 +279,13 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	input.NamespaceName = queryNamespace
 	input.ContainerName = containerName
 
-	taskID := ctx.Query("taskId")
+	isReconnect := false
+	taskID := ctx.Query("tokenId")
 	if taskID == "" {
 		// Generate a task ID.
 		taskID = uuid.NewString()
+	} else {
+		isReconnect = true
 	}
 
 	inputTask, err := json.Marshal(input)
@@ -293,26 +294,14 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 		return
 	}
 
-	var wsocket = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
-	if err != nil {
-		log.Logger.Errorw("unable to initiate websocket connection", "err", err.Error())
-		SendErrorResponse(ctx, "Unable to initiate websocket connection")
-		return
-	}
-
-	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, conn)
+	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, isReconnect)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
 
 	pod_mu.Lock()
-	podexec_connections[currentUser.ID.Hex()] = append(podexec_connections[currentUser.ID.Hex()], conn)
+	user_podexec_task_map[currentUser.ID.Hex()] = append(user_podexec_task_map[currentUser.ID.Hex()], taskID)
 	pod_mu.Unlock()
 
 	SendResponse(ctx, result)
@@ -426,20 +415,17 @@ func (ctrl *podController) ClearAllPodExecConnection(userID string) error {
 	pod_mu.Lock()
 	defer pod_mu.Unlock()
 
-	connList, exists := podexec_connections[userID]
+	taskIds, exists := user_podexec_task_map[userID]
 	if !exists {
 		log.Logger.Infow("No active connections found for user", "userID", userID)
 		return nil
 	}
 
 	// Close all connections for the user
-	for _, conn := range connList {
-		err := conn.Close()
-		if err != nil {
-			log.Logger.Errorw("Failed to close connection", "userID", userID, "err", err.Error())
-		}
+	for _, taskId := range taskIds {
+		core.GetAgentManager().CloseWebsocketConnectionByTask(taskId)
 	}
 
-	delete(podexec_connections, userID)
+	delete(user_podexec_task_map, userID)
 	return nil
 }
