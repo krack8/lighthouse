@@ -104,9 +104,11 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 			// Create the worker connection instance.
 			// Create the agent connection instance.
 			currentAgent = &core.AgentConnection{
-				Stream:      stream,
-				GroupName:   groupName,
-				ResultChMap: make(map[string]chan *pb.TaskResult),
+				Stream:            stream,
+				GroupName:         groupName,
+				ResultChMap:       make(map[string]chan *pb.TaskResult),
+				ResultStreamChMap: make(map[string]chan *pb.LogsResult),
+				TerminalExecRespChMap: make(map[string]chan *pb.TerminalExecResponse),
 			}
 
 			// Add to the server’s group map.
@@ -118,6 +120,24 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 					Ack: &pb.Ack{Message: "Registered successfully"},
 				},
 			})
+
+		case *pb.TaskStreamRequest_ExecResp:
+			// The worker has completed a task and is sending the result.
+			taskRes := payload.ExecResp
+			log.Logger.Infow(fmt.Sprintf("Received Terminal exec response from agent: task_id=%s, success=%v",
+				taskRes.TaskId, taskRes.Success), "task-result", taskRes.Success)
+
+			// Notify whoever is waiting for this task result (our HTTP handler).
+			if currentAgent != nil {
+				currentAgent.Lock()
+				ch, ok := currentAgent.TerminalExecRespChMap[taskRes.TaskId]
+				currentAgent.Unlock()
+				if ok {
+					ch <- taskRes
+				} else {
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
+				}
+			}
 
 		case *pb.TaskStreamRequest_TaskResult:
 			// The worker has completed a task and is sending the result.
@@ -134,6 +154,27 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 					ch <- taskRes
 				} else {
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
+				}
+			}
+		case *pb.TaskStreamRequest_LogsResult:
+			// The worker is streaming logs
+			taskRes := payload.LogsResult
+			log.Logger.Infow(fmt.Sprintf("Received logs result from agent: task_id=%s",
+				taskRes.TaskId), "task-result", taskRes.TaskId)
+
+			// Notify whoever is waiting for this task result (our HTTP handler).
+			if currentAgent != nil {
+				currentAgent.Lock()
+				ch, ok := currentAgent.ResultStreamChMap[taskRes.TaskId]
+				currentAgent.Unlock()
+				if ok {
+					ch <- &pb.LogsResult{
+						TaskId: taskRes.TaskId,
+						Output: taskRes.Output,
+						Cancel: taskRes.Cancel,
+					}
+				} else {
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for log ask_id=%s", taskRes.TaskId), "channel", "not waiting")
 				}
 			}
 

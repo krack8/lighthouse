@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 )
 
+var restConfig *rest.Config
 var clientSet *kubernetes.Clientset
 var dynamicClientSet *dynamic.DynamicClient
 var snapshotV1ClientSet *snapshotV1.SnapshotV1Client
@@ -26,7 +27,6 @@ var networkingV1beta1ClientSet *networkingv1beta1.NetworkingV1beta1Client
 
 func InitiateKubeClientSet() {
 	var kubeConfig *string
-	var restConfig *rest.Config
 	var err error
 
 	if config.IsK8() {
@@ -77,6 +77,10 @@ func InitiateKubeClientSet() {
 		panic(err)
 	}
 
+}
+
+func GetKubeRestConfig() *rest.Config {
+	return restConfig
 }
 
 func GetKubeClientSet() *kubernetes.Clientset {

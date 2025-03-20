@@ -188,7 +188,7 @@ func (pi *PermissionInitializer) updatePermissionEndpoints(ctx context.Context, 
 // GetPermissions returns all initialized permissions
 func (pi *PermissionInitializer) GetPermissions(ctx context.Context) ([]models.Permission, error) {
 	var permissions []models.Permission
-	cursor, err := pi.permissionCollection.Find(ctx, bson.M{})
+	cursor, err := pi.permissionCollection.Find(ctx, bson.M{"status": enum.VALID})
 	if err != nil {
 		return nil, err
 	}

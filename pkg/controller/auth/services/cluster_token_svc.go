@@ -34,7 +34,7 @@ func (ms *MongoStorage) StoreToken(ctx context.Context, token *models.TokenValid
 }
 
 func (ms *MongoStorage) TokenExists(ctx context.Context, token string) (bool, error) {
-	count, err := ms.collection.CountDocuments(ctx, bson.M{"token": token})
+	count, err := ms.collection.CountDocuments(ctx, bson.M{"token": token, "status": enum.VALID})
 	return count > 0, err
 }
 
@@ -62,7 +62,7 @@ func (m *MongoStorage) UpdateLastUsed(ctx context.Context, token string) error {
 	// Update the last-used timestamp for the token
 	_, err := db.TokenCollection.UpdateOne(
 		ctx,
-		bson.M{"token": token},
+		bson.M{"token": token, "status": enum.VALID},
 		bson.M{"$set": bson.M{"last_used": time.Now()}},
 	)
 	return err

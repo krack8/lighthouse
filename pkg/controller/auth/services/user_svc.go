@@ -90,7 +90,7 @@ func (s *UserService) GetUser(userID string) (*models.User, error) {
 
 // GetAllUsers retrieves all users
 func (s *UserService) GetAllUsers() ([]models.User, error) {
-	cursor, err := db.UserCollection.Find(context.Background(), bson.M{})
+	cursor, err := db.UserCollection.Find(context.Background(), bson.M{"status": enum.VALID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users: %w", err)
 	}
@@ -161,7 +161,7 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 		updateFields["roles"] = updatedUser.Roles
 	}
 	if len(updatedUser.ClusterIdList) > 0 {
-		updateFields["clusterIdList"] = updatedUser.ClusterIdList
+		updateFields["cluster_ids"] = updatedUser.ClusterIdList
 	}
 	// For boolean fields, we need to check if they were explicitly set in the update
 	if updatedUser.UserIsActive != existingUser.UserIsActive {
