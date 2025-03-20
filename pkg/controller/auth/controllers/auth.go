@@ -165,11 +165,6 @@ func LogoutHandler(c *gin.Context) {
 	}
 
 	go api2.PodController().ClearAllPodExecConnection(user.ID.Hex())
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Unable to stop all websocket connection: %s", err.Error())})
-	//	c.Abort()
-	//	return
-	//}
 
 	// Send response with the success message
 	c.JSON(http.StatusOK, gin.H{})
