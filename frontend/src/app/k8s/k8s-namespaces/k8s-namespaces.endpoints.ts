@@ -43,4 +43,4 @@ export const NAMESPACE_CONTROLLER_REVISION = '/v1/controller-revision';
 export const NAMESPACE_REPLICATION_CONTROLLER = '/v1/replication-controller';
 
 export const NAMESPACE_EVENTS = '/v1/event';
-export const POD_TERMINAL_URL = '/ws/pod/{0}/exec';
+export const POD_TERMINAL_URL = '/ws/v1/pod/{0}/exec';
