@@ -9,7 +9,7 @@ import { K8sNamespacesService } from '../../k8s-namespaces.service';
 export const LOCAL_STORAGE_LIGHTHOUSE_LOG_KEY = 'ngx-webstorage|kc-lighthouse-logs-token';
 
 @Injectable()
-export class K8sPodWebSocketService {
+export class K8sPodLogService {
   baseUrl: string;
 
   constructor(
@@ -27,7 +27,7 @@ export class K8sPodWebSocketService {
 
     const logsWsUrl = this.k8sService.clusterInfoSnapshot.lighthouseWsUrl;
 
-    let uri = `${this.baseUrl}/pod/logs/stream/${name}?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
+    let uri = `${this.baseUrl}/v1/pod/${name}/logs/stream?cluster_id=${this.k8sService.clusterIdSnapshot}&namespace=${this.namespaceService.selectedNamespaceSnapshot}`;
     if (filterParams.lines) {
       uri += `&lines=${filterParams.lines}`;
     }

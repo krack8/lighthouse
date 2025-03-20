@@ -12,18 +12,21 @@ import { K8sNamespacesService } from '@k8s/k8s-namespaces/k8s-namespaces.service
 import { ToastrService } from '@sdk-ui/ui';
 import { Subject, Subscription } from 'rxjs';
 import { K8sPodsDetailsComponent } from '../k8s-pods-details.component';
-import { K8sPodWebSocketService } from './k8s-pod-ws.service';
+import { K8sPodLogService } from './k8s-pod-log.service';
+import { delay, retryWhen, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'kc-k8s-pods-container-log',
   templateUrl: './k8s-pods-container-log.component.html',
   styleUrls: ['./k8s-pods-container-log.component.scss'],
-  providers: [K8sPodWebSocketService],
+  providers: [K8sPodLogService],
 })
 export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   @ViewChild('appLogViewContainer', { read: ElementRef, static: false }) private appLogViewContainer!: ElementRef;
   private _destroy$: Subject<void> = new Subject();
   private logSubscription: Subscription | undefined;
+
+  //icons
   icSearch = icSearch;
   icEdit = icEdit;
   icFilter = icFilter;
@@ -33,7 +36,6 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
 
   logForm: UntypedFormGroup;
   liveLogs: string = '';
-
   isLoading: boolean = true;
   allowShowPrevious = this.data?.restart > 0 ? false : true;
 
@@ -41,7 +43,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data,
     public dialogRef: MatDialogRef<K8sPodsDetailsComponent>,
     private _namespaceService: K8sNamespacesService,
-    private _k8sPodWebsocketService: K8sPodWebSocketService,
+    private _k8sLogService: K8sPodLogService,
     private cd: ChangeDetectorRef,
     public snackBar: MatSnackBar,
     private _formBuilder: UntypedFormBuilder,
@@ -84,14 +86,20 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   subscribeToLogStream(): void {
     this.isLoading = true;
     const qp = this.filterLogs();
-    const url = this._k8sPodWebsocketService.getPodsWsUrl(this.data.pod, qp); // gets http stream url
-    this.logSubscription = this._k8sPodWebsocketService.getPodLogsStream(url).subscribe(
+    const url = this._k8sLogService.getPodsWsUrl(this.data.pod, qp); // gets http stream url
+    this.logSubscription = this._k8sLogService.getPodLogsStream(url).pipe(
+      retryWhen(errors =>
+        errors.pipe(
+          tap(error => console.error('Error:', error)),
+          delay(3000) 
+        )
+      )
+    ).subscribe(
       (log) => {
         this.processLog(log);
       },
       (error) => {
-        this.toastr.error('Error:', error);
-        this.logSubscription.unsubscribe();
+        this.toastr.error('Failed: ', 'Could not fetch logs!');
       }
     );
   }
