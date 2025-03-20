@@ -15,10 +15,13 @@ service Controller {
 // A worker can send two kinds of messages in the stream:
 //  1) WorkerIdentification: "I belong to group X, here is my auth token"
 //  2) TaskResult: "I finished task <task_id>, here is the result"
+// TODO: comment
 message TaskStreamRequest {
   oneof payload {
     WorkerIdentification worker_info = 1;
     TaskResult task_result = 2;
+    LogsResult logs_result = 3;
+    TerminalExecResponse exec_resp = 4;
   }
 }
 
@@ -33,13 +36,22 @@ message TaskResult {
   string output = 3;
 }
 
+message LogsResult {
+  string task_id = 1;
+  bytes output = 2;
+  bool cancel = 3;
+}
+
 // The controller can send two kinds of messages back to the worker:
 //  1) Task: "Please execute this task with ID <task_id> and some payload"
 //  2) Ack:  "Acknowledgement for something, or simple keepalive"
+// TODO: comment
 message TaskStreamResponse {
   oneof payload {
     Task new_task = 1;
     Ack ack = 2;
+    PodLogsStream new_pod_logs_stream = 3;
+    TerminalExecRequest exec_req = 4;
   }
 }
 
@@ -50,6 +62,32 @@ message Task {
   string input = 4;
 }
 
+message PodLogsStream {
+  string id = 1;
+  string name = 2;
+  string payload = 3;
+  string input = 4;
+}
+
 message Ack {
   string message = 1;
+}
+
+// The controller can send four kinds of requests  back to the worker:
+//  1) Task Init Connection: "Please execute this task with ID <task_id>, input (struct of {pod, container, namespace}), and payload 'init_conn' for initiating pod exec stream"
+//  3) Task Command: "Please execute this task with ID <task_id>, input (struct of {pod, container, namespace}), and payload 'command', websocket incoming command for sending the pod terminal command"
+//  3) Task Close Connection: "Please execute this task with ID <task_id>, payload 'close_conn' for closing the  the pod terminal stream"
+//  3) Task Heartbeat: "Please execute this task with ID <task_id>, payload 'heartbeat' for sending websocket active heartbeat"
+message TerminalExecRequest {
+  string task_id = 1;
+  string input = 2; // Input will contain pod, container, namespace
+  bytes command = 3;
+  string payload = 4; // Task type - init_conn, command, close_conn, heartbeat
+}
+
+// TODO: Comments
+message TerminalExecResponse {
+  string task_id = 1;
+  bool success = 2;
+  bytes output = 3;
 }

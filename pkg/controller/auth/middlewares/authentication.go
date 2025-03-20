@@ -18,16 +18,26 @@ import (
 // AuthMiddleware is used to verify if a user is authenticated and authorized to access a route
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var token string
+
 		// Extract the Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
-			c.Abort()
-			return
+			authHeader = c.GetHeader("Sec-WebSocket-Protocol")
+			if authHeader == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
+				c.Abort()
+				return
+
+			} else {
+				token = authHeader
+			}
+
+		} else {
+			// Remove "Bearer " prefix from the token if present
+			token = strings.TrimPrefix(authHeader, "Bearer ")
 		}
 
-		// Remove "Bearer " prefix from the token if present
-		token := strings.TrimPrefix(authHeader, "Bearer ")
 		if token == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is missing"})
 			c.Abort()
