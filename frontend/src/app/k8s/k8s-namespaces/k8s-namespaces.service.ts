@@ -783,7 +783,7 @@ export class K8sNamespacesService {
   }
 
   getLogsV1(params: any, pod: string): Observable<any> {
-    return this.http.get(endpoints.GET_LOGS_V1 + pod, {
+    return this.http.get(Utils.formatString(endpoints.GET_LOGS_V1, pod), {
       ...params,
       cluster_id: this.k8sService.clusterIdSnapshot
     });
