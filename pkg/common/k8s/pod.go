@@ -57,6 +57,12 @@ type GetPodListInputParams struct {
 	output        OutputPodList
 }
 
+type PodExecInputParams struct {
+	PodName       string
+	NamespaceName string
+	ContainerName string
+}
+
 func (p *GetPodListInputParams) Find(c context.Context, podClient _v1.PodInterface, pageSize int64) error {
 	log.Logger.Debugw("Entering Search mode....", "src", "pod")
 	filteredPods := []corev1.Pod{}

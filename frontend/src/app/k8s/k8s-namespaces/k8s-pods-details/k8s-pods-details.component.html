@@ -16,6 +16,24 @@
     </div>
 
     <div *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" class="flex items-center">
+
+      <button *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" class="flex items-center btn-color mr-4" mat-menu-item
+        [matMenuTriggerFor]="terminalOptions">
+        <svg height="65px" width="65px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path fill="currentColor" fill-rule="evenodd"
+            d="M4.256 6.041a3.75 3.75 0 0 1 7.348-.832l.152.528l.55.014a2.25 2.25 0 0 1 1.069 4.198a.75.75 0 1 0 .75 1.299a3.75 3.75 0 0 0-1.25-6.946a5.251 5.251 0 0 0-10.035.974a3.25 3.25 0 0 0-.896 6.2a.75.75 0 1 0 .603-1.373A1.75 1.75 0 0 1 3.25 6.75h.967l.039-.709ZM6.22 7.22a.75.75 0 0 1 1.06 0l1.75 1.75l.53.53l-.53.53l-1.75 1.75a.75.75 0 0 1-1.06-1.06L7.44 9.5L6.22 8.28a.75.75 0 0 1 0-1.06ZM8 13.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"
+            clip-rule="evenodd" />
+        </svg>
+
+        <span class="ml-4">Access Terminal</span>
+      </button>
+      <mat-menu class="view-containers" #terminalOptions="matMenu">
+        <button mat-menu-item *ngFor="let container of data?.spec?.containers"
+          (click)="navigateToTerminal(container.name)">
+          {{ container.name }}
+        </button>
+      </mat-menu>
+
       <button
         *hasAnyAuthority="'MANAGE_NAMESPACE_POD'"
         class="flex justify-center items-center btn-color"
@@ -216,6 +234,15 @@
                   class="kube-card__content border-solid border-2 border-rose-500 mt-3 pb-4"
                 >
                   <div *hasAnyAuthority="'VIEW_LOGS'" class="flex justify-normal items-center mt-2 ml-2">
+                    <a class="ml-2 btn btn-primary mt-2" [routerLink]="['/k8s','terminal']" target="_blank"
+                      [queryParams]="{domain: btoa(terminalUrl), containerName: container.name, pod: data?.metadata?.name, namespace: data?.metadata?.namespace, clusterId: clusterId }">
+                      Access Terminal
+                      <svg class="ml-2" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 16 16">
+                        <path fill="currentColor" fill-rule="evenodd"
+                          d="M4.256 6.041a3.75 3.75 0 0 1 7.348-.832l.152.528l.55.014a2.25 2.25 0 0 1 1.069 4.198a.75.75 0 1 0 .75 1.299a3.75 3.75 0 0 0-1.25-6.946a5.251 5.251 0 0 0-10.035.974a3.25 3.25 0 0 0-.896 6.2a.75.75 0 1 0 .603-1.373A1.75 1.75 0 0 1 3.25 6.75h.967l.039-.709ZM6.22 7.22a.75.75 0 0 1 1.06 0l1.75 1.75l.53.53l-.53.53l-1.75 1.75a.75.75 0 0 1-1.06-1.06L7.44 9.5L6.22 8.28a.75.75 0 0 1 0-1.06ZM8 13.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </a>
                     <div class="ml-4 mt-2">
                       <button mat-raised-button color="primary" class="btn btn-primary" type="button" (click)="viewLogs(container?.name)">
                         <span class="mr-2">View Logs</span>
