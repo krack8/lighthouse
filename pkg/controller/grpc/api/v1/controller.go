@@ -108,6 +108,7 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 				GroupName:             groupName,
 				ResultChMap:           make(map[string]chan *pb.TaskResult),
 				TerminalExecRespChMap: make(map[string]chan *pb.TerminalExecResponse),
+				WebSocketClientMap:    make(map[string]*core.WebSocketClient),
 			}
 
 			// Add to the server’s group map.

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
@@ -227,6 +228,12 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	input.NamespaceName = queryNamespace
 	input.ContainerName = containerName
 
+	taskID := ctx.Query("taskId")
+	if taskID == "" {
+		// Generate a task ID.
+		taskID = uuid.NewString()
+	}
+
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal PodExec Task input", "err", err.Error())
@@ -245,11 +252,15 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 		return
 	}
 
-	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, string(inputTask), clusterGroup, conn)
+	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, conn)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+
+	result.Data = struct {
+		TaskId string `json:"taskId"`
+	}{TaskId: taskID}
 
 	SendResponse(ctx, result)
 }

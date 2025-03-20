@@ -319,7 +319,7 @@ func (t *PodExecStream) Close(taskID string) {
 func (t *PodExecStream) initHeartbeat(taskID string) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	heartbeatTimers[taskID] = time.AfterFunc(10*time.Second, func() {})
+	heartbeatTimers[taskID] = time.AfterFunc(15*time.Second, func() {})
 }
 
 func (t *PodExecStream) checkHeartbeat(taskID string) {
