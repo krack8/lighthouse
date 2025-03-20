@@ -36,7 +36,25 @@ func (uc *ClusterController) GetClusterHandler(c *gin.Context) {
 
 // GetAllClustersHandler handles fetching all Clusters.
 func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
-	ClusterList, err := uc.ClusterService.GetAllClusters()
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
+
+	ClusterList, err := uc.ClusterService.GetAllClusters(requester)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, ClusterList)
+}
+
+// GetAllClustersHandler handles fetching all Clusters.
+func (uc *ClusterController) GetClusterListHandler(c *gin.Context) {
+	ClusterList, err := uc.ClusterService.GetClusterList()
 	if err != nil {
 		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
 		return
