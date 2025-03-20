@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 	"log"
 	"time"
 )
@@ -22,6 +23,11 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerGrpcServerHost, sec
 	var conn *grpc.ClientConn
 	var err error
 	var tlsConfig *tls.Config
+	kaParams := keepalive.ClientParameters{
+		Time:                30 * time.Second, // Ping every 10 seconds
+		Timeout:             10 * time.Second, // Timeout after 20s if no response
+		PermitWithoutStream: true,             // Keep connection alive even without active RPCs
+	}
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		if config.IsControllerGrpcTlsEnabled() {
 			tlsConfig = &tls.Config{}
@@ -29,9 +35,14 @@ func ConnectAndIdentifyWorker(ctx context.Context, controllerGrpcServerHost, sec
 			if caCertPool != nil {
 				tlsConfig.RootCAs = caCertPool
 			}
-			conn, err = grpc.NewClient(controllerGrpcServerHost, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+			conn, err = grpc.NewClient(controllerGrpcServerHost,
+				grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+				grpc.WithKeepaliveParams(kaParams),
+			)
 		} else {
-			conn, err = grpc.NewClient(controllerGrpcServerHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err = grpc.NewClient(controllerGrpcServerHost,
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithKeepaliveParams(kaParams))
 		}
 		if err != nil {
 			_log.Logger.Warnw(fmt.Sprintf("Failed to dial controller. Retrying %d", attempt+1), "error", err)
