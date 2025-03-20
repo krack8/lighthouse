@@ -40,6 +40,7 @@
     "jwt-decode": "^3.1.2",
     "moment": "^2.30.1",
     "net": "1.0.2",
+    "ng-apexcharts": "^1.7.7",
     "ng-pick-datetime-ex": "^14.0.0",
     "ng2-search-filter": "0.5.1",
     "ngx-webstorage": "^10.0.1",

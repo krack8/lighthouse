@@ -85,6 +85,7 @@ import { GrafanaDashboardComponent } from './k8s-pods-details/grafana-dashboard/
 import { K8sReplicationControllerDetailsComponent } from './k8s-replication-controller-details/k8s-replication-controller-details.component';
 import { K8sReplicationControllerComponent } from './k8s-replication-controller/k8s-replication-controller.component';
 import { K8sStatefulsetPodListComponent } from './k8s-stateful-sets-details/k8s-statefulset-pod-list/k8s-statefulset-pod-list.component';
+import { NgApexchartsModule } from 'ng-apexcharts';
 
 @NgModule({
   declarations: [
@@ -174,7 +175,8 @@ import { K8sStatefulsetPodListComponent } from './k8s-stateful-sets-details/k8s-
     K8sEventsTemplateComponent,
     CdkIconModule,
     K8sEventsTemplateComponent,
-    ExpansionDataViewerTemplateComponent
+    ExpansionDataViewerTemplateComponent,
+    NgApexchartsModule
   ],
   providers: [K8sNamespacesService]
 })
