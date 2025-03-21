@@ -331,7 +331,7 @@ func (t *PodExecStream) checkHeartbeat(taskID string) {
 	if timer, exists := heartbeatTimers[taskID]; exists {
 		timer.Stop()
 
-		heartbeatTimers[taskID] = time.AfterFunc(10*time.Second, func() {
+		heartbeatTimers[taskID] = time.AfterFunc(15*time.Second, func() {
 			if _, err := getExecStream(taskID); err != nil {
 				return
 			}

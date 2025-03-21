@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
@@ -14,6 +16,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/controller/core"
 	"go.mongodb.org/mongo-driver/bson"
 	corev1 "k8s.io/api/core/v1"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -280,7 +283,7 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	input.ContainerName = containerName
 
 	isReconnect := false
-	taskID := ctx.Query("tokenId")
+	taskID := ctx.Query("taskId")
 	if taskID == "" {
 		// Generate a task ID.
 		taskID = uuid.NewString()
@@ -294,7 +297,19 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 		return
 	}
 
-	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, isReconnect)
+	var wsocket = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+
+	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", clusterGroup, "TaskID", taskID)
+		return
+	}
+
+	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, conn, isReconnect)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return

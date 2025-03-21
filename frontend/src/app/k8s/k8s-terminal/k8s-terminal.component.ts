@@ -25,7 +25,7 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
   namespace;
   socket: WebSocket;
   firstRequest = true;
-  retryToken: string;
+  requestId: string;
   retryTimeout: any;
 
   constructor(private route: ActivatedRoute, private requesterService: RequesterService) {
@@ -71,8 +71,8 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
 
     // Use WebSocket API
     let url = this.domain + '?token=' + this.requester.token + '&name=' + this.pod + '&container=' + this.containerName + '&namespace=' + this.namespace + '&cluster_id=' + this.clusterId + '&rows=' + this.rows + '&cols=' + this.cols;    console.log("ws URL  ----> ", url);   
-    if (this.retryToken) {
-      url += '&tokenId=' + this.retryToken;
+    if (this.requestId) {
+      url += '&taskId=' + this.requestId;
     }
     this.socket = new WebSocket(url);
     console.log('SOCKET', this.socket);
@@ -85,8 +85,8 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
     this.socket.onmessage = (e) => {
       if (this.firstRequest) {
         this.firstRequest = false;
-        this.retryToken = e.data;
-        console.log('RETRY TOKEN', this.retryToken);
+        this.requestId = e.data;
+        console.log('Retry Request ID', this.requestId);
       } else {
         this.connectContainer = false;
         this.resize(this.socket, term);
@@ -95,12 +95,17 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
     };
 
     this.socket.onclose = (e) => {
-      term.write('\x1B[3;1;31m Session Is Closed! Reconnecting...\x1B[0m');
-      this.connectContainer = true;
-      // Retry connection after a delay
-      this.retryTimeout = setTimeout(() => {
-        this.wsConnect();
-      }, 5000); // Retry after 5 seconds
+      if (e.wasClean == true && e.code == 1000) {
+        term.write('\x1B[3;1;31m Session Is Closed!\x1B[0m');
+        this.connectContainer = true;
+      } else {
+        term.write('\x1B[3;1;31m Session Is Closed! Reconnecting...\x1B[0m');
+        this.connectContainer = true;
+        // Retry connection after a delay
+        this.retryTimeout = setTimeout(() => {
+          this.wsConnect();
+        }, 5000); // Retry after 5 seconds
+      }
     };
 
     this.socket.onopen = () => {

@@ -123,13 +123,6 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 		case *pb.TaskStreamRequest_ExecResp:
 			// The worker has completed a task and is sending the result.
 			taskRes := payload.ExecResp
-			if taskRes.Success == false {
-				log.Logger.Errorw(fmt.Sprintf("Received Terminal exec error response from agent: task_id=%s, success=%v",
-					taskRes.TaskId, taskRes.Success), "response", string(taskRes.Output))
-			} else {
-				log.Logger.Infow(fmt.Sprintf("Received Terminal exec error response from agent: task_id=%s, success=%v",
-					taskRes.TaskId, taskRes.Success), "response", string(taskRes.Output))
-			}
 
 			// Notify whoever is waiting for this task result (our HTTP handler).
 			if currentAgent != nil {
