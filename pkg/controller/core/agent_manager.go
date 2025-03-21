@@ -233,15 +233,18 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 // SendTerminalExecRequestToAgent sends a terminal exec request to a particular agent’s Stream.
 // Returns a channel on which the result will be delivered.
 func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID string, input string, groupName string, isReconnect bool) (*pb.TerminalExecResponse, error) {
-	if isReconnect == true && webSocketClientMap[taskID] == nil {
-		log.Logger.Errorw(fmt.Sprintf("Unable to reconnect websocket: no previous connection exists"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
-		return nil, errors.New("unable to reconnect websocket")
-	}
-
 	w := s.PickAgent(groupName)
 	if w == nil {
 		log.Logger.Errorw(fmt.Sprintf("Unable to get agent: agent unreachable"), "TaskType", "PodExec", "AgentGroup", groupName)
 		return nil, errors.New("agent unreachable")
+	}
+
+	if isReconnect == true && w.TerminalExecRespChMap[taskID] == nil {
+		log.Logger.Errorw(fmt.Sprintf("Unable to reconnect websocket: agent connection not found"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
+		if webSocketClientMap[taskID] != nil && webSocketClientMap[taskID].CloseSignal != nil {
+			webSocketClientMap[taskID].CloseSignal <- "force_close"
+		}
+		return nil, errors.New("connection lost")
 	}
 
 	var wsocket = websocket.Upgrader{
@@ -250,63 +253,59 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 		},
 	}
 
+	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
+		return nil, errors.New("unable to initiate websocket connection")
+	}
+
 	// Checking if websocket connection already exists for taskID
 	// If new connection then initiate agent connection
 	if webSocketClientMap[taskID] == nil {
-		// Websocket initialization request
-		if w.TerminalExecRespChMap[taskID] != nil {
-			log.Logger.Errorw(fmt.Sprintf("Mismatched websocket and agent pod exec connection"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
-			return nil, errors.New("unable to initiate websocket connection")
-		}
+		if isReconnect == false {
+			// Initiating new websocket Connection
+			// Prepare a channel to receive the agent’s response.
+			resultCh := make(chan *pb.TerminalExecResponse, 1)
 
-		conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
-			return nil, errors.New("unable to initiate websocket connection")
-		}
+			w.mu.Lock()
+			w.TerminalExecRespChMap[taskID] = resultCh
+			w.mu.Unlock()
 
-		// Initiating new websocket Connection
-		// Prepare a channel to receive the agent’s response.
-		resultCh := make(chan *pb.TerminalExecResponse, 1)
-
-		w.mu.Lock()
-		w.TerminalExecRespChMap[taskID] = resultCh
-		w.mu.Unlock()
-
-		// Sending an init connection message
-		err = w.Stream.Send(&pb.TaskStreamResponse{
-			Payload: &pb.TaskStreamResponse_ExecReq{
-				ExecReq: &pb.TerminalExecRequest{
-					TaskId:  taskID,
-					Input:   input,
-					Command: []byte{},
-					Payload: consts.TaskPodExecInitConn,
+			// Sending an init connection message
+			err = w.Stream.Send(&pb.TaskStreamResponse{
+				Payload: &pb.TaskStreamResponse_ExecReq{
+					ExecReq: &pb.TerminalExecRequest{
+						TaskId:  taskID,
+						Input:   input,
+						Command: []byte{},
+						Payload: consts.TaskPodExecInitConn,
+					},
 				},
-			},
-		})
+			})
 
-		if err != nil {
-			w.mu.Lock()
-			log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to initiate connection: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
-			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			delete(w.TerminalExecRespChMap, taskID)
-			conn.Close()
-			w.mu.Unlock()
-			return nil, err
-		}
+			if err != nil {
+				w.mu.Lock()
+				log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to initiate connection: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				delete(w.TerminalExecRespChMap, taskID)
+				conn.Close()
+				w.mu.Unlock()
+				return nil, err
+			}
 
-		log.Logger.Infow(fmt.Sprintf("Sending initial TaskID to websocket..."), "TaskID", taskID, "TaskType", "PodExec")
+			log.Logger.Infow(fmt.Sprintf("Sending initial TaskID to websocket..."), "TaskID", taskID, "TaskType", "PodExec")
 
-		message := taskID
-		err = conn.WriteMessage(websocket.TextMessage, []byte(message))
-		if err != nil {
-			w.mu.Lock()
-			log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to send initial TaskID to websocket: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
-			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			delete(w.TerminalExecRespChMap, taskID)
-			conn.Close()
-			w.mu.Unlock()
-			return nil, err
+			message := taskID
+			err = conn.WriteMessage(websocket.TextMessage, []byte(message))
+			if err != nil {
+				w.mu.Lock()
+				log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to send initial TaskID to websocket: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				delete(w.TerminalExecRespChMap, taskID)
+				conn.Close()
+				w.mu.Unlock()
+				return nil, err
+			}
 		}
 
 		ws_mu.Lock()
@@ -321,18 +320,6 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 	} else {
 		// Websocket reconnection request
 		// Check if agent connection is active or not, if not then close the websocket connection
-		if w.TerminalExecRespChMap[taskID] == nil {
-			log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection, closing connection!"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
-			return nil, errors.New("unable to initiate websocket connection")
-		}
-
-		// Replacing old connection with new one
-		conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
-			return nil, errors.New("unable to initiate websocket connection")
-		}
-
 		ws_mu.Lock()
 		webSocketClientMap[taskID].Conn = conn
 		webSocketClientMap[taskID].IsConnected = true
@@ -510,7 +497,7 @@ func (s *AgentManager) PickAgent(id string) *AgentConnection {
 func (s *AgentManager) CloseWebsocketConnectionByTask(taskId string) {
 	ws_mu.Lock()
 	defer ws_mu.Unlock()
-	if webSocketClientMap[taskId] != nil {
+	if webSocketClientMap[taskId] != nil && webSocketClientMap[taskId].CloseSignal != nil {
 		webSocketClientMap[taskId].CloseSignal <- "force_close"
 	}
 	return
