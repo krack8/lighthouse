@@ -211,9 +211,11 @@ func (t *PodExecStream) writeCommandToPodExecStream(taskID string, command []byt
 		}
 
 	} else {
-		t.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
-			Width:  msg["cols"],
-			Height: msg["rows"],
+		if t.terminalQueue.sizeChan != nil {
+			t.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
+				Width:  msg["cols"],
+				Height: msg["rows"],
+			}
 		}
 	}
 }

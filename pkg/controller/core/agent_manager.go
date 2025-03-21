@@ -288,6 +288,7 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 		if err != nil {
 			w.mu.Lock()
 			log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to initiate connection: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			delete(w.TerminalExecRespChMap, taskID)
 			conn.Close()
 			w.mu.Unlock()
@@ -301,6 +302,7 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 		if err != nil {
 			w.mu.Lock()
 			log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to send initial TaskID to websocket: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			delete(w.TerminalExecRespChMap, taskID)
 			conn.Close()
 			w.mu.Unlock()
