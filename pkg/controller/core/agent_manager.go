@@ -441,8 +441,9 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 		ws_mu.Unlock()
 
 		if action == "force_close" {
-			log.Logger.Infow("Disconnecting Websocket client forcefully..", "TaskID", taskID, "TaskType", "PodExec")
 			ws_mu.Lock()
+			_ = client.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			log.Logger.Infow("Disconnecting Websocket client forcefully..", "TaskID", taskID, "TaskType", "PodExec")
 			client.Conn.Close()
 			client.HeartbeatTicker.Stop()
 			delete(webSocketClientMap, taskID)
@@ -474,6 +475,7 @@ func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID s
 						},
 					},
 				})
+				_ = client.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 				client.Conn.Close()
 				client.HeartbeatTicker.Stop()
 				delete(w.TerminalExecRespChMap, taskID)
