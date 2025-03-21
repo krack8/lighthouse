@@ -98,6 +98,8 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
       if (e.wasClean == true && e.code == 1000) {
         term.write('\x1B[3;1;31m Session Is Closed!\x1B[0m');
         this.connectContainer = true;
+        this.firstRequest = true;
+        this.requestId = null;
       } else {
         term.write('\x1B[3;1;31m Session Is Closed! Reconnecting...\x1B[0m');
         this.connectContainer = true;
