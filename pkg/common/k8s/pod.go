@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	"strconv"
 	"strings"
 	"time"
@@ -183,6 +184,8 @@ func (svc *podService) GetPodList(c context.Context, p GetPodListInputParams) (i
 
 type OutputPodDetails struct {
 	Result corev1.Pod
+	CPU    float64
+	Memory float64
 }
 type GetPodDetailsInputParams struct {
 	NamespaceName string
@@ -197,6 +200,18 @@ func (p *GetPodDetailsInputParams) Process(c context.Context) error {
 	if err != nil {
 		log.Logger.Errorw("Failed to get pod ", p.PodName, "err", err.Error())
 		return err
+	}
+	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).Get(context.TODO(), p.PodName, metav1.GetOptions{})
+	if err != nil {
+		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
+	}
+	p.output.CPU = 0
+	p.output.Memory = 0
+	if podMetrics != nil {
+		for _, containerMetric := range podMetrics.Containers {
+			p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
+			p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
+		}
 	}
 	p.output.Result = *pod
 	return nil
@@ -302,10 +317,12 @@ type StatsPod struct {
 	Running int
 	Pending int
 	Failed  int
+	CPU     float64
+	Memory  float64
 }
 
 func (s *StatsPod) New() *StatsPod {
-	return &StatsPod{Total: 0, Running: 0, Pending: 0, Failed: 0}
+	return &StatsPod{Total: 0, Running: 0, Pending: 0, Failed: 0, CPU: 0, Memory: 0}
 }
 
 type GetPodStatsInputParams struct {
@@ -332,6 +349,13 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 		log.Logger.Errorw("Failed to get pod list stats", "err", err.Error())
 		return err
 	}
+	podMetricsList := []v1beta1.PodMetrics{}
+	podMetrics, err := GetMetricsClientSet().MetricsV1beta1().PodMetricses(p.NamespaceName).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Logger.Errorw("Failed to get pod metrics list", "err", err.Error())
+	} else {
+		podMetricsList = podMetrics.Items
+	}
 
 	if p.Search != "" {
 		filteredPods := make(map[string]bool)
@@ -349,6 +373,16 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 				}
 			}
 		}
+
+		for _, podMetric := range podMetricsList {
+			if filteredPods[podMetric.Name] {
+				for _, containerMetric := range podMetric.Containers {
+					p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
+					p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
+				}
+			}
+		}
+
 		return nil
 	}
 
@@ -364,7 +398,12 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 			p.output.Pending += 1
 		}
 	}
-
+	for _, podMetric := range podMetricsList {
+		for _, containerMetric := range podMetric.Containers {
+			p.output.CPU += float64(containerMetric.Usage.Cpu().MilliValue()) / 1000.0
+			p.output.Memory += float64(containerMetric.Usage.Memory().Value()) / (1024 * 1024 * 1024)
+		}
+	}
 	return nil
 }
 

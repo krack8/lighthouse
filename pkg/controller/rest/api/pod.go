@@ -30,6 +30,7 @@ type PodControllerInterface interface {
 	GetPodLogs(ctx *gin.Context)
 	DeployPod(ctx *gin.Context)
 	DeletePod(ctx *gin.Context)
+	GetPodLogsStream(ctx *gin.Context)
 }
 
 type podController struct {
@@ -306,6 +307,7 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", clusterGroup, "TaskID", taskID)
+		SendErrorResponse(ctx, "Unable to initiate websocket connection")
 		return
 	}
 
@@ -443,4 +445,48 @@ func (ctrl *podController) ClearAllPodExecConnection(userID string) error {
 
 	delete(user_podexec_task_map, userID)
 	return nil
+}
+
+func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
+	input := new(k8s.GetPodLogsInputParams)
+	input.Pod = ctx.Param("name")
+	queryNamespace := ctx.Query("namespace")
+	if queryNamespace == "" {
+		log.Logger.Errorw("Namespace required in query params", "value", queryNamespace)
+		SendErrorResponse(ctx, "Namespace required in query params")
+		return
+	}
+	clusterGroup := ctx.Query("cluster_id")
+	if clusterGroup == "" {
+		log.Logger.Errorw("Cluster id required in query params", "value", clusterGroup)
+		SendErrorResponse(ctx, "Cluster id required in query params")
+		return
+	}
+	input.NamespaceName = queryNamespace
+	input.Container = ctx.Query("container")
+	if ctx.Query("lines") != "" {
+		tailLines, err := strconv.ParseInt(ctx.Query("lines"), 10, 64)
+		if err == nil {
+			input.TailLines = &tailLines
+		}
+	}
+	if ctx.Query("since") != "" {
+		sinceSeconds, err := strconv.ParseInt(ctx.Query("since"), 10, 64)
+		if err == nil {
+			input.SinceSeconds = &sinceSeconds
+		}
+	}
+	input.Timestamps = ctx.Query("timestamps")
+	input.Previous = ctx.Query("previous")
+	taskName := "PodLogsStream"
+	logRequestedTaskController("pod", taskName)
+	inputTask, err := json.Marshal(input)
+	if err != nil {
+		logErrMarshalTaskController(taskName, err)
+	}
+	ctx.Header("Content-Type", "text/plain")
+	ctx.Header("Transfer-Encoding", "chunked")
+	ctx.Writer.Header().Set("Connection", "close")
+	ctx.Status(http.StatusOK)
+	_, _ = core.GetAgentManager().SendPodLogsStreamReqToAgent(ctx, taskName, inputTask, clusterGroup)
 }

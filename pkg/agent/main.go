@@ -115,6 +115,20 @@ func main() {
 						}
 					}(task.Id, task.Payload, task)
 
+				case *pb.TaskStreamResponse_NewPodLogsStream:
+					podLogsTask := payload.NewPodLogsStream
+					_log.Logger.Infow("Agent received a new pod logs task: ID=%s, payload=%s",
+						podLogsTask.Id, podLogsTask.Payload)
+					_ = tasks.LogStreamTask(podLogsTask, stream)
+				case *pb.TaskStreamResponse_ExecReq:
+					task := payload.ExecReq
+					//_log.Logger.Infof("Agent received a new pod exec task: ID=%s, Payload=%s",
+					//	task.TaskId, task.Payload)
+					err := tasks.PodExecTask(task.TaskId, task.Payload, task.Input, task.Command, stream)
+					if err != nil {
+						_log.Logger.Errorw("Failed to send pod exec result", "err", err)
+						return
+					}
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Agent received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
@@ -152,15 +166,6 @@ func main() {
 						// Close the error channel to signal disconnect
 						close(streamErrorChan)
 						log.Fatalf("Detached from server. Disconnected !!")
-						return
-					}
-				case *pb.TaskStreamResponse_ExecReq:
-					task := payload.ExecReq
-					//_log.Logger.Infof("Agent received a new pod exec task: ID=%s, Payload=%s",
-					//	task.TaskId, task.Payload)
-					err := tasks.PodExecTask(task.TaskId, task.Payload, task.Input, task.Command, stream)
-					if err != nil {
-						_log.Logger.Errorw("Failed to send pod exec result", "err", err)
 						return
 					}
 				default:

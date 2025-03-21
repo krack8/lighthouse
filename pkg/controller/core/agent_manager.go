@@ -10,6 +10,7 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/consts"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -19,7 +20,8 @@ type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
 	GroupName             string
-	ResultChMap           map[string]chan *pb.TaskResult           // map of taskID -> channel that receives result
+	ResultChMap           map[string]chan *pb.TaskResult
+	ResultStreamChMap     map[string]chan *pb.LogsResult           // map of taskID -> channel that receives result
 	TerminalExecRespChMap map[string]chan *pb.TerminalExecResponse // map of taskID -> channel that receives result
 	mu                    sync.Mutex
 }
@@ -115,7 +117,7 @@ func (s *AgentManager) RemoveAgentByGroupName(groupName string) bool {
 // disconnectWorker handles immediate worker disconnection
 func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	if w == nil || w.Stream == nil {
-		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group: "+w.GroupName)
+		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group")
 		return
 	}
 
@@ -499,4 +501,110 @@ func (s *AgentManager) CloseWebsocketConnectionByTask(taskId string) {
 		webSocketClientMap[taskId].CloseSignal <- "force_close"
 	}
 	return
+}
+
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx *gin.Context, taskName string, input []byte, groupName string) (*pb.LogsResult, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		return nil, errors.New("agent unreachable")
+	}
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.LogsResult)
+
+	w.mu.Lock()
+	w.ResultStreamChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Actually send the task to the agent.
+	err := w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+			NewPodLogsStream: &pb.PodLogsStream{
+				Id:      taskID,
+				Payload: taskName,
+				Name:    taskName,
+				Input:   string(input),
+			},
+		},
+	})
+	if err != nil {
+		log.Logger.Warnw("error")
+		w.mu.Lock()
+		delete(w.ResultStreamChMap, taskID)
+		w.mu.Unlock()
+		return nil, err
+	}
+
+	wsCtx, wsCancel := context.WithCancel(ctx.Request.Context())
+	func(gctx *gin.Context, ctx context.Context, cancel context.CancelFunc) {
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case res := <-resultCh:
+				if res.Cancel {
+					log.Logger.Errorw("agent cancelled log streaming", "logs-stream-cancelled", res.TaskId)
+					cancel()
+				}
+				_, err := gctx.Writer.Write(res.Output)
+				if err != nil {
+					log.Logger.Errorw("unable to write to HTTP stream", "logs-stream", err.Error())
+					cancel()
+				}
+				gctx.Writer.Flush()
+			case <-ticker.C:
+				if gctx.Writer.Status() != http.StatusOK {
+					// If the response status is not OK, the client may have disconnected
+					log.Logger.Infow("client is disconnected. closing stream", "logs-stream", taskID)
+					cancel()
+				}
+				_, err = gctx.Writer.Write([]byte(""))
+				if err != nil {
+					log.Logger.Errorw("unable to write to HTTP stream -- stream may be closed by client", "logs-stream-health", err.Error())
+					cancel()
+				} else {
+					log.Logger.Infow("conn is active", "logs-stream", taskID)
+				}
+				// Send a message to the gRPC stream every 3 seconds
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: consts.LogsTaskHeartbeat,
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw("unable to send heartbeat to agent", "logs-heartbeat", err)
+					cancel()
+				}
+			case <-ctx.Done():
+				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
+				ticker.Stop()
+				gctx.Writer.Flush()
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: consts.LogsTaskCancel,
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw("unable to send logs cancel to agent", "logs-cancel", err)
+				}
+				w.mu.Lock()
+				delete(w.ResultStreamChMap, taskID)
+				w.mu.Unlock()
+				return
+			}
+		}
+	}(ctx, wsCtx, wsCancel)
+	return nil, nil
 }

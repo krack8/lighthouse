@@ -104,9 +104,10 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 			// Create the worker connection instance.
 			// Create the agent connection instance.
 			currentAgent = &core.AgentConnection{
-				Stream:                stream,
-				GroupName:             groupName,
-				ResultChMap:           make(map[string]chan *pb.TaskResult),
+				Stream:            stream,
+				GroupName:         groupName,
+				ResultChMap:       make(map[string]chan *pb.TaskResult),
+				ResultStreamChMap: make(map[string]chan *pb.LogsResult),
 				TerminalExecRespChMap: make(map[string]chan *pb.TerminalExecResponse),
 			}
 
@@ -153,6 +154,28 @@ func (s *ControllerServer) TaskStream(stream pb.Controller_TaskStreamServer) err
 					log.Logger.Infow(fmt.Sprintf("No channel waiting for task_id=%s", taskRes.TaskId), "channel", "not waiting")
 				}
 			}
+		case *pb.TaskStreamRequest_LogsResult:
+			// The worker is streaming logs
+			taskRes := payload.LogsResult
+			log.Logger.Infow(fmt.Sprintf("Received logs result from agent: task_id=%s",
+				taskRes.TaskId), "task-result", taskRes.TaskId)
+
+			// Notify whoever is waiting for this task result (our HTTP handler).
+			if currentAgent != nil {
+				currentAgent.Lock()
+				ch, ok := currentAgent.ResultStreamChMap[taskRes.TaskId]
+				currentAgent.Unlock()
+				if ok {
+					ch <- &pb.LogsResult{
+						TaskId: taskRes.TaskId,
+						Output: taskRes.Output,
+						Cancel: taskRes.Cancel,
+					}
+				} else {
+					log.Logger.Infow(fmt.Sprintf("No channel waiting for log ask_id=%s", taskRes.TaskId), "channel", "not waiting")
+				}
+			}
+
 		default:
 			log.Logger.Warnw("Unknown message type from agent stream", "message-type", "unknown")
 		}
