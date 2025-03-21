@@ -66,6 +66,7 @@ export class ErrorsInterceptor implements HttpInterceptor {
   }
 
   private throwLogout(): void {
+    this.requesterSvc.logoutUser();
     this.requesterSvc.clear();
     this.router.navigate(['/auth/login']);
   }

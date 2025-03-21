@@ -47,9 +47,16 @@ export class ToolbarUserDropdownComponent implements OnInit {
   }
 
   logout() {
-    this.requester.clear();
-    this.router.navigate(['/auth/login']);
-    this.permissionService.loadUserPermissions([]);
-    this.popoverRef.close();
+    this.requester.logoutUser().subscribe({
+      next: () => {
+        this.requester.clear();
+        this.router.navigate(['/auth/login']);
+        this.permissionService.loadUserPermissions([]);
+        this.popoverRef.close();
+      },
+      error: () => {
+        console.warn('Error while logging out');
+      }
+    });
   }
 }

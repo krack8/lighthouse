@@ -30,7 +30,7 @@ export const NAMESPACE_VIRTUAL_SERVICE = '/v1/virtual-service';
 export const NAMESPACE_NAME_LIST = '/v1/namespace/names';
 
 export const GET_LOGS = '/log-metrics/container';
-export const GET_LOGS_V1 = '/v1/pod/logs/';
+export const GET_LOGS_V1 = '/v1/pod/{0}/logs';
 
 export const NAMESPACE_DEPLOYMENT_POD_LIST = '/v1/deployment/{0}/pods';
 export const NAMESPACE_STATEFUL_SETS_POD_LIST = '/v1/statefulset/{0}/pods';
@@ -43,4 +43,4 @@ export const NAMESPACE_CONTROLLER_REVISION = '/v1/controller-revision';
 export const NAMESPACE_REPLICATION_CONTROLLER = '/v1/replication-controller';
 
 export const NAMESPACE_EVENTS = '/v1/event';
-export const POD_TERMINAL_URL = '/ws/pod/{0}/exec';
+export const POD_TERMINAL_URL = '/ws/v1/pod/{0}/exec';

@@ -72,3 +72,19 @@
     white-space: nowrap;
   }
 }
+
+@media (max-width: 1800px) {
+  .vpc-overview-box{
+    display: block;
+    width: 280px;
+
+    h2{
+      text-align: start;
+      margin-left: 20px;
+    }
+  }
+  .graph-info {
+    margin-top: 10px;
+    margin-left: 20px;
+  }
+}

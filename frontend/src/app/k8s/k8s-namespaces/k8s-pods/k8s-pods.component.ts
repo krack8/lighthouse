@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import icSearch from '@iconify/icons-ic/search';
@@ -24,6 +24,15 @@ import { fromEvent } from 'rxjs';
 import { distinctUntilChanged, map, share, takeWhile, tap, throttleTime } from 'rxjs/operators';
 import { K8sNamespacesService } from '../k8s-namespaces.service';
 import { K8sPodsContainerLogComponent } from '../k8s-pods-details/k8s-pods-container-log/k8s-pods-container-log.component';
+import { ApexChart, ApexNonAxisChartSeries, ApexPlotOptions, ChartComponent } from 'ng-apexcharts';
+
+// export type ChartOptions = {
+//   series: ApexNonAxisChartSeries;
+//   chart: ApexChart;
+//   labels: string[];
+//   color: string[];
+//   plotOptions: ApexPlotOptions;
+//  };
 
 @Component({
   selector: 'kc-k8s-pods',
@@ -32,6 +41,24 @@ import { K8sPodsContainerLogComponent } from '../k8s-pods-details/k8s-pods-conta
   animations: [fadeInRight400ms]
 })
 export class K8sPodsComponent implements OnInit {
+
+  //pod metrics
+  @ViewChild("chart") chart: ChartComponent;
+  public chartOptions: any;
+
+  TotalPods: number = 0;
+  RunningPods: number = 0;
+  PendingPods: number = 0;
+  FailedPods: number = 0;
+  TotalCPU: number = 0;
+  TotalMemory: number = 0;
+
+  podChart = {
+    series: [],
+    labels: ['Running', 'Pending', 'Failed'],
+    color: ['#36c678', '#ffbb33', '#b1122a'],
+  }
+
   //icons
   icCircle = icCircle;
   icSearch = icSearch;
@@ -70,7 +97,71 @@ export class K8sPodsComponent implements OnInit {
     private dialog: MatDialog,
     @Inject(DOCUMENT) public document: any,
     private router: Router
-  ) {}
+  ) {
+    this.chartOptions = {
+      //series: [44, 55, 41, 17, 15],
+      chart: {
+        type: 'donut',
+        height: 170,
+        width: 200,
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350
+          }
+        }
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '65%',
+            background: 'transparent',
+
+          }
+        }
+      },
+      dataLabels: {
+        enabled: false,
+        style: {
+          fontSize: '14px',
+          fontFamily: 'Helvetica, Arial, sans-serif',
+          fontWeight: 'bold',
+          colors: ['#fff']
+        },
+        dropShadow: {
+          enabled: false,
+          top: 1,
+          left: 1,
+          blur: 1,
+          opacity: 0.45
+        }
+      },
+      stroke: {
+        show: false, // Hide the border of the donut
+      },
+      legend: {
+        show: false,
+      },
+      responsive: [{
+        breakpoint: 580,
+        options: {
+          chart: {
+            width: 100
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }],
+    };
+  }
 
   ngOnInit(): void {
     this.toolbarService.changeData({ title: this.title });
@@ -124,6 +215,14 @@ export class K8sPodsComponent implements OnInit {
       next: res => {
         if (res?.status === 'success') {
           this.stats = res?.data;
+          //initializing metrics data
+          this.TotalPods = res?.data?.Total || 0;
+          this.RunningPods = res?.data?.Running || 0;
+          this.PendingPods = res?.data?.Pending || 0;
+          this.FailedPods = res?.data?.Failed || 0;
+          this.TotalCPU = res?.data?.CPU || 0;
+          this.TotalMemory = res?.data?.Memory || 0;
+          this.podChart.series = [this.RunningPods, this.PendingPods, this.FailedPods];
           this.statsLoaded = false;
         }
         if (res?.status === 'error') {

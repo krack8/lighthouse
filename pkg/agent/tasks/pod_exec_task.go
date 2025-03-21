@@ -211,9 +211,11 @@ func (t *PodExecStream) writeCommandToPodExecStream(taskID string, command []byt
 		}
 
 	} else {
-		t.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
-			Width:  msg["cols"],
-			Height: msg["rows"],
+		if t.terminalQueue.sizeChan != nil {
+			t.terminalQueue.sizeChan <- &remotecommand.TerminalSize{
+				Width:  msg["cols"],
+				Height: msg["rows"],
+			}
 		}
 	}
 }
@@ -319,7 +321,7 @@ func (t *PodExecStream) Close(taskID string) {
 func (t *PodExecStream) initHeartbeat(taskID string) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	heartbeatTimers[taskID] = time.AfterFunc(10*time.Second, func() {})
+	heartbeatTimers[taskID] = time.AfterFunc(15*time.Second, func() {})
 }
 
 func (t *PodExecStream) checkHeartbeat(taskID string) {
@@ -329,7 +331,7 @@ func (t *PodExecStream) checkHeartbeat(taskID string) {
 	if timer, exists := heartbeatTimers[taskID]; exists {
 		timer.Stop()
 
-		heartbeatTimers[taskID] = time.AfterFunc(10*time.Second, func() {
+		heartbeatTimers[taskID] = time.AfterFunc(15*time.Second, func() {
 			if _, err := getExecStream(taskID); err != nil {
 				return
 			}

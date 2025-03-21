@@ -9,6 +9,7 @@ import { HttpService } from './http.service';
 
 const MC_USER_INFO = '/v1/users/profile';
 const MC_REFRESH_TOKEN = '/auth/refresh-token';
+const USER_LOGOUT = '/auth/logout';
 
 export const LOCAL_STORAGE_KEY = 'ngx-webstorage|kc-requester';
 
@@ -171,5 +172,9 @@ export class RequesterService {
 
   getUserProfile(): Observable<any> {
     return this.httpService.get(MC_USER_INFO);
+  }
+
+  logoutUser(): Observable<any> {
+    return this.httpService.post(USER_LOGOUT, {});
   }
 }
