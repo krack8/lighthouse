@@ -7,6 +7,7 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
 	middleware "github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	api2 "github.com/krack8/lighthouse/pkg/controller/rest/api"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
 )
@@ -45,7 +46,7 @@ func StartHttServer() {
 	r.POST("/api/auth/logout", controllers.LogoutHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
-
+	r.GET("test/namespace/:name", api2.NamespaceController().GetNamespaceDetails)
 	err := r.Run(":" + port) // listen and serve
 	if err != nil {
 		_log.Logger.Errorw("Failed to start server", "err", err.Error())

@@ -8,4 +8,7 @@ const (
 
 	LogsTaskCancel    = "close_conn"
 	LogsTaskHeartbeat = "heartbeat"
+
+	ApiVersionV1  = "v1"
+	KindNamespace = "Namespace"
 )

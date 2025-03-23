@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/common/consts"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -226,8 +227,9 @@ func (p *GetNamespaceInputParams) Process(c context.Context) error {
 		log.Logger.Errorw("Failed to get namespace "+p.NamespaceName, "err", err.Error())
 		return err
 	}
-	output.APIVersion = "v1"
-	output.Kind = "Namespace"
+	log.Logger.Infow("api version: "+output.APIVersion+" kind: "+output.Kind, "namespace", "values")
+	output.APIVersion = consts.ApiVersionV1
+	output.Kind = consts.KindNamespace
 	output.ManagedFields = nil
 	p.output = *output
 	return nil
