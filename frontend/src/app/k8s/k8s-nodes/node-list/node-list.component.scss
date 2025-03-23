@@ -43,6 +43,7 @@
   box-sizing: border-box;
   box-shadow: 5px 0px 30px rgba(0, 0, 0, 0.08);
   border-radius: 6px;
+  display: flex;
   h2 {
     font-weight: 600;
     font-size: 18px;
@@ -72,7 +73,8 @@
 .graph-info {
   height: 150px;
   margin-top: 100px;
-  white-space: nowrap;
+  margin-right: 15px;
+  //white-space: nowrap;
 
   h6 {
     margin-bottom: 10px;
@@ -81,4 +83,20 @@
 
 .graph-container {
   flex-wrap: wrap;
+}
+
+@media (max-width: 1800px) {
+  .vpc-overview-box{
+    display: block;
+    width: 280px;
+
+    h2{
+      text-align: start;
+      margin-left: 20px;
+    }
+  }
+  .graph-info {
+    margin-top: 10px;
+    margin-left: 20px;
+  }
 }

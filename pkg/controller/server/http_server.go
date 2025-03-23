@@ -42,6 +42,7 @@ func StartHttServer() {
 	// Define the login route separately without middleware
 	// Login route
 	r.POST("/api/auth/login", controllers.LoginHandler)
+	r.POST("/api/auth/logout", controllers.LogoutHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
 

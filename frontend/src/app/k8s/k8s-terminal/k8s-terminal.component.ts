@@ -24,6 +24,9 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
   clusterId;
   namespace;
   socket: WebSocket;
+  firstRequest = true;
+  requestId: string;
+  retryTimeout: any;
 
   constructor(private route: ActivatedRoute, private requesterService: RequesterService) {
     this.requester = this.requesterService.get();
@@ -49,6 +52,7 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.socket?.close();
+    clearTimeout(this.retryTimeout);
   }
 
   wsConnect() {
@@ -66,8 +70,10 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
     });
 
     // Use WebSocket API
-    const url = this.domain + '?token=' + this.requester.token + '&name=' + this.pod + '&container=' + this.containerName + '&namespace=' + this.namespace + '&cluster_id=' + this.clusterId + '&rows=' + this.rows + '&cols=' + this.cols;    console.log("ws URL  ----> ", url);   
-
+    let url = this.domain + '?token=' + this.requester.token + '&name=' + this.pod + '&container=' + this.containerName + '&namespace=' + this.namespace + '&cluster_id=' + this.clusterId + '&rows=' + this.rows + '&cols=' + this.cols;    console.log("ws URL  ----> ", url);   
+    if (this.requestId) {
+      url += '&taskId=' + this.requestId;
+    }
     this.socket = new WebSocket(url);
     console.log('SOCKET', this.socket);
 
@@ -77,14 +83,31 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
     term.open(document.getElementById('terminal-container'));
 
     this.socket.onmessage = (e) => {
-      this.connectContainer = false;
-      this.resize(this.socket, term);
-      term.write(e.data);
+      if (this.firstRequest) {
+        this.firstRequest = false;
+        this.requestId = e.data;
+        console.log('Retry Request ID', this.requestId);
+      } else {
+        this.connectContainer = false;
+        this.resize(this.socket, term);
+        term.write(e.data);
+      }
     };
 
     this.socket.onclose = (e) => {
-      term.write('\x1B[3;1;31m Session Is Closed! \x1B[0m');
-      this.connectContainer = true;
+      if (e.wasClean == true && e.code == 1000) {
+        term.write('\x1B[3;1;31m Session Is Closed!\x1B[0m');
+        this.connectContainer = true;
+        this.firstRequest = true;
+        this.requestId = null;
+      } else {
+        term.write('\x1B[3;1;31m Session Is Closed! Reconnecting...\x1B[0m');
+        this.connectContainer = true;
+        // Retry connection after a delay
+        this.retryTimeout = setTimeout(() => {
+          this.wsConnect();
+        }, 5000); // Retry after 5 seconds
+      }
     };
 
     this.socket.onopen = () => {

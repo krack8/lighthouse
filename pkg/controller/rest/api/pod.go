@@ -1,16 +1,26 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/k8s"
 	"github.com/krack8/lighthouse/pkg/common/log"
+	"github.com/krack8/lighthouse/pkg/controller/auth/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
+	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/controller/core"
+	"go.mongodb.org/mongo-driver/bson"
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
+	"sync"
 )
 
 type PodControllerInterface interface {
@@ -27,6 +37,8 @@ type podController struct {
 }
 
 var pc podController
+var user_podexec_task_map = make(map[string][]string) // Key: UserID, Value: List of TaskID's
+var pod_mu sync.Mutex
 
 func PodController() *podController {
 	return &pc
@@ -203,6 +215,49 @@ func (ctrl *podController) DeletePod(ctx *gin.Context) {
 }
 
 func (ctrl *podController) ExecPod(ctx *gin.Context) {
+	// Get Current User
+	var token string
+
+	token, exists := ctx.GetQuery("token")
+	if exists == false {
+		authHeader := ctx.GetHeader("Authorization")
+		if authHeader == "" {
+			log.Logger.Errorw("Authorization token not found")
+			SendErrorResponse(ctx, "Authorization token not found")
+			return
+		}
+		token = strings.TrimPrefix(authHeader, "Bearer ")
+	}
+
+	if token == "" {
+		log.Logger.Errorw("Current User token found")
+		SendErrorResponse(ctx, "User token not found")
+		return
+	}
+
+	claims, err := utils.ValidateToken(token, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		log.Logger.Errorw("Invalid authorization token")
+		SendErrorResponse(ctx, "Invalid authorization token")
+		return
+	}
+
+	filter := bson.M{"username": claims.Username}
+	if filter == nil {
+		log.Logger.Errorw("User not found", "username", claims.Username)
+		SendErrorResponse(ctx, "User not found")
+		return
+	}
+
+	userResult := config.UserCollection.FindOne(context.Background(), filter)
+
+	var currentUser models.User
+	if err := userResult.Decode(&currentUser); err != nil {
+		log.Logger.Errorw("Current User not found", "username", claims.Username)
+		SendErrorResponse(ctx, "User not found")
+		return
+	}
+
 	var result ResponseDTO
 	input := new(k8s.PodExecInputParams)
 	input.PodName = ctx.Param("name")
@@ -228,6 +283,15 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 	input.NamespaceName = queryNamespace
 	input.ContainerName = containerName
 
+	isReconnect := false
+	taskID := ctx.Query("taskId")
+	if taskID == "" {
+		// Generate a task ID.
+		taskID = uuid.NewString()
+	} else {
+		isReconnect = true
+	}
+
 	inputTask, err := json.Marshal(input)
 	if err != nil {
 		log.Logger.Errorw("unable to marshal PodExec Task input", "err", err.Error())
@@ -239,18 +303,23 @@ func (ctrl *podController) ExecPod(ctx *gin.Context) {
 			return true
 		},
 	}
+
 	conn, err := wsocket.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		log.Logger.Errorw("unable to initiate websocket connection", "err", err.Error())
+		log.Logger.Errorw(fmt.Sprintf("Unable to initiate websocket connection"), "TaskType", "PodExec", "AgentGroup", clusterGroup, "TaskID", taskID)
 		SendErrorResponse(ctx, "Unable to initiate websocket connection")
 		return
 	}
 
-	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, string(inputTask), clusterGroup, conn)
+	_, err = core.GetAgentManager().SendTerminalExecRequestToAgent(ctx, taskID, string(inputTask), clusterGroup, conn, isReconnect)
 	if err != nil {
 		SendErrorResponse(ctx, err.Error())
 		return
 	}
+
+	pod_mu.Lock()
+	user_podexec_task_map[currentUser.ID.Hex()] = append(user_podexec_task_map[currentUser.ID.Hex()], taskID)
+	pod_mu.Unlock()
 
 	SendResponse(ctx, result)
 }
@@ -357,6 +426,25 @@ func (ctrl *podController) GetPodLogs(ctx *gin.Context) {
 		return
 	}
 	SendResponse(ctx, result)
+}
+
+func (ctrl *podController) ClearAllPodExecConnection(userID string) error {
+	pod_mu.Lock()
+	defer pod_mu.Unlock()
+
+	taskIds, exists := user_podexec_task_map[userID]
+	if !exists {
+		log.Logger.Infow("No active connections found for user", "userID", userID)
+		return nil
+	}
+
+	// Close all connections for the user
+	for _, taskId := range taskIds {
+		core.GetAgentManager().CloseWebsocketConnectionByTask(taskId)
+	}
+
+	delete(user_podexec_task_map, userID)
+	return nil
 }
 
 func (ctrl *podController) GetPodLogsStream(ctx *gin.Context) {
