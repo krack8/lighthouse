@@ -34,6 +34,7 @@ import { UserPermissionItemComponent } from './user-details/user-permission-item
 import { AccessRoleService } from '@management/access-role/access-role.service';
 import { CdkHintModule } from '@cdk-ui/hint';
 import { MatRadioModule } from '@angular/material/radio';
+import { ClusterService } from '@cluster/cluster.service';
 
 @NgModule({
   declarations: [UserListComponent, UserFormComponent, UserDetailsComponent, UserPermissionItemComponent],
@@ -66,6 +67,6 @@ import { MatRadioModule } from '@angular/material/radio';
     MatProgressBarModule,
     CdkHintModule
   ],
-  providers: [UserService, AccessRoleService]
+  providers: [UserService, AccessRoleService, ClusterService]
 })
 export class UserModule {}

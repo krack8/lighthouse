@@ -36,7 +36,25 @@ func (uc *ClusterController) GetClusterHandler(c *gin.Context) {
 
 // GetAllClustersHandler handles fetching all Clusters.
 func (uc *ClusterController) GetAllClustersHandler(c *gin.Context) {
-	ClusterList, err := uc.ClusterService.GetAllClusters()
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
+
+	ClusterList, err := uc.ClusterService.GetAllClusters(requester)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, ClusterList)
+}
+
+// GetAllClustersHandler handles fetching all Clusters.
+func (uc *ClusterController) GetClusterListHandler(c *gin.Context) {
+	ClusterList, err := uc.ClusterService.GetClusterList()
 	if err != nil {
 		utils.RespondWithError(c, http.StatusOK, "Cluster not found")
 		return
@@ -108,11 +126,11 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting cluster"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error detaching cluster"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s deleted successfully", id)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s detached successfully", id)})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
