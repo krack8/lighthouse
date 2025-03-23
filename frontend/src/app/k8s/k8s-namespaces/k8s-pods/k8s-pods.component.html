@@ -6,7 +6,7 @@
     <span class="ml-4">Loading stats...</span>
   </span>
 </div>
-<div @fadeInRight *ngIf="!statsLoaded">
+<div @fadeInRight *ngIf="!statsLoaded && data?.length">
   <div class="flex">
     <div class="info-name-box w-1/3 mr-4">
       <div class="w-full">
