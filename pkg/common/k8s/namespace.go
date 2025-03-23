@@ -226,6 +226,8 @@ func (p *GetNamespaceInputParams) Process(c context.Context) error {
 		log.Logger.Errorw("Failed to get namespace "+p.NamespaceName, "err", err.Error())
 		return err
 	}
+	output.APIVersion = "v1"
+	output.Kind = "Namespace"
 	output.ManagedFields = nil
 	p.output = *output
 	return nil
