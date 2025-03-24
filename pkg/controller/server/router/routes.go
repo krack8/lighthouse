@@ -29,6 +29,7 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	httpRg.GET("/cluster-list", authApi.ClusterController.GetClusterListHandler)
 	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
 	httpRg.POST("/clusters", authApi.ClusterController.CreateAgentClusterHandler)
+	httpRg.PUT("/clusters/:id", authApi.ClusterController.UpdateCusterNameHandler)
 	httpRg.GET("/clusters/:id/details", authApi.ClusterController.GetClusterHelmDetailsHandler)
 	httpRg.DELETE("/clusters/:id", authApi.ClusterController.DeleteClusterHandler)
 
