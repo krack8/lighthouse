@@ -150,7 +150,7 @@ func (uc *ClusterController) UpdateCusterNameHandler(c *gin.Context) {
 		return
 	}
 
-	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "User updated successfully"})
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "Cluster has Renamed Successfully"})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {
