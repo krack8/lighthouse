@@ -38,6 +38,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   liveLogs: string = '';
   isLoading: boolean = true;
   allowShowPrevious = this.data?.restart > 0 ? false : true;
+  callOnce = true;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data,
@@ -193,7 +194,15 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
         setTimeout(() => {
           //console.log('scrolling to bottom');
           this.scrollLogContainerToBottom();
-        }, 10);
+        }, 100);
+      }
+      // for smooth scroll to bottom when too many logs are fetched at once.
+      if (this.callOnce){ 
+        setTimeout(() => {
+          this.scrollLogContainerToBottom();
+        }
+        , 2000);
+        this.callOnce = false;
       }
     }
   }
