@@ -27,6 +27,7 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
   firstRequest = true;
   requestId: string;
   retryTimeout: any;
+  isLoading: boolean = true;
 
   constructor(private route: ActivatedRoute, private requesterService: RequesterService) {
     this.requester = this.requesterService.get();
@@ -79,7 +80,7 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
 
     const termDiv = document.getElementById('terminal-container');
     termDiv.innerHTML = '';
-    term.write('\x1B[7;1;34m [Hello From KloverCloud!] \x1B[0m \n');
+    //term.write('\x1B[7;1;34m  \x1B[0m \n');
     term.open(document.getElementById('terminal-container'));
 
     this.socket.onmessage = (e) => {
@@ -88,6 +89,7 @@ export class K8sTerminalComponent implements OnInit, OnDestroy {
         this.requestId = e.data;
         console.log('Retry Request ID', this.requestId);
       } else {
+        this.isLoading = false;
         this.connectContainer = false;
         this.resize(this.socket, term);
         term.write(e.data);

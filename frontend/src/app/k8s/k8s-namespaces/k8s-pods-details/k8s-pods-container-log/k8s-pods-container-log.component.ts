@@ -38,7 +38,9 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   liveLogs: string = '';
   isLoading: boolean = true;
   allowShowPrevious = this.data?.restart > 0 ? false : true;
-  callOnce = true;
+
+  //scrollOnce is used to scroll log view container till bottom only once when a large volume of logs are fetched first time.
+  scrollOnce = true;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data,
@@ -162,6 +164,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   getStaticLogs(queryParams?): void {
     this.isLoading = true;
     this.liveLogs = '';
+    this.scrollOnce = true;
     const qp = this.filterLogs();
     console.log('qp:', qp);
     this._namespaceService.getLogsV1(qp, this.data.pod).subscribe((res) => {
@@ -197,12 +200,9 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
         }, 100);
       }
       // for smooth scroll to bottom when too many logs are fetched at once.
-      if (this.callOnce){ 
-        setTimeout(() => {
-          this.scrollLogContainerToBottom();
-        }
-        , 2000);
-        this.callOnce = false;
+      if (this.scrollOnce){ 
+        setTimeout(() => this.scrollLogContainerToBottom(), 2000);
+        this.scrollOnce = false;
       }
     }
   }

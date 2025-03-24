@@ -1,4 +1,7 @@
 <form class="form-inline" style="margin: 0px">
     <!-- <button type="button" class="btn btn-default" (click)="wsConnect()" *ngIf="connectContainer === true">Reconnect</button> -->
+    <div *ngIf="isLoading" class="flex items-center">
+        <span class="terminal-spinner"></span>
+    </div>
 </form>
 <ng-terminal  #termDiv #term id="terminal-container"></ng-terminal>
