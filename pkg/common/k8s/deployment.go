@@ -69,7 +69,6 @@ func (p *GetDeploymentListInputParams) Find(c context.Context, deploymentClient 
 			log.Logger.Errorw("Failed to get deployment list", "err", err.Error())
 			return err
 		}
-
 		for _, deployment := range deploymentList.Items {
 			if strings.Contains(deployment.Name, p.Search) {
 				filteredDeployments = append(filteredDeployments, deployment)
@@ -187,28 +186,12 @@ func (p *GetDeploymentDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching deployment details of ....", p.NamespaceName)
 	deploymentsClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 	output, err := deploymentsClient.Get(context.Background(), p.DeploymentName, metav1.GetOptions{})
-	/////
-	//var replicasets []string
-	//for _, i := range output.Status.Conditions {
-	//	if i.Type == "Progressing" {
-	//		content := i.Message
-	//		re := regexp.MustCompile(`\"(.*)\"`)
-	//		match := re.FindStringSubmatch(content)
-	//		if len(match) > 1 {
-	//			fmt.Println("match found -", match[1])
-	//			replicasets = append(replicasets, match[1])
-	//		} else {
-	//			fmt.Println("match not found")
-	//		}
-	//	}
-	//}
-	//fmt.Println(replicasets)
-	////
+	output.APIVersion = "apps/v1"
+	output.Kind = "Deployment"
 	if err != nil {
 		log.Logger.Errorw("Failed to get deployment ", p.DeploymentName, "err", err.Error())
 		return err
 	}
-
 	p.output = *output
 	return nil
 }
