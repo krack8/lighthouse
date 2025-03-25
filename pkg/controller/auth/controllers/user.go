@@ -115,13 +115,27 @@ func (uc *UserController) GetAllUsersHandler(c *gin.Context) {
 func (uc *UserController) UpdateUserHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	var updatedData models.User
-	if err := c.ShouldBindJSON(&updatedData); err != nil {
+	var userDto dto.UserDTO
+	if err := c.ShouldBindJSON(&userDto); err != nil {
 		utils2.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := uc.UserService.UpdateUser(id, &updatedData)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
+
+	// Convert DTO to User model
+	updatedData, err := uc.convertDTOToUser(c, userDto, requester)
+	if err != nil {
+		utils2.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = uc.UserService.UpdateUser(id, updatedData)
 	if err != nil {
 		utils2.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
