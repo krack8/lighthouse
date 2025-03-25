@@ -69,12 +69,19 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 		}
 	}
 
+	var password = ""
+	if userDTO.Password != "" {
+		password = utils2.HashPassword(userDTO.Password)
+	} else {
+		password = userDTO.Password
+	}
+
 	return &models.User{
 		ID:            primitive.NewObjectID(),
 		Username:      userDTO.Username,
 		FirstName:     userDTO.FirstName,
 		LastName:      userDTO.LastName,
-		Password:      utils2.HashPassword(userDTO.Password),
+		Password:      password,
 		UserType:      models.UserType(userDTO.UserType),
 		Roles:         roles,
 		ClusterIdList: userDTO.ClusterIdList,
