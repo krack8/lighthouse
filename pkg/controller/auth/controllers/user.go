@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/controller/auth/dto"
 	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
@@ -9,7 +11,6 @@ import (
 	services2 "github.com/krack8/lighthouse/pkg/controller/auth/services"
 	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 type UserController struct {
@@ -61,11 +62,9 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 	}
 
 	if userDTO.UserType != string(models.AdminUser) {
-		defaultRoles, err := services2.GetRoleByName("DEFAULT_ROLE")
-		if err != nil {
-			return nil, err
+		if len(roles) == 0 {
+			roles, _ = services2.GetRoleByName("DEFAULT_ROLE")
 		}
-		roles = append(roles, defaultRoles...)
 	}
 
 	var password = ""
