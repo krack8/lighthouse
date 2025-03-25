@@ -35,6 +35,7 @@ export class UserFormComponent implements OnInit {
   isRolesLoading!: boolean;
   searchRoleTerm: string = '';
   clusterList: any[] = [];
+  systemRole: any;
 
   readonly systemRoleUsername: string = 'SYSTEM'; // For Role
 
@@ -49,7 +50,6 @@ export class UserFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.getClustersList();
     this.userForm = this.fb.group(
       {
         first_name: ['', [Validators.required, SpaceValidator.noLeadingSpace]],
@@ -77,23 +77,24 @@ export class UserFormComponent implements OnInit {
         user_is_active: this.data.user_is_active,
       };
 
-      if(this.data.user_type === 'USER'){
+      if (this.data.user_type === 'USER') {
+        //cluster form
         payload['cluster_ids'] = this.data?.cluster_ids;
-        this.userForm.addControl('cluster_ids', this.fb.control([], Validators.required));
+        this.userForm.addControl('cluster_ids', this.fb.control([], Validators.required))
+        this.getClustersList();
+        //role form
+        const _roleList = this.data.roles;
+        let roles = [];
+        if (_roleList && _roleList.length) {
+          roles = this.data.roles.map((item: any) => item.id);
+          payload['role_ids'] = roles;
+        }
+        this.userForm.addControl('role_ids', this.fb.control(roles));
+        this.getRoles();
+      } else {
+        this.userForm.removeControl('role_ids');
+        this.userForm.removeControl('cluster_ids');
       }
-
-      // if (this.data.user_type === 'USER') {
-      //   const _roleList = this.data.roles;
-      //   let roles = [];
-      //   if (_roleList && _roleList.length) {
-      //     roles = this.data.roles.map((item: any) => item.id);
-      //     payload['role_ids'] = roles;
-      //   }
-      //   this.userForm.addControl('role_ids', this.fb.control(roles));
-      //   this.getRoles();
-      // } else {
-      //   this.userForm.removeControl('role_ids');
-      // }
       this.userForm.patchValue(payload);
       this.userForm.get('username').disable();
     }
@@ -107,7 +108,12 @@ export class UserFormComponent implements OnInit {
       return;
     }
     this.userForm.addControl('cluster_ids', this.fb.control([], Validators.required));
-    // if (!this.roleList?.length) this.getRoles();
+    this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
+
+    if (!this.roleList?.length) {
+      this.getRoles();
+    } else this.userForm.get('role_ids')?.setValue([this.systemRole.id]);
+    if (!this.clusterList?.length) this.getClustersList();
   }
 
   onSubmit(): void {
@@ -150,10 +156,10 @@ export class UserFormComponent implements OnInit {
       next: data => {
         this.roleList = data;
         this.isRolesLoading = false;
-        if (!this.data) {
-          const systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
-          if (systemRole.id) {
-            this.userForm.get('role_ids').setValue([systemRole.id]);
+        if (this.data) {
+          this.systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
+          if (this.systemRole.id) {
+            this.userForm.get('role_ids')?.setValue([this.systemRole.id]);
           }
         }
       },
@@ -168,7 +174,6 @@ export class UserFormComponent implements OnInit {
     this.clusterService.getClustersList().subscribe({
       next: data => {
         this.clusterList = data;
-        console.log('Cluster List', this.clusterList);
       },
       error: err => {
         this.toastr.error(err.message || 'Something Wrong on fetch clusters');
