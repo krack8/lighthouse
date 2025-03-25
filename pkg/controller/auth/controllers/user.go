@@ -61,12 +61,11 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 	}
 
 	if userDTO.UserType != string(models.AdminUser) {
-		if len(roles) == 0 {
-			roles, err = services2.GetRoleByName("DEFAULT_ROLE")
-			if err != nil {
-				return nil, err
-			}
+		defaultRoles, err := services2.GetRoleByName("DEFAULT_ROLE")
+		if err != nil {
+			return nil, err
 		}
+		roles = append(roles, defaultRoles...)
 	}
 
 	var password = ""
