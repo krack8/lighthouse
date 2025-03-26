@@ -1,0 +1,31 @@
+<div class="flex items-center">
+    <h3 class="text-xl"> Rename Cluster</h3>
+    <button class="ml-auto" mat-dialog-close><mat-icon [icIcon]="icClose"></mat-icon></button>
+</div>
+
+<mat-dialog-content>
+    <div class="w-full mt-8">
+        <mat-form-field class="custom-mat-form-field" appearance="outline">
+            <mat-label>Cluster Name</mat-label>
+            <input type="text" [(ngModel)]="clusterName" id="cluster-name" matInput placeholder="Cluster Name"
+                maxlength="30" required />
+            <mat-error *ngIf="!clusterName">
+                Cluster Name is required</mat-error>
+        </mat-form-field>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button type="button" mat-stroked-button id="cancel-btn" mat-dialog-close>Cancel</button>
+    <button
+      color="primary"
+      mat-flat-button
+      (click)="renameCluster()"
+      [disabled]="!clusterName"
+    >
+      <div class="flex items-center">
+        <mat-spinner class="mr-3" *ngIf="isSubmitting" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
+        <span>Rename</span>
+      </div>
+    </button>
+</mat-dialog-actions>

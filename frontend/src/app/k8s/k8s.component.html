@@ -21,7 +21,7 @@
                 clip-rule="evenodd"
               ></path>
             </svg>
-            <a [routerLink]="['../', 'overview']" class="ml-1 text-sm font-medium text-hint">{{ clusterData?.name }}</a>
+            <a [routerLink]="['/clusters']" class="ml-1 text-sm font-medium text-hint">{{ clusterData?.name }}</a>
           </div>
         </li>
         <ng-template [ngIf]="namespaceQueryParam">
@@ -551,6 +551,10 @@
               <button mat-menu-item (click)="deleteCluster()">
                 <mat-icon class="text-red-600" [icIcon]="icDelete"></mat-icon>
                 <span>Detach Cluster</span>
+              </button>
+              <button mat-menu-item (click)="openClusterRenameDialog()">
+                <mat-icon class="text-red-600" [icIcon]="icEdit"></mat-icon>
+                <span>Rename Cluster</span>
               </button>
             </mat-menu>
           </div>

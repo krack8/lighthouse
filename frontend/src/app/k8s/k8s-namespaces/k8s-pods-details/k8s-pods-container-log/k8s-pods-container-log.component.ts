@@ -189,11 +189,9 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
       
       // Go to Bottom Log
       if (isUpdateScrollPosition) {
-        this.scrollLogContainerToBottom();
         setTimeout(() => {
-          //console.log('scrolling to bottom');
           this.scrollLogContainerToBottom();
-        }, 10);
+        }, 100);
       }
     }
   }

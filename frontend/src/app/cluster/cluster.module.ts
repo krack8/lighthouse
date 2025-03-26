@@ -35,6 +35,7 @@ import { CdkIconModule } from '@cdk-ui/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime-ex';
 import { CdkHintModule } from '@cdk-ui/hint';
+import { ClusterRenameDialogComponent } from './cluster-rename-dialog/cluster-rename-dialog.component';
 
 const matModules = [
   MatButtonModule,
@@ -55,7 +56,7 @@ const matModules = [
 ];
 
 @NgModule({
-  declarations: [ClusterListComponent, ClusterIntroComponent],
+  declarations: [ClusterListComponent, ClusterIntroComponent, ClusterRenameDialogComponent],
   imports: [
     CommonModule,
     ClusterRoutingModule,

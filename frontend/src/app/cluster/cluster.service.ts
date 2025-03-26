@@ -47,4 +47,8 @@ export class ClusterService {
   getClustersList(){
     return this.httpService.get(endpoint.GET_CLUSTERS_LIST);
   }
+
+  renameCluster(id: string, payload: any): Observable<any> {
+    return this.httpService.put(endpoint.RENAME_CLUSTER + id, payload);
+  }
 }
