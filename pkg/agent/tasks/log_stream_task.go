@@ -125,7 +125,7 @@ func LogStreamTask(podLogsTask *pb.PodLogsStream, stream grpc.BidiStreamingClien
 						_log.Logger.Errorw("failed to send log message of namespace: "+input.NamespaceName+", pod: "+input.Pod, "pod-logs-err", err)
 						cancelTask(taskID, stream)
 					}
-					time.Sleep(1 * time.Second)
+					time.Sleep(500 * time.Millisecond)
 				}
 			}
 
