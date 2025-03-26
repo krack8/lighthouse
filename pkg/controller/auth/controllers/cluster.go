@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/common/config"
+	"github.com/krack8/lighthouse/pkg/controller/auth/models"
 	"github.com/krack8/lighthouse/pkg/controller/auth/services"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"github.com/krack8/lighthouse/pkg/controller/core"
@@ -131,6 +132,25 @@ func (uc *ClusterController) DeleteClusterHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Cluster %s detached successfully", id)})
+}
+
+// UpdateUserHandler handles updating a user's information.
+func (uc *ClusterController) UpdateCusterNameHandler(c *gin.Context) {
+	id := c.Param("id")
+
+	var updatedData models.Cluster
+	if err := c.ShouldBindJSON(&updatedData); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := uc.ClusterService.RenameCluster(id, &updatedData)
+	if err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(c, http.StatusOK, gin.H{"message": "Cluster has Renamed Successfully"})
 }
 
 func (uc *ClusterController) GetClusterHelmDetailsHandler(c *gin.Context) {

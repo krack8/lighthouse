@@ -249,3 +249,51 @@ func (s *ClusterService) DeleteClusterByID(clusterId string) error {
 	}
 	return nil
 }
+
+// UpdateUser updates a cluster by ID
+func (s *ClusterService) RenameCluster(userID string, updatedUser *models.Cluster) error {
+	if updatedUser == nil {
+		return errors.New("renamed cluster cannot be nil")
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid cluster ID format: %w", err)
+	}
+
+	// First fetch the existing cluster
+	var existingCluster models.Cluster
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
+	err = db.ClusterCollection.FindOne(context.Background(), filter).Decode(&existingCluster)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New("cluster not found")
+		}
+		return fmt.Errorf("failed to fetch existing cluster: %w", err)
+	}
+
+	// Create update map with only non-empty fields
+	updateFields := bson.M{}
+
+	if updatedUser.Name != "" {
+		updateFields["name"] = updatedUser.Name
+	}
+
+	// Always update the UpdatedAt timestamp
+	updateFields["updated_at"] = time.Now()
+
+	// Only perform update if there are fields to update
+	if len(updateFields) > 0 {
+		update := bson.M{"$set": updateFields}
+		result, err := db.ClusterCollection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			return fmt.Errorf("failed to update cluster: %w", err)
+		}
+
+		if result.MatchedCount == 0 {
+			return errors.New("cluster not found")
+		}
+	}
+
+	return nil
+}

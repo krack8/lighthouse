@@ -151,9 +151,6 @@ func (s *UserService) UpdateUser(userID string, updatedUser *models.User) error 
 	if updatedUser.Username != "" {
 		updateFields["username"] = updatedUser.Username
 	}
-	if updatedUser.Password != "" {
-		updateFields["password"] = utils.HashPassword(updatedUser.Password)
-	}
 	if updatedUser.UserType != "" {
 		updateFields["user_type"] = updatedUser.UserType
 	}

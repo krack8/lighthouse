@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/krack8/lighthouse/pkg/controller/auth/dto"
 	"github.com/krack8/lighthouse/pkg/controller/auth/enum"
@@ -9,7 +11,6 @@ import (
 	services2 "github.com/krack8/lighthouse/pkg/controller/auth/services"
 	utils2 "github.com/krack8/lighthouse/pkg/controller/auth/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 type UserController struct {
@@ -62,11 +63,15 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 
 	if userDTO.UserType != string(models.AdminUser) {
 		if len(roles) == 0 {
-			roles, err = services2.GetRoleByName("DEFAULT_ROLE")
-			if err != nil {
-				return nil, err
-			}
+			roles, _ = services2.GetRoleByName("DEFAULT_ROLE")
 		}
+	}
+
+	var password = ""
+	if userDTO.Password != "" {
+		password = utils2.HashPassword(userDTO.Password)
+	} else {
+		password = userDTO.Password
 	}
 
 	return &models.User{
@@ -74,7 +79,7 @@ func (uc *UserController) convertDTOToUser(ctx context.Context, userDTO dto.User
 		Username:      userDTO.Username,
 		FirstName:     userDTO.FirstName,
 		LastName:      userDTO.LastName,
-		Password:      utils2.HashPassword(userDTO.Password),
+		Password:      password,
 		UserType:      models.UserType(userDTO.UserType),
 		Roles:         roles,
 		ClusterIdList: userDTO.ClusterIdList,
@@ -115,13 +120,27 @@ func (uc *UserController) GetAllUsersHandler(c *gin.Context) {
 func (uc *UserController) UpdateUserHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	var updatedData models.User
-	if err := c.ShouldBindJSON(&updatedData); err != nil {
+	var userDto dto.UserDTO
+	if err := c.ShouldBindJSON(&userDto); err != nil {
 		utils2.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := uc.UserService.UpdateUser(id, &updatedData)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username not found in context.Please Enable AUTH"})
+		return
+	}
+	requester := username.(string)
+
+	// Convert DTO to User model
+	updatedData, err := uc.convertDTOToUser(c, userDto, requester)
+	if err != nil {
+		utils2.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = uc.UserService.UpdateUser(id, updatedData)
 	if err != nil {
 		utils2.RespondWithError(c, http.StatusInternalServerError, err.Error())
 		return
