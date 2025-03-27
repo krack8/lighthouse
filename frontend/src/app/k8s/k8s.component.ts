@@ -11,9 +11,11 @@ import icDown from '@iconify/icons-ic/twotone-keyboard-arrow-down';
 import { ICluster } from '@cluster/cluster.model';
 import icMoreVert from '@iconify/icons-ic/twotone-more-vert';
 import icDelete from '@iconify/icons-ic/twotone-delete';
+import icEdit from '@iconify/icons-ic/twotone-edit';
 import { SecureDeleteDialogComponent } from '@shared-ui/ui';
 import { ClusterService } from '@cluster/cluster.service';
 import { ToastrService } from '@sdk-ui/ui';
+import { ClusterRenameDialogComponent } from '@cluster/cluster-rename-dialog/cluster-rename-dialog.component';
 
 interface IBreadcrumb {
   label: string;
@@ -34,6 +36,7 @@ export class K8sComponent implements OnInit, OnDestroy {
   icKeyboardBackspace = icKeyboardBackspace;
   icMoreVert = icMoreVert;
   icDelete = icDelete;
+  icEdit = icEdit;
   isAlive: boolean = true;
   isLoading!: boolean;
   clusterId!: string;
@@ -73,6 +76,7 @@ export class K8sComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._k8sService.changeClusterId(this.route.snapshot.params['clusterId']);
     this.getClusterId();
+    this.clusterData = this._k8sService.clusterInfoSnapshot;
   }
 
   ngOnDestroy(): void {
@@ -174,6 +178,20 @@ export class K8sComponent implements OnInit, OnDestroy {
       if (status === 'success') {
         this.toastr.success('Cluster deleted successfully');
         this._router.navigate(['/clusters']);
+      }
+    });
+  }
+
+  openClusterRenameDialog(): void {
+    const cluster = this._k8sService.clusterInfoSnapshot;
+    const dialogRef = this.dialog.open(ClusterRenameDialogComponent, {
+      width: '600px',
+      minHeight: '270px',
+      data: cluster
+    });
+    dialogRef.afterClosed().subscribe((status: string) => {
+      if (status === 'success') {
+        window.location.reload();
       }
     });
   }

@@ -26,8 +26,10 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 
 	// Cluster routes
 	httpRg.GET("/clusters", authApi.ClusterController.GetAllClustersHandler)
+	httpRg.GET("/cluster-list", authApi.ClusterController.GetClusterListHandler)
 	httpRg.GET("/clusters/:id", authApi.ClusterController.GetClusterHandler)
 	httpRg.POST("/clusters", authApi.ClusterController.CreateAgentClusterHandler)
+	httpRg.PUT("/clusters/:id", authApi.ClusterController.UpdateCusterNameHandler)
 	httpRg.GET("/clusters/:id/details", authApi.ClusterController.GetClusterHelmDetailsHandler)
 	httpRg.DELETE("/clusters/:id", authApi.ClusterController.DeleteClusterHandler)
 
@@ -172,10 +174,11 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// Pod
 	httpRg.GET("/pod", api2.PodController().GetPodList)
 	httpRg.GET("/pod/:name", api2.PodController().GetPodDetails)
-	httpRg.GET("/pod/logs/:name", api2.PodController().GetPodLogs)
+	httpRg.GET("/pod/:name/logs", api2.PodController().GetPodLogs)
 	httpRg.POST("/pod", api2.PodController().DeployPod)
 	httpRg.DELETE("/pod/:name", api2.PodController().DeletePod)
 	httpRg.GET("/pod/stats", api2.PodController().GetPodStats)
+	httpRg.GET("/pod/:name/logs/stream", api2.PodController().GetPodLogsStream)
 
 	// PodDisruptionBudgets
 	httpRg.GET("/PDB", api2.PodDisruptionBudgetsController().GetPodDisruptionBudgetsList)
@@ -280,4 +283,8 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// Volume Snapshot Class
 	httpRg.GET("/volume-snapshot-class", api2.VolumeSnapshotClassController().GetVolumeSnapshotClassList)
 	httpRg.GET("/volume-snapshot-class/:name", api2.VolumeSnapshotClassController().GetVolumeSnapshotClassDetails)
+}
+
+func AddWsApiRoutes(wsRg *gin.RouterGroup) {
+	wsRg.GET("/pod/:name/exec", api2.PodController().ExecPod)
 }

@@ -54,7 +54,69 @@ func (s *ClusterService) GetCluster(clusterID string) (*models.Cluster, error) {
 	return &cluster, nil
 }
 
-func (s *ClusterService) GetAllClusters() ([]models.Cluster, error) {
+func (s *ClusterService) GetAllClusters(reqUsername string) ([]models.Cluster, error) {
+	var filter bson.M
+	requester, _ := GetUserByUsername(reqUsername)
+	if requester == nil {
+		return nil, errors.New("failed to fetch requester")
+	}
+
+	// If user is ADMIN, return all worker clusters
+	if requester.UserType == "ADMIN" {
+		filter = bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}, "status": bson.M{"$eq": enum.VALID}}
+	} else {
+		// For USER type, only return clusters in their ClusterIdList
+		if len(requester.ClusterIdList) == 0 {
+			return []models.Cluster{}, nil // Return empty list if user has no clusters
+		}
+
+		// Convert cluster IDs to ObjectIDs
+		var objectIDs []primitive.ObjectID
+		for _, idStr := range requester.ClusterIdList {
+			objectID, err := primitive.ObjectIDFromHex(idStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid cluster ID format: %s, error: %w", idStr, err)
+			}
+			objectIDs = append(objectIDs, objectID)
+		}
+
+		// Filter by user's cluster IDs and also maintain the worker type and valid status filters
+		filter = bson.M{
+			"_id":          bson.M{"$in": objectIDs},
+			"cluster_type": bson.M{"$eq": enum.WORKER},
+			"status":       bson.M{"$eq": enum.VALID},
+		}
+	}
+
+	cursor, err := db.ClusterCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch clusters: %w", err)
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			// Log the error but don't return it as it's a cleanup operation
+			log.Logger.Warnw("error closing cursor: %v", err)
+		}
+	}(cursor, context.Background())
+
+	var clusters []models.Cluster
+	for cursor.Next(context.Background()) {
+		var cluster models.Cluster
+		if err := cursor.Decode(&cluster); err != nil {
+			return nil, fmt.Errorf("failed to decode cluster: %w", err)
+		}
+		clusters = append(clusters, cluster)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return clusters, nil
+}
+
+func (s *ClusterService) GetClusterList() ([]models.Cluster, error) {
 	// Filter for AGENT clusters
 	filter := bson.M{"cluster_type": bson.M{"$eq": enum.WORKER}, "status": bson.M{"$eq": enum.VALID}}
 
@@ -185,5 +247,53 @@ func (s *ClusterService) DeleteClusterByID(clusterId string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete token: %v", err)
 	}
+	return nil
+}
+
+// UpdateUser updates a cluster by ID
+func (s *ClusterService) RenameCluster(userID string, updatedUser *models.Cluster) error {
+	if updatedUser == nil {
+		return errors.New("renamed cluster cannot be nil")
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid cluster ID format: %w", err)
+	}
+
+	// First fetch the existing cluster
+	var existingCluster models.Cluster
+	filter := bson.M{"_id": objectID, "status": enum.VALID}
+	err = db.ClusterCollection.FindOne(context.Background(), filter).Decode(&existingCluster)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New("cluster not found")
+		}
+		return fmt.Errorf("failed to fetch existing cluster: %w", err)
+	}
+
+	// Create update map with only non-empty fields
+	updateFields := bson.M{}
+
+	if updatedUser.Name != "" {
+		updateFields["name"] = updatedUser.Name
+	}
+
+	// Always update the UpdatedAt timestamp
+	updateFields["updated_at"] = time.Now()
+
+	// Only perform update if there are fields to update
+	if len(updateFields) > 0 {
+		update := bson.M{"$set": updateFields}
+		result, err := db.ClusterCollection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			return fmt.Errorf("failed to update cluster: %w", err)
+		}
+
+		if result.MatchedCount == 0 {
+			return errors.New("cluster not found")
+		}
+	}
+
 	return nil
 }

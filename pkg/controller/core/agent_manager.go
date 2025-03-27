@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	"github.com/krack8/lighthouse/pkg/common/consts"
 	"github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -15,9 +19,22 @@ import (
 type AgentConnection struct {
 	Stream pb.Controller_TaskStreamServer
 	//UniqueId    string
-	GroupName   string
-	ResultChMap map[string]chan *pb.TaskResult // map of taskID -> channel that receives result
-	mu          sync.Mutex
+	GroupName             string
+	ResultChMap           map[string]chan *pb.TaskResult
+	ResultStreamChMap     map[string]chan *pb.LogsResult           // map of taskID -> channel that receives result
+	TerminalExecRespChMap map[string]chan *pb.TerminalExecResponse // map of taskID -> channel that receives result
+	mu                    sync.Mutex
+}
+
+var webSocketClientMap = make(map[string]*WebSocketClient) // Key: TaskID -> WebsocketClient
+var ws_mu sync.Mutex                                       // Mutex to synchronize access to connections map
+
+type WebSocketClient struct {
+	Conn            *websocket.Conn
+	IsConnected     bool
+	CloseSignal     chan string
+	ReconnectWait   time.Duration
+	HeartbeatTicker *time.Ticker
 }
 
 type AgentManager struct {
@@ -100,7 +117,7 @@ func (s *AgentManager) RemoveAgentByGroupName(groupName string) bool {
 // disconnectWorker handles immediate worker disconnection
 func (s *AgentManager) disconnectWorker(w *AgentConnection) {
 	if w == nil || w.Stream == nil {
-		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group: "+w.GroupName)
+		log.Logger.Warnw("Invalid agent connection", "agent-disconnect", "group")
 		return
 	}
 
@@ -214,6 +231,256 @@ func (s *AgentManager) SendTaskToAgent(ctx context.Context, taskName string, inp
 	}
 }
 
+// SendTerminalExecRequestToAgent sends a terminal exec request to a particular agent’s Stream.
+// Returns a channel on which the result will be delivered.
+func (s *AgentManager) SendTerminalExecRequestToAgent(ctx *gin.Context, taskID string, input string, groupName string, conn *websocket.Conn, isReconnect bool) (*pb.TerminalExecResponse, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to get agent: agent unreachable"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
+		if webSocketClientMap[taskID] != nil {
+			webSocketClientMap[taskID].CloseSignal <- "force_close"
+		} else {
+			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			conn.Close()
+		}
+		return nil, errors.New("agent unreachable")
+	}
+
+	if isReconnect == true && w.TerminalExecRespChMap[taskID] == nil {
+		log.Logger.Errorw(fmt.Sprintf("Unable to reconnect websocket: agent connection not found"), "TaskType", "PodExec", "AgentGroup", groupName, "TaskID", taskID)
+		if webSocketClientMap[taskID] != nil {
+			webSocketClientMap[taskID].CloseSignal <- "force_close"
+		} else {
+			w.mu.Lock()
+			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			conn.Close()
+			w.mu.Unlock()
+		}
+		return nil, errors.New("connection lost")
+	}
+
+	// Checking if websocket connection already exists for taskID
+	// If new connection then initiate agent connection
+	if webSocketClientMap[taskID] == nil {
+		if isReconnect == false {
+			// Initiating new websocket Connection
+			// Prepare a channel to receive the agent’s response.
+			resultCh := make(chan *pb.TerminalExecResponse, 1)
+
+			w.mu.Lock()
+			w.TerminalExecRespChMap[taskID] = resultCh
+			w.mu.Unlock()
+
+			// Sending an init connection message
+			err := w.Stream.Send(&pb.TaskStreamResponse{
+				Payload: &pb.TaskStreamResponse_ExecReq{
+					ExecReq: &pb.TerminalExecRequest{
+						TaskId:  taskID,
+						Input:   input,
+						Command: []byte{},
+						Payload: consts.TaskPodExecInitConn,
+					},
+				},
+			})
+
+			if err != nil {
+				w.mu.Lock()
+				log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to initiate connection: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				delete(w.TerminalExecRespChMap, taskID)
+				conn.Close()
+				w.mu.Unlock()
+				return nil, err
+			}
+
+			log.Logger.Infow(fmt.Sprintf("Sending initial TaskID to websocket..."), "TaskID", taskID, "TaskType", "PodExec")
+
+			message := taskID
+			err = conn.WriteMessage(websocket.TextMessage, []byte(message))
+			if err != nil {
+				w.mu.Lock()
+				log.Logger.Errorw(fmt.Sprintf("Closing Connection! Unable to send initial TaskID to websocket: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				delete(w.TerminalExecRespChMap, taskID)
+				conn.Close()
+				w.mu.Unlock()
+				return nil, err
+			}
+		}
+
+		ws_mu.Lock()
+		webSocketClientMap[taskID] = &WebSocketClient{
+			Conn:          conn,
+			IsConnected:   true,
+			CloseSignal:   make(chan string),
+			ReconnectWait: 10 * time.Second,
+		}
+		ws_mu.Unlock()
+
+	} else {
+		// Websocket reconnection request
+		// Check if agent connection is active or not, if not then close the websocket connection
+		ws_mu.Lock()
+		webSocketClientMap[taskID].Conn = conn
+		webSocketClientMap[taskID].IsConnected = true
+		webSocketClientMap[taskID].CloseSignal <- "wait_reconnect"
+		ws_mu.Unlock()
+	}
+
+	// Send the task to the agent.
+	// Goroutine to listen for websocket input and send to Agent
+	go func(client *WebSocketClient) {
+		defer func() {
+			client.CloseSignal <- "wait_reconnect"
+		}()
+		for {
+			_, command, err := client.Conn.ReadMessage()
+			if err != nil {
+				if w.TerminalExecRespChMap[taskID] == nil {
+					client.CloseSignal <- "force_close"
+					return
+				}
+				log.Logger.Errorw(fmt.Sprintf("WebSocket read error: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+				return
+
+			} else {
+				err := w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: command,
+							Payload: consts.TaskPodExecCommand,
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw(fmt.Sprintf("Unable to send command to agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+					client.CloseSignal <- "force_close"
+					return
+				}
+			}
+		}
+	}(webSocketClientMap[taskID])
+
+	// Wait for the agent to respond with a result or time out
+	go func(client *WebSocketClient, resultCh chan *pb.TerminalExecResponse) {
+		// Create a ticker for sending messages every 3 seconds
+		client.HeartbeatTicker = time.NewTicker(3 * time.Second)
+
+		for {
+			select {
+			case res := <-resultCh:
+				if res.Success == false {
+					log.Logger.Errorw(fmt.Sprintf("Error response from agent: %s", string(res.Output)), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+					client.CloseSignal <- "force_close"
+					return
+
+				} else {
+					ws_mu.Lock()
+					if client.IsConnected {
+						err := client.Conn.WriteMessage(websocket.TextMessage, res.Output)
+						if err != nil {
+							log.Logger.Errorw(fmt.Sprintf("Unable to write message to websocket: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec", "Response", res)
+							ws_mu.Unlock()
+							client.CloseSignal <- "wait_reconnect"
+							return
+						}
+					}
+					ws_mu.Unlock()
+				}
+			case <-client.HeartbeatTicker.C:
+				// Send a message to the gRPC stream every 3 seconds
+				w.mu.Lock()
+				err := w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: []byte{},
+							Payload: consts.TaskPodExecHeartbeat,
+						},
+					},
+				})
+
+				if err != nil {
+					log.Logger.Errorw(fmt.Sprintf("Unable to send heartbeat to agent: %s", err.Error()), "TaskID", taskID, "TaskType", "PodExec")
+					w.mu.Unlock()
+					client.CloseSignal <- "force_close"
+					return
+				}
+				w.mu.Unlock()
+			}
+		}
+	}(webSocketClientMap[taskID], w.TerminalExecRespChMap[taskID])
+
+	// Goroutine to disconnect websocket connection
+	go func(client *WebSocketClient) {
+		// Wait for a signal to disconnect (either force_close or wait_reconnect)
+		action := <-client.CloseSignal
+
+		log.Logger.Infow("Received closed connection signal", "TaskID", taskID, "TaskType", "PodExec", "Action", action)
+		ws_mu.Lock()
+		if !client.IsConnected {
+			ws_mu.Unlock()
+			log.Logger.Infow("Websocket Client is not connected, Exiting...", "TaskID", taskID, "TaskType", "PodExec")
+			return
+		}
+		client.IsConnected = false
+		ws_mu.Unlock()
+
+		if action == "force_close" {
+			ws_mu.Lock()
+			_ = client.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			log.Logger.Infow("Disconnecting Websocket client forcefully..", "TaskID", taskID, "TaskType", "PodExec")
+			client.Conn.Close()
+			client.HeartbeatTicker.Stop()
+			delete(webSocketClientMap, taskID)
+			ws_mu.Unlock()
+			w.mu.Lock()
+			delete(w.TerminalExecRespChMap, taskID)
+			w.mu.Unlock()
+			return
+
+		} else if action == "wait_reconnect" {
+			log.Logger.Infow("Connection lost. Waiting for Websocket client reconnection...", "TaskID", taskID, "TaskType", "PodExec")
+
+			// Wait for reconnection for 10 seconds
+			timer := time.NewTimer(client.ReconnectWait)
+			defer timer.Stop()
+
+			select {
+			case <-timer.C:
+				w.mu.Lock()
+				ws_mu.Lock()
+				log.Logger.Infow("No reconnection within 10 seconds, closing connection.", "TaskID", taskID, "TaskType", "PodExec")
+				_ = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_ExecReq{
+						ExecReq: &pb.TerminalExecRequest{
+							TaskId:  taskID,
+							Input:   input,
+							Command: []byte{},
+							Payload: consts.TaskPodExecCloseConn,
+						},
+					},
+				})
+				_ = client.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				client.Conn.Close()
+				client.HeartbeatTicker.Stop()
+				delete(w.TerminalExecRespChMap, taskID)
+				delete(webSocketClientMap, taskID)
+				ws_mu.Unlock()
+				w.mu.Unlock()
+
+			case <-client.CloseSignal:
+				log.Logger.Infow("Reconnection attempt detected, keeping connection open.", "TaskID", taskID, "TaskType", "PodExec")
+			}
+		}
+	}(webSocketClientMap[taskID])
+
+	return nil, nil
+}
+
 // PickAgent returns any agent from the specified group (round-robin or random).
 // For simplicity, let's just pick the first.
 func (s *AgentManager) PickAgent(id string) *AgentConnection {
@@ -225,4 +492,119 @@ func (s *AgentManager) PickAgent(id string) *AgentConnection {
 	}
 	// naive pick: the first agent
 	return agents[0]
+}
+
+func (s *AgentManager) CloseWebsocketConnectionByTask(taskId string) {
+	ws_mu.Lock()
+	defer ws_mu.Unlock()
+	if webSocketClientMap[taskId] != nil && webSocketClientMap[taskId].CloseSignal != nil {
+		webSocketClientMap[taskId].CloseSignal <- "force_close"
+	}
+	return
+}
+
+func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx *gin.Context, taskName string, input []byte, groupName string) (*pb.LogsResult, error) {
+	w := s.PickAgent(groupName)
+	if w == nil {
+		return nil, errors.New("agent unreachable")
+	}
+	// Generate a task ID.
+	taskID := uuid.NewString()
+
+	// Prepare a channel to receive the agent’s response.
+	resultCh := make(chan *pb.LogsResult)
+
+	w.mu.Lock()
+	w.ResultStreamChMap[taskID] = resultCh
+	w.mu.Unlock()
+
+	// Actually send the task to the agent.
+	err := w.Stream.Send(&pb.TaskStreamResponse{
+		Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+			NewPodLogsStream: &pb.PodLogsStream{
+				Id:      taskID,
+				Payload: taskName,
+				Name:    taskName,
+				Input:   string(input),
+			},
+		},
+	})
+	if err != nil {
+		log.Logger.Warnw("error")
+		w.mu.Lock()
+		delete(w.ResultStreamChMap, taskID)
+		w.mu.Unlock()
+		return nil, err
+	}
+
+	wsCtx, wsCancel := context.WithCancel(ctx.Request.Context())
+	func(gctx *gin.Context, ctx context.Context, cancel context.CancelFunc) {
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case res := <-resultCh:
+				if res.Cancel {
+					log.Logger.Errorw("agent cancelled log streaming", "logs-stream-cancelled", res.TaskId)
+					cancel()
+				}
+				_, err := gctx.Writer.Write(res.Output)
+				if err != nil {
+					log.Logger.Errorw("unable to write to HTTP stream", "logs-stream", err.Error())
+					cancel()
+				}
+				gctx.Writer.Flush()
+			case <-ticker.C:
+				if gctx.Writer.Status() != http.StatusOK {
+					// If the response status is not OK, the client may have disconnected
+					log.Logger.Infow("client is disconnected. closing stream", "logs-stream", taskID)
+					cancel()
+				}
+				_, err = gctx.Writer.Write([]byte(""))
+				if err != nil {
+					log.Logger.Errorw("unable to write to HTTP stream -- stream may be closed by client", "logs-stream-health", err.Error())
+					cancel()
+				} else {
+					log.Logger.Infow("conn is active", "logs-stream", taskID)
+				}
+				// Send a message to the gRPC stream every 3 seconds
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: consts.LogsTaskHeartbeat,
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw("unable to send heartbeat to agent", "logs-heartbeat", err)
+					cancel()
+				}
+			case <-ctx.Done():
+				log.Logger.Infow("cancelling log stream task", "logs-stream", taskID)
+				ticker.Stop()
+				gctx.Writer.Flush()
+				err = w.Stream.Send(&pb.TaskStreamResponse{
+					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
+						NewPodLogsStream: &pb.PodLogsStream{
+							Id:      taskID,
+							Payload: consts.LogsTaskCancel,
+							Name:    taskName,
+							Input:   string(input),
+						},
+					},
+				})
+				if err != nil {
+					log.Logger.Errorw("unable to send logs cancel to agent", "logs-cancel", err)
+				}
+				w.mu.Lock()
+				delete(w.ResultStreamChMap, taskID)
+				w.mu.Unlock()
+				return
+			}
+		}
+	}(ctx, wsCtx, wsCancel)
+	return nil, nil
 }

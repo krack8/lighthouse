@@ -6,7 +6,7 @@ import (
 	cfg "github.com/krack8/lighthouse/pkg/common/config"
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/controller/auth/controllers"
-	"github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
+	middleware "github.com/krack8/lighthouse/pkg/controller/auth/middlewares"
 	"github.com/krack8/lighthouse/pkg/controller/server/router"
 	"net/http"
 )
@@ -14,6 +14,7 @@ import (
 func StartHttServer() {
 	//gin.DisableConsoleColor()
 	r := gin.Default()
+
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"*", "http://localhost:4200"}
 	corsConfig.AllowMethods = []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete}
@@ -25,19 +26,23 @@ func StartHttServer() {
 
 	// Setting API Base Path for HTTP APIs
 	httpRouter := r.Group("api/v1")
+	wsRouter := r.Group("ws/v1")
 	if cfg.IsAuth() {
 		// Apply the AuthMiddleware to the / routes
 		httpRouter = r.Group("api/v1", middleware.AuthMiddleware())
+		wsRouter = r.Group("ws/v1", middleware.AuthMiddleware())
 	}
-	// Get the application port from the environment
+	//// Get the application port from the environment
 	port := cfg.ServerPort
 
 	router.AddApiRoutes(httpRouter)
+	router.AddWsApiRoutes(wsRouter)
 	r.GET("/health", Home().Health)
 	r.GET("/", Home().Index)
 	// Define the login route separately without middleware
 	// Login route
 	r.POST("/api/auth/login", controllers.LoginHandler)
+	r.POST("/api/auth/logout", controllers.LogoutHandler)
 	// Refresh token route
 	r.POST("/api/auth/refresh-token", controllers.RefreshTokenHandler)
 

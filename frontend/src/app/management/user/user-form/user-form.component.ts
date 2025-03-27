@@ -13,6 +13,7 @@ import { PasswordValidator } from '@shared-ui/validators';
 import { EmailValidator } from '@shared-ui/validators';
 import { SpaceValidator } from '@shared-ui/validators';
 import { MatRadioChange } from '@angular/material/radio';
+import { ClusterService } from '@cluster/cluster.service';
 
 @Component({
   selector: 'kc-user-form',
@@ -33,6 +34,8 @@ export class UserFormComponent implements OnInit {
   roleList: any[] = [];
   isRolesLoading!: boolean;
   searchRoleTerm: string = '';
+  clusterList: any[] = [];
+  systemRole: any;
 
   readonly systemRoleUsername: string = 'SYSTEM'; // For Role
 
@@ -42,7 +45,8 @@ export class UserFormComponent implements OnInit {
     public toastr: ToastrService,
     private fb: UntypedFormBuilder,
     private _userService: UserService,
-    private accessRoleSvc: AccessRoleService
+    private accessRoleSvc: AccessRoleService,
+    private clusterService: ClusterService
   ) {}
 
   ngOnInit() {
@@ -70,21 +74,27 @@ export class UserFormComponent implements OnInit {
         last_name: this.data.last_name,
         user_type: this.data.user_type,
         username: this.data.username,
-        user_is_active: this.data.user_is_active
+        user_is_active: this.data.user_is_active,
       };
 
-      // if (this.data.user_type === 'USER') {
-      //   const _roleList = this.data.roles;
-      //   let roles = [];
-      //   if (_roleList && _roleList.length) {
-      //     roles = this.data.roles.map((item: any) => item.id);
-      //     payload['role_ids'] = roles;
-      //   }
-      //   this.userForm.addControl('role_ids', this.fb.control(roles));
-      //   this.getRoles();
-      // } else {
-      //   this.userForm.removeControl('role_ids');
-      // }
+      if (this.data.user_type === 'USER') {
+        //cluster form
+        payload['cluster_ids'] = this.data?.cluster_ids;
+        this.userForm.addControl('cluster_ids', this.fb.control([], Validators.required))
+        this.getClustersList();
+        //role form
+        const _roleList = this.data.roles;
+        let roles = [];
+        if (_roleList && _roleList.length) {
+          roles = this.data.roles.map((item: any) => item.id);
+          payload['role_ids'] = roles;
+        }
+        this.userForm.addControl('role_ids', this.fb.control(roles));
+        this.getRoles();
+      } else {
+        this.userForm.removeControl('role_ids');
+        this.userForm.removeControl('cluster_ids');
+      }
       this.userForm.patchValue(payload);
       this.userForm.get('username').disable();
     }
@@ -94,10 +104,16 @@ export class UserFormComponent implements OnInit {
     this.userForm.markAsDirty();
     if (e.value === 'ADMIN') {
       this.userForm.removeControl('role_ids');
+      this.userForm.removeControl('cluster_ids');
       return;
     }
-    // this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
-    // if (!this.roleList?.length) this.getRoles();
+    this.userForm.addControl('cluster_ids', this.fb.control([], Validators.required));
+    this.userForm.addControl('role_ids', this.fb.control([], Validators.required));
+
+    if (!this.roleList?.length) {
+      this.getRoles();
+    } else this.userForm.get('role_ids')?.setValue([this.systemRole.id]);
+    if (!this.clusterList?.length) this.getClustersList();
   }
 
   onSubmit(): void {
@@ -140,16 +156,27 @@ export class UserFormComponent implements OnInit {
       next: data => {
         this.roleList = data;
         this.isRolesLoading = false;
-        if (!this.data) {
-          const systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
-          if (systemRole.id) {
-            this.userForm.get('role_ids').setValue([systemRole.id]);
+        if (this.data) {
+          this.systemRole = this.roleList.find(_role => _role.created_by === this.systemRoleUsername);
+          if (this.systemRole.id) {
+            this.userForm.get('role_ids')?.setValue([this.systemRole.id]);
           }
         }
       },
       error: err => {
         this.isRolesLoading = false;
         this.toastr.error(err.message || 'Something Wrong on fetch roles');
+      }
+    });
+  }
+
+  getClustersList(){
+    this.clusterService.getClustersList().subscribe({
+      next: data => {
+        this.clusterList = data;
+      },
+      error: err => {
+        this.toastr.error(err.message || 'Something Wrong on fetch clusters');
       }
     });
   }

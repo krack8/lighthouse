@@ -54,6 +54,77 @@
         </mat-radio-group>
       </div>
 
+      <mat-form-field *ngIf="userForm?.get('cluster_ids')" class="custom-mat-form-field" appearance="outline">
+        <mat-label>Clusters</mat-label>
+        <mat-select formControlName="cluster_ids" id="select-cluster-name" multiple>
+          <!-- <div class="select_search_wrapper">
+            <input
+              [ngModelOptions]="{ standalone: true }"
+              [(ngModel)]="searchClusterTerm"
+              aria-name="search"
+              type="text"
+              class="cluster_search w-full leading-tight focus:outline-none focus:shadow-outline"
+              autocomplete="off"
+              placeholder="Search ..."
+            />
+            <button type="button" color="warn" (click)="searchClusterTerm = ''" *ngIf="searchClusterTerm" mat-icon-button>
+              <mat-icon [icIcon]="icClose"></mat-icon>
+            </button>
+          </div> -->
+          <mat-option
+            *ngFor="let item of clusterList"
+            [value]="item?.id"
+          >
+            {{ item?.name }}
+            <mat-icon
+              *ngIf="item?.description"
+              [icIcon]="icInfo"
+              class="cluster_info_icon ml-2 text-blue-500"
+              [matTooltip]="item?.description"
+              matTooltipPosition="above"
+            ></mat-icon>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="userForm?.get('role_ids')" class="custom-mat-form-field" appearance="outline">
+        <mat-label>Roles</mat-label>
+        <mat-select formControlName="role_ids" id="select-role-name" multiple>
+          <div class="select_search_wrapper">
+            <input
+              [ngModelOptions]="{ standalone: true }"
+              [(ngModel)]="searchRoleTerm"
+              aria-name="search"
+              type="text"
+              class="role_search w-full leading-tight focus:outline-none focus:shadow-outline"
+              autocomplete="off"
+              placeholder="Search ..."
+            />
+            <button type="button" color="warn" (click)="searchRoleTerm = ''" *ngIf="searchRoleTerm" mat-icon-button>
+              <mat-icon [icIcon]="icClose"></mat-icon>
+            </button>
+          </div>
+          <mat-option
+            *ngFor="let item of roleList | filter: searchRoleTerm"
+            [value]="item?.id"
+            [disabled]="item?.created_by === systemRoleUsername"
+          >
+            {{ item.name }}
+            <mat-icon
+              *ngIf="item?.description"
+              [icIcon]="icInfo"
+              class="role_info_icon ml-2 text-blue-500"
+              [matTooltip]="item?.description"
+              matTooltipPosition="above"
+            ></mat-icon>
+          </mat-option>
+        </mat-select>
+        <mat-hint *ngIf="!isRolesLoading && !roleList?.length" [align]="'end'" class="text-red-500">
+          No Roles Found!.
+          <a mat-dialog-close class="underline" routerLink="manage/roles/create">Create a Role Here</a>
+        </mat-hint>
+      </mat-form-field>
+
       <mat-form-field *ngIf="userForm?.get('password')" class="custom-mat-form-field" appearance="outline">
         <mat-label><span>Password</span></mat-label>
         <input
@@ -108,44 +179,6 @@
         >
           Passwords need to match!
         </mat-error>
-      </mat-form-field>
-
-      <mat-form-field *ngIf="userForm?.get('role_ids')" class="custom-mat-form-field" appearance="outline">
-        <mat-label>Roles</mat-label>
-        <mat-select formControlName="role_ids" id="select-role-name" multiple>
-          <div class="select_search_wrapper">
-            <input
-              [ngModelOptions]="{ standalone: true }"
-              [(ngModel)]="searchRoleTerm"
-              aria-name="search"
-              type="text"
-              class="role_search w-full leading-tight focus:outline-none focus:shadow-outline"
-              autocomplete="off"
-              placeholder="Search ..."
-            />
-            <button type="button" color="warn" (click)="searchRoleTerm = ''" *ngIf="searchRoleTerm" mat-icon-button>
-              <mat-icon [icIcon]="icClose"></mat-icon>
-            </button>
-          </div>
-          <mat-option
-            *ngFor="let item of roleList | filter: searchRoleTerm"
-            [value]="item?.id"
-            [disabled]="item?.created_by === systemRoleUsername"
-          >
-            {{ item.name }}
-            <mat-icon
-              *ngIf="item?.description"
-              [icIcon]="icInfo"
-              class="role_info_icon ml-2 text-blue-500"
-              [matTooltip]="item?.description"
-              matTooltipPosition="above"
-            ></mat-icon>
-          </mat-option>
-        </mat-select>
-        <mat-hint *ngIf="!isRolesLoading && !roleList?.length" [align]="'end'" class="text-red-500">
-          No Roles Found!.
-          <a mat-dialog-close class="underline" routerLink="manage/roles/create">Create a Role Here</a>
-        </mat-hint>
       </mat-form-field>
 
       <mat-slide-toggle *ngIf="data" formControlName="user_is_active" color="primary" id="user-active-toggle-button">

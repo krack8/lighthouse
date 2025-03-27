@@ -1,43 +1,97 @@
 <!-- Overview Counter -->
 
-<div class="flex flex-wrap -mx-2 mb-6">
-  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
-    <div class="kube-card">
-      <div class="_custom-label">
-        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Total || 0 }}</h3>
-        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
-        <h6 class="color-text">Total</h6>
+<div *ngIf="statsLoaded" class="w-1/2 lg:w-4/12 mb-4 px-2">
+  <span class="flex items-center">
+    <mat-spinner class="mr-3" color="accent" strokeWidth="2" diameter="40" mode="indeterminate"></mat-spinner>
+    <span class="ml-4">Loading stats...</span>
+  </span>
+</div>
+<div @fadeInRight *ngIf="!statsLoaded && data?.length">
+  <div class="flex">
+    <div class="info-name-box w-1/3 mr-4">
+      <div class="w-full">
+        <div class="flex items-center gap-3 mb-2">
+          <cdk-icon src="assets/img/cpu-twotone.svg" class="w-8 h-8 icon_cdk"></cdk-icon>
+          <h3 class="font-bold">CPU</h3>
+        </div>
+        <div class="w-full mt-5">
+          <div class="w-full allocation-box">
+            <img src="assets/img/current_alloc.svg" class="ml-auto" />
+            <div>
+              <h1 class="font-medium text-2xl md:text-3xl mb-2">{{TotalCPU?.toFixed(2) || 'N/A'}} CORE</h1>
+              <p class="text-xl text-primary">CPU Usage</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <div class="info-name-box w-1/3 mr-4" fxLayout="row" fxLayoutAlign="start center">
+      <div @fadeInRight class="w-full">
+        <div class="flex items-center gap-3 mb-2">
+          <cdk-icon src="assets/img/memory.svg" class="w-8 h-8 icon_cdk"></cdk-icon>
+          <h3 class="font-bold">Memory</h3>
+        </div>
+        <div class="w-full mt-5">
+          <div class="w-full allocation-box h-full">
+            <img src="assets/img/current_alloc.svg" class="ml-auto" />
+            <div>
+              <h1 class="font-medium text-2xl md:text-3xl mb-2">{{ TotalMemory?.toFixed(2) || 'N/A' }} GB</h1>
+              <p class="text-xl text-primary">Memory Usage</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-name-box md:w-1/3 flex">
+
+
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <cdk-icon src="assets/img/pod.svg" class="w-8 h-8 icon_cdk"></cdk-icon>
+          <h3 class="font-bold">Pods</h3>
+        </div>
+
+        <apx-chart 
+        [colors]="podChart.color" 
+        [series]="podChart.series" 
+        [chart]="chartOptions.chart"
+        [plotOptions]="chartOptions.plotOptions" 
+        [labels]="podChart.labels"
+        [stroke]="chartOptions.stroke"
+        [legend]="chartOptions.legend"
+        [responsive]="chartOptions.responsive"
+        >
+        </apx-chart>
+
+      </div>
+
+
+
+      <div class="text-center graph-info">
+        <h6 class=" flex items-center">
+          <mat-icon [icIcon]="icCircle" class="circle mr-2 color-used"></mat-icon>
+          Running <span>: {{RunningPods}}</span>
+        </h6>
+        <h6 class=" flex items-center">
+          <mat-icon [icIcon]="icCircle" class="circle mr-2 color-available"></mat-icon>
+          Pending <span>: {{PendingPods}}</span>
+        </h6>
+        <h6 class=" flex items-center">
+          <mat-icon [icIcon]="icCircle" class="circle mr-2 color-failed"></mat-icon>
+          Failed <span>: {{FailedPods}}</span>
+        </h6>
+        <h6 class="flex items-center">
+          <mat-icon [icIcon]="icCircle" class="circle mr-2 base-color"></mat-icon>
+          Total <span>: {{TotalPods}}</span>
+        </h6>
+      </div>
   </div>
-  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
-    <div class="kube-card">
-      <div class="_custom-label">
-        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Running || 0 }}</h3>
-        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
-        <h6 class="color-text">Running</h6>
-      </div>
-    </div>
-  </div>
-  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
-    <div class="kube-card">
-      <div class="_custom-label">
-        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Pending || 0 }}</h3>
-        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
-        <h6 class="color-text">Pending</h6>
-      </div>
-    </div>
-  </div>
-  <div class="w-1/2 lg:w-3/12 mb-4 px-2">
-    <div class="kube-card">
-      <div class="_custom-label">
-        <h3 *ngIf="!statsLoaded" class="color-text">{{ stats?.Failed || 0 }}</h3>
-        <mat-spinner class="mr-3" *ngIf="statsLoaded" color="accent" strokeWidth="3" diameter="20" mode="indeterminate"></mat-spinner>
-        <h6 class="color-text">Failed</h6>
-      </div>
-    </div>
+
   </div>
 </div>
+
 <!-- Topbar -->
 <div class="flex items-center justify-between flex-wrap mb-4">
   <div class="flex">
@@ -217,6 +271,27 @@
                 <mat-icon [icIcon]="icLogs"></mat-icon>
                 <span>Logs</span>
               </button>
+
+              <!-- Access Terminal -->
+
+              <button *hasAnyAuthority="'MANAGE_NAMESPACE_POD'" class="flex items-center" mat-menu-item
+                [matMenuTriggerFor]="containerOptions">
+                <svg height="22px" width="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                  <path fill="currentColor" fill-rule="evenodd"
+                    d="M4.256 6.041a3.75 3.75 0 0 1 7.348-.832l.152.528l.55.014a2.25 2.25 0 0 1 1.069 4.198a.75.75 0 1 0 .75 1.299a3.75 3.75 0 0 0-1.25-6.946a5.251 5.251 0 0 0-10.035.974a3.25 3.25 0 0 0-.896 6.2a.75.75 0 1 0 .603-1.373A1.75 1.75 0 0 1 3.25 6.75h.967l.039-.709ZM6.22 7.22a.75.75 0 0 1 1.06 0l1.75 1.75l.53.53l-.53.53l-1.75 1.75a.75.75 0 0 1-1.06-1.06L7.44 9.5L6.22 8.28a.75.75 0 0 1 0-1.06ZM8 13.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"
+                    clip-rule="evenodd" />
+                </svg>
+
+                <span class="ml-2">Access Terminal</span>
+              </button>
+              <mat-menu class="view-containers" #containerOptions="matMenu">
+                <button mat-menu-item *ngFor="let container of item?.spec?.containers">
+                  <a [routerLink]="['/k8s','terminal']" target="_blank"
+                    [queryParams]="{domain: btoa(getTerminalUrl(item?.metadata?.name)), containerName: container.name, pod: item?.metadata?.name, namespace: item?.metadata?.namespace, clusterId: clusterId }">
+                    {{ container.name }}
+                  </a>
+                </button>
+              </mat-menu>
 
               <!-- View Labels -->
               <button mat-menu-item [matMenuTriggerFor]="Labels"><mat-icon [icIcon]="icLabel"></mat-icon> Labels</button>

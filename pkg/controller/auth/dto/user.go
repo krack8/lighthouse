@@ -4,7 +4,7 @@ type UserDTO struct {
 	Username      string   `json:"username" binding:"required,email"`
 	FirstName     string   `json:"first_name"`
 	LastName      string   `json:"last_name"`
-	Password      string   `json:"password" binding:"required,min=6,max=15"`
+	Password      string   `json:"password"`
 	UserType      string   `json:"user_type" binding:"required,oneof=ADMIN USER"`
 	RoleIds       []string `json:"role_ids"` // Array of role IDs
 	ClusterIdList []string `json:"cluster_ids"`

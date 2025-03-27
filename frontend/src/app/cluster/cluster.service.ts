@@ -43,4 +43,12 @@ export class ClusterService {
   deleteCluster(id: string): Observable<any> {
     return this.httpService.delete(endpoint.DELETE_CLUSTER + id);
   }
+
+  getClustersList(){
+    return this.httpService.get(endpoint.GET_CLUSTERS_LIST);
+  }
+
+  renameCluster(id: string, payload: any): Observable<any> {
+    return this.httpService.put(endpoint.RENAME_CLUSTER + id, payload);
+  }
 }

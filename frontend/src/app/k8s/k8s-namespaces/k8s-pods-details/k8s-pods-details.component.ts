@@ -26,7 +26,6 @@ import { K8sPodsContainerLogComponent } from './k8s-pods-container-log/k8s-pods-
 })
 export class K8sPodsDetailsComponent implements OnInit {
   icCircle = icCircle;
-
   isLoading: boolean = true;
   data: any;
   eventsData: any;
@@ -42,6 +41,8 @@ export class K8sPodsDetailsComponent implements OnInit {
   clusterId: string;
   lokiDetails: any;
   title = 'Pods';
+  graphStats: any;
+  terminalUrl: string;
 
   constructor(
     private _namespaceService: K8sNamespacesService,
@@ -58,6 +59,7 @@ export class K8sPodsDetailsComponent implements OnInit {
     this.queryParams = this.route.snapshot.queryParams;
     this.namespaceInstance = this.route.snapshot.params?.name;
     this.clusterId = this.k8sService.clusterIdSnapshot;
+    this.terminalUrl = this._namespaceService.getTerminalUrl(this.namespaceInstance);
     this.getInstanceData();
   }
 
@@ -67,6 +69,10 @@ export class K8sPodsDetailsComponent implements OnInit {
       next: res => {
         if (res?.data?.Result?.metadata?.name) {
           this.data = res?.data?.Result;
+          this.graphStats = {
+            TotalCPU : res?.data?.CPU,
+            TotalMemory : res?.data?.Memory,
+          }
           this.isLoading = false;
         }
       },
@@ -232,6 +238,7 @@ export class K8sPodsDetailsComponent implements OnInit {
     return typeof value === 'object' && value !== null;
   }
 
+  //graphana dashboard feature (not completed)
   open(): void {
     const dialogRef = this.dialog.open(GrafanaDashboardComponent, {
       width: '100%',
@@ -240,5 +247,18 @@ export class K8sPodsDetailsComponent implements OnInit {
       disableClose: false,
       position: { top: '0', right: '0' }
     });
+  }
+
+  navigateToTerminal(containerName: string) {
+    const queryParams = new URLSearchParams({
+      domain: btoa(this.terminalUrl),
+      containerName: containerName,
+      pod: this.data?.metadata?.name || '',
+      namespace: this.data?.metadata?.namespace || '',
+      clusterId: this.clusterId || ''
+    }).toString();
+  
+    const url = `/k8s/terminal?${queryParams}`;
+    window.open(url, '_blank');
   }
 }

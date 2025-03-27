@@ -5,6 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import * as endpoints from './k8s-namespaces.endpoints';
 import { Utils } from '@shared-ui/utils';
 import { HttpService } from '@core-ui/services';
+import { utils } from 'protractor';
 
 @Injectable()
 export class K8sNamespacesService {
@@ -783,7 +784,7 @@ export class K8sNamespacesService {
   }
 
   getLogsV1(params: any, pod: string): Observable<any> {
-    return this.http.get(endpoints.GET_LOGS_V1 + pod, {
+    return this.http.get(Utils.formatString(endpoints.GET_LOGS_V1, pod), {
       ...params,
       cluster_id: this.k8sService.clusterIdSnapshot
     });
@@ -812,5 +813,10 @@ export class K8sNamespacesService {
       cluster_id: this.k8sService.clusterIdSnapshot,
       namespace: this.selectedNamespaceSnapshot
     });
+  }
+
+  getTerminalUrl(podName: string){
+    const baseUrl = 'ws://localhost:8080';
+    return baseUrl + Utils.formatString(endpoints.POD_TERMINAL_URL, podName);
   }
 }

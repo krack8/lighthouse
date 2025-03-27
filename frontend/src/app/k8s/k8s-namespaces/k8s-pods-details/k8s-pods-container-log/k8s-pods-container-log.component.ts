@@ -11,18 +11,22 @@ import icSearch from '@iconify/icons-ic/twotone-search';
 import { K8sNamespacesService } from '@k8s/k8s-namespaces/k8s-namespaces.service';
 import { ToastrService } from '@sdk-ui/ui';
 import { Subject, Subscription } from 'rxjs';
-import { WebSocketSubject } from 'rxjs/webSocket';
 import { K8sPodsDetailsComponent } from '../k8s-pods-details.component';
+import { K8sPodLogService } from './k8s-pod-log.service';
+import { delay, retryWhen, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'kc-k8s-pods-container-log',
   templateUrl: './k8s-pods-container-log.component.html',
-  styleUrls: ['./k8s-pods-container-log.component.scss']
+  styleUrls: ['./k8s-pods-container-log.component.scss'],
+  providers: [K8sPodLogService],
 })
 export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   @ViewChild('appLogViewContainer', { read: ElementRef, static: false }) private appLogViewContainer!: ElementRef;
   private _destroy$: Subject<void> = new Subject();
-  private retryTimer: any;
+  private logSubscription: Subscription | undefined;
+
+  //icons
   icSearch = icSearch;
   icEdit = icEdit;
   icFilter = icFilter;
@@ -31,16 +35,7 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
   icClear = icClear;
 
   logForm: UntypedFormGroup;
-  logs: string[] = [];
-  wsSubject!: WebSocketSubject<any>;
-  wsSubscription!: Subscription;
-  isWsConnected!: boolean;
-  socket: any;
   liveLogs: string = '';
-  external_access_token: string;
-  wsRetryCount: number = 0;
-  retryTime: number = 0;
-
   isLoading: boolean = true;
   allowShowPrevious = this.data?.restart > 0 ? false : true;
 
@@ -48,10 +43,11 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data,
     public dialogRef: MatDialogRef<K8sPodsDetailsComponent>,
     private _namespaceService: K8sNamespacesService,
+    private _k8sLogService: K8sPodLogService,
     private cd: ChangeDetectorRef,
     public snackBar: MatSnackBar,
     private _formBuilder: UntypedFormBuilder,
-    private toastr: ToastrService
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -61,27 +57,51 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
       lines: [100],
       since: [''],
       previous: [{ value: false, disabled: this.data?.restart > 0 ? false : true }],
-      follow: [false]
+      follow: [true],
     });
-
     this.fetchLogs();
   }
 
   ngOnDestroy() {
+    if (this.logSubscription) {
+      this.logSubscription.unsubscribe();
+    }
     this._destroy$.next();
     this._destroy$.complete();
-    if (this.wsSubscription) {
-      this.wsSubscription.unsubscribe();
-      this.wsSubject.complete();
-    }
-    if (this.retryTimer) {
-      clearTimeout(this.retryTimer);
-    }
   }
 
   fetchLogs(): void {
     this.isLoading = true;
-    this.getStaticLogs(); // only static logs
+    if (this.logSubscription) {
+      this.logSubscription.unsubscribe();
+    }
+    this.clearLogs();
+    if (this.logForm?.get('follow').value === true) {
+      this.subscribeToLogStream();
+    } else {
+      this.getStaticLogs();
+    }
+    }
+
+  subscribeToLogStream(): void {
+    this.isLoading = true;
+    const qp = this.filterLogs();
+    const url = this._k8sLogService.getPodsWsUrl(this.data.pod, qp); // gets http stream url
+    this.logSubscription = this._k8sLogService.getPodLogsStream(url).pipe(
+      retryWhen(errors =>
+        errors.pipe(
+          tap(error => console.error('Error:', error)),
+          delay(3000) 
+        )
+      )
+    ).subscribe(
+      (log) => {
+        this.processLog(log);
+      },
+      (error) => {
+        this.toastr.error('Failed: ', 'Could not fetch logs!');
+      }
+    );
   }
 
   filterLogs(): object {
@@ -142,7 +162,8 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.liveLogs = '';
     const qp = this.filterLogs();
-    this._namespaceService.getLogsV1(qp, this.data.pod).subscribe(res => {
+    console.log('qp:', qp);
+    this._namespaceService.getLogsV1(qp, this.data.pod).subscribe((res) => {
       if (res.status === 'success') {
         this.liveLogs += this.transformTerminalLog(res.data);
         // Go to Bottom Log
@@ -153,10 +174,26 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     }),
-      err => {
+      (err) => {
         this.toastr.error('Failed: ', 'Something went wrong!');
         this.isLoading = false;
       };
+  }
+
+  processLog(data: string | string[]) {
+    if (typeof data === 'string') {
+      const isUpdateScrollPosition =
+        this.appLogViewContainer.nativeElement.scrollHeight - this.appLogViewContainer.nativeElement.scrollTop  <=
+        800;
+      this.liveLogs = this.transformTerminalLog(data);
+      
+      // Go to Bottom Log
+      if (isUpdateScrollPosition) {
+        setTimeout(() => {
+          this.scrollLogContainerToBottom();
+        }, 100);
+      }
+    }
   }
 
   scrollLogContainerToBottom(): void {
@@ -201,4 +238,5 @@ export class K8sPodsContainerLogComponent implements OnInit, OnDestroy {
     );
     return '<span>' + data + '</span>';
   }
+
 }
