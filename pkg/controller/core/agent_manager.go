@@ -564,9 +564,10 @@ func (s *AgentManager) SendPodLogsStreamReqToAgent(ctx *gin.Context, taskName st
 				if err != nil {
 					log.Logger.Errorw("unable to write to HTTP stream -- stream may be closed by client", "logs-stream-health", err.Error())
 					cancel()
-				} else {
-					log.Logger.Infow("conn is active", "logs-stream", taskID)
 				}
+				//else {
+				//	log.Logger.Infow("conn is active", "logs-stream", taskID)
+				//}
 				// Send a message to the gRPC stream every 3 seconds
 				err = w.Stream.Send(&pb.TaskStreamResponse{
 					Payload: &pb.TaskStreamResponse_NewPodLogsStream{
