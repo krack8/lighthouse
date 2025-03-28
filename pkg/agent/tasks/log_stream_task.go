@@ -135,7 +135,7 @@ func LogStreamTask(podLogsTask *pb.PodLogsStream, stream grpc.BidiStreamingClien
 }
 
 func keepAliveLogs(taskID string, stream grpc.BidiStreamingClient[pb.TaskStreamRequest, pb.TaskStreamResponse]) {
-	_log.Logger.Infow(fmt.Sprintf("logs streaming keep alive func task with ID: %s", taskID), "keep-alive", taskID)
+	//_log.Logger.Infow(fmt.Sprintf("logs streaming keep alive func task with ID: %s", taskID), "keep-alive", taskID)
 	logsTimeout := 10 * time.Second
 
 	logTaskMapMutex.Lock()
