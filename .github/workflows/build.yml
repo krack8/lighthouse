@@ -6,6 +6,7 @@ on:
       - main
     tags:
       - v*  # Triggers on tags starting with 'v' (e.g., v1.0, v2.0)
+  pull_request:
 
 jobs:
   build-and-push:
@@ -17,8 +18,8 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
 
-      - name: Set TAG variable
-        id: set-tag
+      - name: Set TAG and Check if PR or Main
+        id: set-env
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             TAG=${GITHUB_REF#refs/tags/}
@@ -27,26 +28,30 @@ jobs:
           fi
           echo "TAG=${TAG}" >> $GITHUB_ENV
 
+          # Check if event is a PR or main branch
+          if [[ "${{ github.event_name }}" == "pull_request" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "IS_PR_OR_MAIN=true" >> $GITHUB_ENV
+          else
+            echo "IS_PR_OR_MAIN=false" >> $GITHUB_ENV
+          fi
+
       - name: Build Controller Docker Image
-        run: |
-          docker build -t ghcr.io/krack8/lighthouse:controller-${{ env.TAG }} -f controller.Dockerfile .
+        run: docker build -t ghcr.io/krack8/lighthouse:controller-${{ env.TAG }} -f controller.Dockerfile .
 
       - name: Build Agent Docker Image
-        run: |
-          docker build -t ghcr.io/krack8/lighthouse:agent-${{ env.TAG }} -f agent.Dockerfile .
+        run: docker build -t ghcr.io/krack8/lighthouse:agent-${{ env.TAG }} -f agent.Dockerfile .
 
       - name: Build Frontend Docker Image
-        run: |
-          docker build -t ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }} -f ./frontend/Dockerfile ./frontend
+        run: docker build -t ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }} -f ./frontend/Dockerfile ./frontend
 
       - name: Push Controller Docker Image
-        run: |
-          docker push ghcr.io/krack8/lighthouse:controller-${{ env.TAG }}
+        if: env.IS_PR_OR_MAIN != 'true'
+        run: docker push ghcr.io/krack8/lighthouse:controller-${{ env.TAG }}
 
       - name: Push Agent Docker Image
-        run: |
-          docker push ghcr.io/krack8/lighthouse:agent-${{ env.TAG }}
+        if: env.IS_PR_OR_MAIN != 'true'
+        run: docker push ghcr.io/krack8/lighthouse:agent-${{ env.TAG }}
 
       - name: Push Frontend Docker Image
-        run: |
-          docker push ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }}
+        if: env.IS_PR_OR_MAIN != 'true'
+        run: docker push ghcr.io/krack8/lighthouse:webapp-${{ env.TAG }}
