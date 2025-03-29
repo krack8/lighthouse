@@ -1,7 +1,7 @@
 ### STAGE 1: Build ###
 
 # We label our stage as 'builder'
-FROM node:14.21.1-alpine as builder
+FROM node:20-alpine as builder
 
 # previous: 8192
 RUN export NODE_OPTIONS=--max_old_space_size=6144
