@@ -27,6 +27,11 @@ func ClusterRoleBindingService() *clusterRoleBindingService {
 	return &crbs
 }
 
+const (
+	CLUSTER_ROLE_BINDING_API_VERSION = "rbac.authorization.k8s.io/v1"
+	CLUSTER_ROLE_BINDING_KIND        = "ClusterRoleBinding"
+)
+
 type OutputClusterRoleBindingList struct {
 	Result    []rbacv1.ClusterRoleBinding
 	Resource  string
@@ -173,6 +178,8 @@ func (p *GetClusterRoleBindingDetailsInputParams) Process(c context.Context) err
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = CLUSTER_ROLE_BINDING_API_VERSION
+	p.output.Kind = CLUSTER_ROLE_BINDING_KIND
 	return nil
 }
 

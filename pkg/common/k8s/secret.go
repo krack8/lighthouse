@@ -27,6 +27,11 @@ func SecretService() *secretService {
 	return &ss
 }
 
+const (
+	SECRET_API_VERSION = "v1"
+	SECRET_KIND        = "Secret"
+)
+
 type OutputSecretList struct {
 	Result    []corev1.Secret
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetSecretDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = SECRET_API_VERSION
+	p.output.Kind = SECRET_KIND
 	return nil
 }
 

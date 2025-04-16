@@ -27,6 +27,11 @@ func RoleBindingService() *roleBindingService {
 	return &rbs
 }
 
+const (
+	ROLE_BINDING_API_VERSION = "rbac.authorization.k8s.io/v1"
+	ROLE_BINDING_KIND        = "RoleBinding"
+)
+
 type OutputRoleBindingList struct {
 	Result    []rbacv1.RoleBinding
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetRoleBindingDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = ROLE_BINDING_API_VERSION
+	p.output.Kind = ROLE_BINDING_KIND
 	return nil
 }
 

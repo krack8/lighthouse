@@ -27,6 +27,11 @@ func CronJobService() *cronJobService {
 	return &cjs
 }
 
+const (
+	CRONJOB_API_VERSION = "batch/v1"
+	CRONJOB_KIND        = "CronJob"
+)
+
 type OutputCronJobList struct {
 	Result    []batchv1.CronJob
 	Resource  string

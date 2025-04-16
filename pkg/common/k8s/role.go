@@ -27,6 +27,11 @@ func RoleService() *roleService {
 	return &rs
 }
 
+const (
+	ROLE_API_VERSION = "rbac.authorization.k8s.io/v1"
+	ROLE_KIND        = "Role"
+)
+
 type OutputRoleList struct {
 	Result    []rbacv1.Role
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetRoleDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = ROLE_API_VERSION
+	p.output.Kind = ROLE_KIND
 	return nil
 }
 

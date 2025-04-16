@@ -29,6 +29,11 @@ func CrdService() *crdService {
 	return &cs
 }
 
+const (
+	CRD_API_VERSION = "v1"
+	CRD_KIND        = "CustomResourceDefinition"
+)
+
 type OutputCrdList struct {
 	CrdForList []types.CrdForList
 	Resource   string
@@ -182,6 +187,8 @@ func (p *GetCrdDetailsInputParams) Process(c context.Context) error {
 	}
 	crd.ManagedFields = nil
 	p.output = crd
+	p.output.APIVersion = CRD_API_VERSION
+	p.output.Kind = CRD_KIND
 	return nil
 }
 

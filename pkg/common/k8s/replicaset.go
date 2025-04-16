@@ -27,6 +27,11 @@ func ReplicaSetService() *replicaSetService {
 	return &rss
 }
 
+const (
+	REPLICA_SET_API_VERSION = "apps/v1"
+	REPLICA_SET_KIND        = "ReplicaSet"
+)
+
 type OutputReplicaSetList struct {
 	Result    []appv1.ReplicaSet
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetReplicaSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = REPLICA_SET_API_VERSION
+	p.output.Kind = REPLICA_SET_KIND
 	return nil
 }
 

@@ -27,6 +27,11 @@ func ReplicationControllerService() *replicationControllerService {
 	return &rcs
 }
 
+const (
+	REPLICATION_CONTROLLER_API_VERSION = "v1"
+	REPLICATION_CONTROLLER_KIND        = "ReplicationController"
+)
+
 type OutputReplicationControllerList struct {
 	Result    []corev1.ReplicationController
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetReplicationControllerDetailsInputParams) Process(c context.Context) 
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = REPLICATION_CONTROLLER_API_VERSION
+	p.output.Kind = REPLICATION_CONTROLLER_KIND
 	return nil
 }
 

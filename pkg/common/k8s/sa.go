@@ -27,6 +27,11 @@ func ServiceAccountService() *serviceAccountService {
 	return &sas
 }
 
+const (
+	SERVICE_ACCOUNT_API_VERSION = "v1"
+	SERVICE_ACCOUNT_KIND        = "ServiceAccount"
+)
+
 type OutputServiceAccountList struct {
 	Result    []corev1.ServiceAccount
 	Resource  string
@@ -169,6 +174,8 @@ func (p *GetServiceAccountDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = SERVICE_ACCOUNT_API_VERSION
+	p.output.Kind = SERVICE_ACCOUNT_KIND
 	return nil
 }
 

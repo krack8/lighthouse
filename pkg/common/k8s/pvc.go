@@ -27,6 +27,11 @@ func PvcService() *pvcService {
 	return &pvcs
 }
 
+const (
+	PVC_API_VERSION = "v1"
+	PVC_KIND        = "PersistentVolumeClaim"
+)
+
 type OutputPvcList struct {
 	Result    []corev1.PersistentVolumeClaim
 	Resource  string
@@ -183,6 +188,8 @@ func (p *GetPvcDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = PVC_API_VERSION
+	p.output.Kind = PVC_KIND
 	return nil
 }
 

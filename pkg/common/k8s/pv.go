@@ -27,6 +27,11 @@ func PvService() *pvService {
 	return &pvs
 }
 
+const (
+	PV_API_VERSION = "v1"
+	PV_KIND        = "PersistentVolume"
+)
+
 type OutputPvList struct {
 	Result    []corev1.PersistentVolume
 	Resource  string
@@ -188,6 +193,8 @@ func (p *GetPvDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = PV_API_VERSION
+	p.output.Kind = PV_KIND
 	return nil
 }
 

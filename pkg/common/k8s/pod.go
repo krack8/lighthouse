@@ -39,6 +39,9 @@ const (
 	PodLogBoolTrue     = "y"
 	PodLogBoolFalse    = "n"
 	TailLinesThreshold = int64(2500)
+	//resource api version and kind
+	POD_API_VERSION = "v1"
+	POD_KIND        = "Pod"
 )
 
 type OutputPodList struct {
@@ -214,6 +217,9 @@ func (p *GetPodDetailsInputParams) Process(c context.Context) error {
 		}
 	}
 	p.output.Result = *pod
+	//appending resource api version and kind
+	p.output.Result.APIVersion = POD_API_VERSION
+	p.output.Result.Kind = POD_KIND
 	return nil
 }
 

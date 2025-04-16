@@ -27,6 +27,11 @@ func PodDisruptionBudgetsService() *podDisruptionBudgetsService {
 	return &pdbs
 }
 
+const (
+	POD_DISRUPTION_BUDGETS_API_VERSION = "policy/v1"
+	POD_DISRUPTION_BUDGETS_KIND        = "PodDisruptionBudget"
+)
+
 type OutputPodDisruptionBudgetsList struct {
 	Result    []v1.PodDisruptionBudget
 	Resource  string
@@ -173,6 +178,8 @@ func (p *GetPodDisruptionBudgetsDetailsInputParams) Process(c context.Context) e
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = POD_DISRUPTION_BUDGETS_API_VERSION
+	p.output.Kind = POD_DISRUPTION_BUDGETS_KIND
 	return nil
 }
 

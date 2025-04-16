@@ -29,6 +29,11 @@ func DaemonSetService() *daemonSetService {
 	return &dss
 }
 
+const (
+	DAEMON_SET_API_VERSION = "apps/v1"
+	DAEMON_SET_KIND        = "DaemonSet"
+)
+
 type OutputDaemonSetList struct {
 	Result    []appv1.DaemonSet
 	Resource  string
@@ -192,6 +197,8 @@ func (p *GetDaemonSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = DAEMON_SET_API_VERSION
+	p.output.Kind = DAEMON_SET_KIND
 	return nil
 }
 

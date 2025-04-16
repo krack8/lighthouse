@@ -27,6 +27,11 @@ func StorageClassService() *storageClassService {
 	return &scs
 }
 
+const (
+	STORAGE_CLASS_API_VERSION = "storage.k8s.io/v1"
+	STORAGE_CLASS_KIND        = "StorageClass"
+)
+
 type OutputStorageClassList struct {
 	Result    []storagev1.StorageClass
 	Resource  string
@@ -174,6 +179,8 @@ func (p *GetStorageClassDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = STORAGE_CLASS_API_VERSION
+	p.output.Kind = STORAGE_CLASS_KIND
 	return nil
 }
 

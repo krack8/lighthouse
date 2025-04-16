@@ -31,6 +31,11 @@ func StatefulSetService() *statefulSetService {
 	return &sfss
 }
 
+const (
+	STATEFUL_SET_API_VERSION = "apps/v1"
+	STATEFUL_SET_KIND        = "StatefulSet"
+)
+
 type OutputStatefulSetList struct {
 	Result    []appsv1.StatefulSet
 	Resource  string
@@ -193,6 +198,8 @@ func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = STATEFUL_SET_API_VERSION
+	p.output.Kind = STATEFUL_SET_KIND
 	return nil
 }
 

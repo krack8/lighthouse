@@ -29,6 +29,11 @@ func NamespaceService() *namespaceService {
 	return &nss
 }
 
+const (
+	NAMESPACE_API_VERSION = "v1"
+	NAMESPACE_KIND        = "Namespace"
+)
+
 func (p *GetNamespaceInputParams) setClient() {
 	p.Client = GetKubeClientSet().CoreV1().Namespaces()
 }
@@ -228,6 +233,8 @@ func (p *GetNamespaceInputParams) Process(c context.Context) error {
 	}
 	output.ManagedFields = nil
 	p.output = *output
+	p.output.APIVersion = NAMESPACE_API_VERSION
+	p.output.Kind = NAMESPACE_KIND
 	return nil
 }
 

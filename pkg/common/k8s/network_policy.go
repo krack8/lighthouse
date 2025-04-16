@@ -25,6 +25,11 @@ func NetworkPolicyService() *networkPolicyService {
 	return &nps
 }
 
+const (
+	NETWORK_POLICY_API_VERSION = "networking.k8s.io/v1"
+	NETWORK_POLICY_KIND        = "NetworkPolicy"
+)
+
 type OutputNetworkPolicyList struct {
 	Result    []networkingv1.NetworkPolicy
 	Resource  string
@@ -173,6 +178,8 @@ func (p *GetNetworkPolicyDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = NETWORK_POLICY_API_VERSION
+	p.output.Kind = NETWORK_POLICY_KIND
 	return nil
 }
 

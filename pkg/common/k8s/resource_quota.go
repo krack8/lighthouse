@@ -28,6 +28,11 @@ func ResourceQuotaService() *resourceQuotaService {
 	return &rqs
 }
 
+const (
+	RESOURCE_QUOTA_API_VERSION = "v1"
+	RESOURCE_QUOTA_KIND        = "ResourceQuota"
+)
+
 type OutputResourceQuotaList struct {
 	Result    []corev1.ResourceQuota
 	Resource  string
@@ -176,6 +181,8 @@ func (p *GetResourceQuotaDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = RESOURCE_QUOTA_API_VERSION
+	p.output.Kind = RESOURCE_QUOTA_KIND
 	return nil
 }
 

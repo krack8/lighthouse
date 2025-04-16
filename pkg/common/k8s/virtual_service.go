@@ -27,6 +27,11 @@ func VirtualServiceService() *virtualServiceService {
 	return &is
 }
 
+const (
+	VIRTUAL_SERVICE_API_VERSION = "v1beta1"
+	VIRTUAL_SERVICE_KIND        = "VirtualService"
+)
+
 type OutputVirtualServiceList struct {
 	Result    []*v1beta1.VirtualService
 	Resource  string
@@ -174,6 +179,8 @@ func (p *GetVirtualServiceDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = VIRTUAL_SERVICE_API_VERSION
+	p.output.Kind = VIRTUAL_SERVICE_KIND
 	return nil
 }
 

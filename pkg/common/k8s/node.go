@@ -30,6 +30,11 @@ func NodeService() *nodeService {
 	return &ns
 }
 
+const (
+	NODE_API_VERSION = "v1"
+	NODE_KIND        = "Node"
+)
+
 type ListOutput struct {
 	Result    []corev1.Node
 	Metrics   []v1beta1.NodeMetrics
@@ -166,6 +171,8 @@ func (p *GetNodeInputParams) Process(c context.Context) error {
 	}
 	p.output.DeployedPodCount = len(podList.Items)
 	p.output.Result = *output
+	p.output.Result.APIVersion = NODE_API_VERSION
+	p.output.Result.Kind = NODE_KIND
 	if err == nil {
 		p.output.Metrics = *nodeMetrics
 	}

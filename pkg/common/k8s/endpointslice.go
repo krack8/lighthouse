@@ -27,6 +27,11 @@ func EndpointSliceService() *endpointSliceService {
 	return &crs
 }
 
+const (
+	ENDPOINTSLICES_API_VERSION = "discovery.k8s.io/v1"
+	ENDPOINTSLICES_KIND        = "EndpointSlice"
+)
+
 type OutputEndpointSliceList struct {
 	Result    []v1.EndpointSlice
 	Resource  string
@@ -174,6 +179,8 @@ func (p *GetEndpointSliceDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = ENDPOINTSLICES_API_VERSION
+	p.output.Kind = ENDPOINTSLICES_KIND
 	return nil
 }
 

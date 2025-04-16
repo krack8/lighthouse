@@ -27,6 +27,11 @@ func SvcService() *svcService {
 	return &svcs
 }
 
+const (
+	SVC_API_VERSION = "v1"
+	SVC_KIND        = "Service"
+)
+
 type OutputSvcList struct {
 	Result    []corev1.Service
 	Resource  string
@@ -169,6 +174,8 @@ func (p *GetSvcDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = SVC_API_VERSION
+	p.output.Kind = SVC_KIND
 	return nil
 }
 

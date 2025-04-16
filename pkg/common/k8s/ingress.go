@@ -27,6 +27,11 @@ func IngressService() *ingressService {
 	return &ings
 }
 
+const (
+	INGRESS_API_VERSION = "networking.k8s.io/v1"
+	INGRESS_KIND        = "Ingress"
+)
+
 type OutputIngressList struct {
 	Result    []networkingv1.Ingress
 	Resource  string
@@ -174,6 +179,8 @@ func (p *GetIngressDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = INGRESS_API_VERSION
+	p.output.Kind = INGRESS_KIND
 	return nil
 }
 

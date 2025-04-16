@@ -27,6 +27,11 @@ func JobService() *jobService {
 	return &js
 }
 
+const (
+	JOB_API_VERSION = "batch/v1"
+	JOB_KIND        = "Job"
+)
+
 type Output struct {
 	Result    []batchv1.Job
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetJobInputParams) Process() error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = JOB_API_VERSION
+	p.output.Kind = JOB_KIND
 	return nil
 }
 

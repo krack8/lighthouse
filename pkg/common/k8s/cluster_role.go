@@ -27,6 +27,11 @@ func ClusterRoleService() *clusterRoleService {
 	return &croles
 }
 
+const (
+	CLUSTER_ROLE_API_VERSION = "rbac.authorization.k8s.io/v1"
+	CLUSTER_ROLE_KIND        = "ClusterRole"
+)
+
 type OutputClusterRoleList struct {
 	Result    []rbacv1.ClusterRole
 	Resource  string
@@ -173,6 +178,8 @@ func (p *GetClusterRoleDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = CLUSTER_ROLE_API_VERSION
+	p.output.Kind = CLUSTER_ROLE_KIND
 	return nil
 }
 

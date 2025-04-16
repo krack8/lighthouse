@@ -27,6 +27,11 @@ func ControllerRevisionService() *controllerRevisionService {
 	return &ctrlrs
 }
 
+const (
+	CONTROLLER_REVISION_API_VERSION = "apps/v1"
+	CONTROLLER_REVISION_KIND        = "ControllerRevision"
+)
+
 type OutputControllerRevisionList struct {
 	Result    []appsv1.ControllerRevision
 	Resource  string
@@ -175,6 +180,8 @@ func (p *GetControllerRevisionDetailsInputParams) Process(c context.Context) err
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = CONTROLLER_REVISION_API_VERSION
+	p.output.Kind = CONTROLLER_REVISION_KIND
 	return nil
 }
 

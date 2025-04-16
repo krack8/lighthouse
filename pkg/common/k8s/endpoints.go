@@ -27,6 +27,11 @@ func EndpointsService() *endpointsService {
 	return &eps
 }
 
+const (
+	ENDPOINTS_API_VERSION = "v1"
+	ENDPOINTS_KIND        = "Endpoints"
+)
+
 type OutputEndpointsList struct {
 	Result    []v1.Endpoints
 	Resource  string
@@ -174,6 +179,8 @@ func (p *GetEndpointsDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = ENDPOINTS_API_VERSION
+	p.output.Kind = ENDPOINTS_KIND
 	return nil
 }
 

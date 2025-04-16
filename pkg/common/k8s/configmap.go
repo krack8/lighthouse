@@ -27,6 +27,11 @@ func ConfigMapService() *configMapService {
 	return &cms
 }
 
+const (
+	CONFIG_MAP_API_VERSION = "v1"
+	CONFIG_MAP_KIND        = "ConfigMap"
+)
+
 func getConfigMapClient(namespace string) v1.ConfigMapInterface {
 	return GetKubeClientSet().CoreV1().ConfigMaps(namespace)
 }
@@ -186,6 +191,8 @@ func (p *GetConfigMapDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.APIVersion = CONFIG_MAP_API_VERSION
+	p.output.Kind = CONFIG_MAP_KIND
 	return nil
 }
 

@@ -32,6 +32,11 @@ func DeploymentService() *deploymentService {
 	return &ds
 }
 
+const (
+	DEPOLOYMENT_API_VERSION = "apps/v1"
+	DEPLOYMENT_KIND         = "Deployment"
+)
+
 type OutputDeploymentList struct {
 	Result    []appsv1.Deployment
 	Resource  string
@@ -210,6 +215,8 @@ func (p *GetDeploymentDetailsInputParams) Process(c context.Context) error {
 	}
 
 	p.output = *output
+	p.output.APIVersion = DEPOLOYMENT_API_VERSION
+	p.output.Kind = DEPLOYMENT_KIND
 	return nil
 }
 
