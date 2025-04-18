@@ -166,7 +166,7 @@ export class NodeListComponent implements OnInit, OnDestroy {
            } else {
              this.nodeList =
                data.data.Result.map((value, index) => {
-                 const mergedData = { ...value, ...data.data.Metrics[index].usage };
+                 const mergedData = { ...value, ...data.data.Metrics[index]?.usage };
                  return mergedData;
                }) || [];
 

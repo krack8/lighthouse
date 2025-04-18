@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { K8sService } from '@k8s/k8s.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -6,6 +6,8 @@ import * as endpoints from './k8s-namespaces.endpoints';
 import { Utils } from '@shared-ui/utils';
 import { HttpService } from '@core-ui/services';
 import { utils } from 'protractor';
+import { APP_ENV } from '@core-ui/constants';
+import { IAppEnv } from '@core-ui/interfaces';
 
 @Injectable()
 export class K8sNamespacesService {
@@ -15,10 +17,15 @@ export class K8sNamespacesService {
   private namespacesSubject = new BehaviorSubject<any[]>([]);
   namespaces$: Observable<any[]> = this.namespacesSubject.asObservable();
 
+  apiBaseUrl: string;
+
   constructor(
     private k8sService: K8sService,
-    private http: HttpService
-  ) {}
+    private http: HttpService,
+    @Optional() @Inject(APP_ENV) private _env: IAppEnv
+  ) {
+    this.apiBaseUrl = _env?.apiEndPoint;
+  }
 
   changeSelectedNamespace(_namespace: string): void {
     this.selectedNamespaceSubject.next(_namespace);
@@ -816,7 +823,7 @@ export class K8sNamespacesService {
   }
 
   getTerminalUrl(podName: string){
-    const baseUrl = 'ws://localhost:8080';
+    const baseUrl = this.apiBaseUrl.replace(/^http(s?):\/\//, 'ws$1://').replace('/api', '');
     return baseUrl + Utils.formatString(endpoints.POD_TERMINAL_URL, podName);
   }
 }
