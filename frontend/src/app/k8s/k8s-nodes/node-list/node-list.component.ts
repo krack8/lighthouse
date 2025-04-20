@@ -58,6 +58,8 @@ export class NodeListComponent implements OnInit, OnDestroy {
    color: ['#36c678', '#226add'],
  }
 
+ nodeMetricsMap: Record<string, any>
+
  graphStats: any;
  cpuUsagePercentage: number =0;
  CpuAllocatablePercentage:  number = 0;
@@ -164,15 +166,18 @@ export class NodeListComponent implements OnInit, OnDestroy {
            if (data.data.Metrics.length === 0) {
              this.nodeList = data.data.Result;
            } else {
-             this.nodeList =
-               data.data.Result.map((value, index) => {
-                 const mergedData = { ...value, ...data.data.Metrics[index].usage };
-                 return mergedData;
-               }) || [];
-
-
-               this.graphStats = data.data.graph_view;
-               this.initGraphStats();
+             this.nodeList = data?.data?.Result || [];
+             this.nodeMetricsMap = {};
+             data.data?.Metrics.forEach((item) => {
+               if (item?.usage) {
+                 this.nodeMetricsMap[item.metadata.name] = {
+                   cpu: item.usage?.cpu,
+                   memory: item.usage?.memory,
+                 };
+               }
+             });
+             this.graphStats = data.data.graph_view;
+             this.initGraphStats();
              this.metricsAvailable = true;
            }
          } else {
