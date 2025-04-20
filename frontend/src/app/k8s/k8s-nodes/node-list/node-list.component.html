@@ -138,9 +138,7 @@
               <tbody>
                 <tr *ngFor="let item of nodeList">
                   <td width="22%">
-                    <button
-                    [disabled] = "!item?.cpu"
-                    (click)="onNodeDetailsClick(item)" class="details__link flex items-center">
+                    <button [disabled]="!nodeMetricsMap[item?.metadata?.name]" (click)="onNodeDetailsClick(item)" class="details__link flex items-center">
                       <img src="assets/img/icons/cluster/min_node.svg" alt="" class="mr-4" width="40px" />
                       <div>{{ item?.metadata?.name }}</div>
                     </button>
@@ -165,10 +163,10 @@
                     <span class="ml-6">{{ item?.status?.capacity?.cpu }}</span>
                   </td>
 
-                  <td *ngIf="item?.cpu ; else notAvailable">
-                    CPU: {{ convertCpuValueToBase(item?.cpu) }} core
-                    <br />
-                    Memory: {{ convertKbToGigabyte(item?.memory) }} GB
+                  <td *ngIf="metricsAvailable && nodeMetricsMap[item?.metadata?.name] ; else notAvailable">
+                    CPU: {{convertCpuValueToBase(nodeMetricsMap[item?.metadata?.name].cpu)}} core
+                    <br>
+                    Memory: {{convertKbToGigabyte(nodeMetricsMap[item?.metadata?.name]?.memory)}} GB
                   </td>
 
                   <td *ngIf="item?.status?.nodeInfo.kernelVersion !== '' ; else notAvailable">
@@ -178,7 +176,7 @@
                   </td>
 
                   <td>
-                    <button [disabled]="!item?.cpu" mat-button [matMenuTriggerFor]="menu" class="float-right" mat-icon-button>
+                    <button [disabled]="!nodeMetricsMap[item?.metadata?.name]" mat-button [matMenuTriggerFor]="menu" class="float-right" mat-icon-button>
                       <mat-icon [icIcon]="icMoreHoriz"></mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
