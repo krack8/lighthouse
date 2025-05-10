@@ -3,6 +3,8 @@ package helm_test
 import (
 	"github.com/krack8/lighthouse/pkg/helm"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -125,4 +127,31 @@ func TestHelm(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	var repoClonePath *string
+	t.Run("git clone", func(t *testing.T) {
+		repoClonePath, err = helm.CloneGitRepo("lighthouse", "https://github.com/krack8/lighthouse.git", "helm-functions", "", "")
+		assert.NoError(t, err)
+		assert.NotNil(t, repoClonePath)
+
+		_, err = os.Stat(*repoClonePath)
+		assert.NoError(t, err)
+	})
+
+	t.Run("install local chart", func(t *testing.T) {
+		fullChartPath := filepath.Join(*repoClonePath, "/helm/Charts/nginx")
+		release, err := helmClient.InstallLocalChart(fullChartPath, "lighthouse-nginx", "default", map[string]interface{}{"replicaCount": 3})
+		assert.NoError(t, err)
+		assert.NotNil(t, release)
+
+		if repoClonePath != nil {
+			err = os.RemoveAll(*repoClonePath)
+			assert.NoError(t, err)
+		}
+	})
+
+	t.Run("uninstall chart - 2", func(t *testing.T) {
+		resp, err := helmClient.UninstallChart("lighthouse-nginx")
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
 }

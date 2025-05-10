@@ -8,14 +8,17 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
+	"k8s.io/client-go/kubernetes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 type HelmClient struct {
-	settings *cli.EnvSettings
-	config   *action.Configuration
+	settings   *cli.EnvSettings
+	config     *action.Configuration
+	kubeClient *kubernetes.Clientset
 }
 
 func NewHelmClient(namespace string) (*HelmClient, error) {
@@ -543,6 +546,192 @@ func (h *HelmClient) RollbackRelease(releaseName string, revision int) error {
 	client := action.NewRollback(h.config)
 	client.Version = revision // Specify the revision to roll back to
 	return client.Run(releaseName)
+}
+
+func (h *HelmClient) AddGitRepo(name, gitURL, username, password string) error {
+	// Clone the Git repository
+	tempDir, err := os.MkdirTemp("", "helm-git-repo")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+	defer os.RemoveAll(tempDir) // Cleanup after use
+
+	gitCloneCmd := []string{"clone", gitURL, tempDir}
+	if username != "" && password != "" {
+		gitURL = fmt.Sprintf("https://%s:%s@%s", username, password, gitURL[8:])
+		gitCloneCmd = []string{"clone", gitURL, tempDir}
+	}
+
+	cmd := exec.Command("git", gitCloneCmd...)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to clone Git repository: %w\nOutput: %s", err, string(output))
+	}
+
+	// Find the Chart.yaml to verify it's a valid chart repo
+	chartPath := filepath.Join(tempDir, "Chart.yaml")
+	if _, err := os.Stat(chartPath); os.IsNotExist(err) {
+		return fmt.Errorf("no Chart.yaml found in the repository")
+	}
+
+	// Add the repo to the Helm repository config
+	repoFile := h.settings.RepositoryConfig
+	repositories, err := repo.LoadFile(repoFile)
+	if err != nil {
+		return fmt.Errorf("failed to load repository file: %w", err)
+	}
+
+	entry := &repo.Entry{
+		Name: name,
+		URL:  tempDir, // Local path acts as the repo
+	}
+
+	repositories.Update(entry)
+	if err := repositories.WriteFile(repoFile, 0644); err != nil {
+		return fmt.Errorf("failed to write repository file: %w", err)
+	}
+
+	return nil
+}
+
+func CloneGitRepo(name, gitURL, revision, username, password string) (*string, error) {
+	tempDir, err := os.MkdirTemp("", "hgr-"+name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+
+	// Clone the Git repository
+	if username != "" && password != "" {
+		gitURL = fmt.Sprintf("https://%s:%s@%s", username, password, gitURL[8:])
+	}
+
+	// Clone the Git repository
+	cloneCmd := exec.Command("git", "clone", "--branch", revision, "--single-branch", gitURL, tempDir)
+
+	output, err := cloneCmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to clone Git repository: %w\nOutput: %s", err, string(output))
+	}
+
+	return &tempDir, nil
+}
+
+func (h *HelmClient) AddGitRepoAsHelmRepo(name, gitURL, revision, subPath, username, password string) (*string, error) {
+	gitCloneDir, err := CloneGitRepo(name, gitURL, revision, username, password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+
+	// clean up
+	//defer os.RemoveAll(*tempDir)
+
+	// Verify the subpath exists
+	chartRootPath := filepath.Join(*gitCloneDir, subPath)
+	if _, err := os.Stat(chartRootPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("subpath %q does not exist in the Git repository", subPath)
+	}
+
+	// Find the Chart.yaml to verify it's a valid chart repo
+	/*chartPath := filepath.Join(chartRootPath, "Chart.yaml")
+	if _, err := os.Stat(chartPath); os.IsNotExist(err) {
+		return fmt.Errorf("no Chart.yaml found in the chart path")
+	}*/
+
+	// Add the subpath directory as a Helm repository
+	repoFile := h.settings.RepositoryConfig
+	repositories, err := repo.LoadFile(repoFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load repositories file: %w", err)
+	}
+
+	entry := &repo.Entry{
+		Name: name,
+		URL:  chartRootPath,
+	}
+
+	repositories.Update(entry)
+	if err := repositories.WriteFile(repoFile, 0644); err != nil {
+		return nil, fmt.Errorf("failed to write repositories file: %w", err)
+	}
+
+	return gitCloneDir, nil
+}
+
+func (h *HelmClient) CreateApplication(repoName, chartPath, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
+	client := action.NewInstall(h.config)
+	client.ReleaseName = releaseName
+	client.Namespace = namespace
+
+	// Load the repository configuration
+	repoFile := h.settings.RepositoryConfig
+	repositories, err := repo.LoadFile(repoFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load repositories file: %w", err)
+	}
+
+	// Find the repository entry
+	var foundEntry *repo.Entry
+	for _, entry := range repositories.Repositories {
+		if entry.Name == repoName {
+			foundEntry = entry
+			break
+		}
+	}
+
+	if foundEntry == nil {
+		return nil, fmt.Errorf("repository %q not found", repoName)
+	}
+
+	// Load the chart from the specific path
+	fullChartPath := filepath.Join(foundEntry.URL, chartPath)
+	chart, err := loader.Load(fullChartPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load chart from path %q: %w", fullChartPath, err)
+	}
+
+	// Install or upgrade the chart
+	return client.Run(chart, values)
+}
+
+func (h *HelmClient) InstallLocalChart(chartDir, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
+	client := action.NewInstall(h.config)
+	client.ReleaseName = releaseName
+	client.Namespace = namespace
+
+	chart, err := loader.Load(chartDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load chart from path %q: %w", chartDir, err)
+	}
+
+	// Install or upgrade the chart
+	// Run the install action
+	rls, err := client.Run(chart, values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to install chart: %w", err)
+	}
+
+	return rls, nil
+}
+
+func (h *HelmClient) SyncApplication(repoName, chartPath, releaseName string, namespace string, values map[string]interface{}) (*release.Release, error) {
+	client := action.NewUpgrade(h.config)
+	client.Namespace = namespace
+
+	// Pull the latest changes from the Git repository
+	tempDir := filepath.Join(h.settings.RepositoryConfig, repoName)
+	cmd := exec.Command("git", "-C", tempDir, "pull")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return nil, fmt.Errorf("failed to sync Git repository: %w\nOutput: %s", err, string(output))
+	}
+
+	// Load the chart
+	fullChartPath := filepath.Join(tempDir, chartPath)
+	chart, err := loader.Load(fullChartPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load chart from path %q: %w", fullChartPath, err)
+	}
+
+	// Upgrade the release with the latest chart and values
+	return client.Run(releaseName, chart, values)
 }
 
 func debugLog(format string, v ...interface{}) {
