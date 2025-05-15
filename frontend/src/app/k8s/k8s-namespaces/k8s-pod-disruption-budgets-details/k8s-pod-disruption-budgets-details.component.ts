@@ -92,7 +92,7 @@ export class K8sPodDisruptionBudgetsDetailsComponent implements OnInit {
       disableClose: true
     });
     dialog.componentInstance.isEditMode = true;
-    dialog.componentInstance.applyManifestFor = 'config-map';
+    dialog.componentInstance.applyManifestFor = 'pdb';
 
     const metaTemp: { [key: string]: any } = {};
     metaTemp.name = item.metadata.name;

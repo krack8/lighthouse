@@ -10,6 +10,12 @@
   }
 }
 
+@media (max-width: 1399px) {
+  :root .lt1400\:responsive {
+     width: 1399px;
+   }
+ }
+
 @media (max-width: 1279px) {
   .ltXl\:responsive {
     width: 1279px;

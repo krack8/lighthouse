@@ -92,7 +92,7 @@ export class K8sReplicationControllerDetailsComponent implements OnInit {
       disableClose: true
     });
     dialog.componentInstance.isEditMode = true;
-    dialog.componentInstance.applyManifestFor = 'config-map';
+    dialog.componentInstance.applyManifestFor = 'replication-controller';
 
     const metaTemp: { [key: string]: any } = {};
     metaTemp.name = item.metadata.name;

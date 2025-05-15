@@ -92,7 +92,7 @@ export class K8sEndpointsDetailsComponent implements OnInit {
       disableClose: true
     });
     dialog.componentInstance.isEditMode = true;
-    dialog.componentInstance.applyManifestFor = 'config-map';
+    dialog.componentInstance.applyManifestFor = 'endpoints';
 
     const metaTemp: { [key: string]: any } = {};
     metaTemp.name = item.metadata.name;
