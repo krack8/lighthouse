@@ -28,8 +28,8 @@ func VirtualServiceService() *virtualServiceService {
 }
 
 const (
-	VIRTUAL_SERVICE_API_VERSION = "v1beta1"
-	VIRTUAL_SERVICE_KIND        = "VirtualService"
+	VirtualServiceV1Beta1ApiVersion = "v1beta1"
+	VirtualServiceKind              = "VirtualService"
 )
 
 type OutputVirtualServiceList struct {
@@ -153,6 +153,15 @@ func (p *GetVirtualServiceListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetVirtualServiceListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = VirtualServiceV1Beta1ApiVersion
+		p.output.Result[i].TypeMeta.Kind = VirtualServiceKind
+	}
+	return nil
+}
+
 func (svc *virtualServiceService) GetVirtualServiceList(c context.Context, p GetVirtualServiceListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
@@ -179,8 +188,9 @@ func (p *GetVirtualServiceDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = VIRTUAL_SERVICE_API_VERSION
-	p.output.Kind = VIRTUAL_SERVICE_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = VirtualServiceV1Beta1ApiVersion
+	p.output.Kind = VirtualServiceKind
 	return nil
 }
 

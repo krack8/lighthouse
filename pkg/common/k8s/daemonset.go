@@ -30,8 +30,8 @@ func DaemonSetService() *daemonSetService {
 }
 
 const (
-	DAEMON_SET_API_VERSION = "apps/v1"
-	DAEMON_SET_KIND        = "DaemonSet"
+	DaemonSetApiVersion = "apps/v1"
+	DaemonSetKind       = "DaemonSet"
 )
 
 type OutputDaemonSetList struct {
@@ -100,6 +100,8 @@ func (p *GetDaemonSetListInputParams) Find(c context.Context, daemonsetClient v1
 func (p *GetDaemonSetListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = DaemonSetApiVersion
+		p.output.Result[idx].Kind = DaemonSetKind
 	}
 	return nil
 }
@@ -197,8 +199,9 @@ func (p *GetDaemonSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = DAEMON_SET_API_VERSION
-	p.output.Kind = DAEMON_SET_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = DaemonSetApiVersion
+	p.output.Kind = DaemonSetKind
 	return nil
 }
 

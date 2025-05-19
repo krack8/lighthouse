@@ -28,8 +28,8 @@ func ControllerRevisionService() *controllerRevisionService {
 }
 
 const (
-	CONTROLLER_REVISION_API_VERSION = "apps/v1"
-	CONTROLLER_REVISION_KIND        = "ControllerRevision"
+	ControllerRevisionApiVersion = "apps/v1"
+	ControllerRevisionKind       = "ControllerRevision"
 )
 
 type OutputControllerRevisionList struct {
@@ -153,12 +153,21 @@ func (p *GetControllerRevisionListInputParams) Process(c context.Context) error 
 	return nil
 }
 
+func (p *GetControllerRevisionListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = ControllerRevisionApiVersion
+		p.output.Result[i].TypeMeta.Kind = ControllerRevisionKind
+	}
+	return nil
+}
+
 func (svc *controllerRevisionService) GetControllerRevisionList(c context.Context, p GetControllerRevisionListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -180,8 +189,9 @@ func (p *GetControllerRevisionDetailsInputParams) Process(c context.Context) err
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = CONTROLLER_REVISION_API_VERSION
-	p.output.Kind = CONTROLLER_REVISION_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ControllerRevisionApiVersion
+	p.output.Kind = ControllerRevisionKind
 	return nil
 }
 

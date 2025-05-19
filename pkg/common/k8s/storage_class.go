@@ -28,8 +28,8 @@ func StorageClassService() *storageClassService {
 }
 
 const (
-	STORAGE_CLASS_API_VERSION = "storage.k8s.io/v1"
-	STORAGE_CLASS_KIND        = "StorageClass"
+	StorageClassApiVersion = "storage.k8s.io/v1"
+	StorageClassKind       = "StorageClass"
 )
 
 type OutputStorageClassList struct {
@@ -153,12 +153,21 @@ func (p *GetStorageClassListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetStorageClassListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = StorageClassApiVersion
+		p.output.Result[i].TypeMeta.Kind = StorageClassKind
+	}
+	return nil
+}
+
 func (svc *storageClassService) GetStorageClassList(c context.Context, p GetStorageClassListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -179,8 +188,9 @@ func (p *GetStorageClassDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = STORAGE_CLASS_API_VERSION
-	p.output.Kind = STORAGE_CLASS_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = StorageClassApiVersion
+	p.output.Kind = StorageClassKind
 	return nil
 }
 

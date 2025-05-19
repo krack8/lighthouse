@@ -29,8 +29,8 @@ func ResourceQuotaService() *resourceQuotaService {
 }
 
 const (
-	RESOURCE_QUOTA_API_VERSION = "v1"
-	RESOURCE_QUOTA_KIND        = "ResourceQuota"
+	ResourceQuotaApiVersion = "v1"
+	ResourceQuotaKind       = "ResourceQuota"
 )
 
 type OutputResourceQuotaList struct {
@@ -154,12 +154,21 @@ func (p *GetResourceQuotaListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetResourceQuotaListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ResourceQuotaApiVersion
+		p.output.Result[i].Kind = ResourceQuotaKind
+	}
+	return nil
+}
+
 func (resourceQuota *resourceQuotaService) GetResourceQuotaList(c context.Context, p GetResourceQuotaListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -181,8 +190,9 @@ func (p *GetResourceQuotaDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = RESOURCE_QUOTA_API_VERSION
-	p.output.Kind = RESOURCE_QUOTA_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ResourceQuotaApiVersion
+	p.output.Kind = ResourceQuotaKind
 	return nil
 }
 

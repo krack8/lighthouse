@@ -28,8 +28,8 @@ func SecretService() *secretService {
 }
 
 const (
-	SECRET_API_VERSION = "v1"
-	SECRET_KIND        = "Secret"
+	SecretApiVersion = "v1"
+	SecretKind       = "Secret"
 )
 
 type OutputSecretList struct {
@@ -153,12 +153,21 @@ func (p *GetSecretListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetSecretListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = SecretApiVersion
+		p.output.Result[i].Kind = SecretKind
+	}
+	return nil
+}
+
 func (svc *secretService) GetSecretList(c context.Context, p GetSecretListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -180,8 +189,9 @@ func (p *GetSecretDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = SECRET_API_VERSION
-	p.output.Kind = SECRET_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = SecretApiVersion
+	p.output.Kind = SecretKind
 	return nil
 }
 

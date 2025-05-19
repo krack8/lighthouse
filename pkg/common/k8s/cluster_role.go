@@ -28,8 +28,8 @@ func ClusterRoleService() *clusterRoleService {
 }
 
 const (
-	CLUSTER_ROLE_API_VERSION = "rbac.authorization.k8s.io/v1"
-	CLUSTER_ROLE_KIND        = "ClusterRole"
+	ClusterRoleApiVersion = "rbac.authorization.k8s.io/v1"
+	ClusterRoleKind       = "ClusterRole"
 )
 
 type OutputClusterRoleList struct {
@@ -152,12 +152,21 @@ func (p *GetClusterRoleListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetClusterRoleListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ClusterRoleApiVersion
+		p.output.Result[i].Kind = ClusterRoleKind
+	}
+	return nil
+}
+
 func (svc *clusterRoleService) GetClusterRoleList(c context.Context, p GetClusterRoleListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -178,8 +187,9 @@ func (p *GetClusterRoleDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = CLUSTER_ROLE_API_VERSION
-	p.output.Kind = CLUSTER_ROLE_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ClusterRoleApiVersion
+	p.output.Kind = ClusterRoleKind
 	return nil
 }
 

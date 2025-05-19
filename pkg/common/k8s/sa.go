@@ -28,8 +28,8 @@ func ServiceAccountService() *serviceAccountService {
 }
 
 const (
-	SERVICE_ACCOUNT_API_VERSION = "v1"
-	SERVICE_ACCOUNT_KIND        = "ServiceAccount"
+	ServiceAccountApiVersion = "v1"
+	ServiceAccountKind       = "ServiceAccount"
 )
 
 type OutputServiceAccountList struct {
@@ -147,12 +147,21 @@ func (p *GetServiceAccountListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetServiceAccountListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = ServiceAccountApiVersion
+		p.output.Result[i].TypeMeta.Kind = ServiceAccountKind
+	}
+	return nil
+}
+
 func (svc *serviceAccountService) GetServiceAccountList(c context.Context, p GetServiceAccountListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -174,8 +183,9 @@ func (p *GetServiceAccountDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = SERVICE_ACCOUNT_API_VERSION
-	p.output.Kind = SERVICE_ACCOUNT_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ServiceAccountApiVersion
+	p.output.Kind = ServiceAccountKind
 	return nil
 }
 

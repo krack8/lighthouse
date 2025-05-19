@@ -28,8 +28,8 @@ func JobService() *jobService {
 }
 
 const (
-	JOB_API_VERSION = "batch/v1"
-	JOB_KIND        = "Job"
+	JobApiVersion = "batch/v1"
+	JobKind       = "Job"
 )
 
 type Output struct {
@@ -159,12 +159,21 @@ func (p *GetJobListInputParams) Process() error {
 	return nil
 }
 
+func (p *GetJobListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = JobApiVersion
+		p.output.Result[i].Kind = JobKind
+	}
+	return nil
+}
+
 func (svc *jobService) GetJobList(c context.Context, p GetJobListInputParams) (interface{}, error) {
 	err := p.Process()
 	if err != nil {
 		return ErrorResponse(err)
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -180,8 +189,9 @@ func (p *GetJobInputParams) Process() error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = JOB_API_VERSION
-	p.output.Kind = JOB_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = JobApiVersion
+	p.output.Kind = JobKind
 	return nil
 }
 

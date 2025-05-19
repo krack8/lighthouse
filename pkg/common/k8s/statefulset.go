@@ -32,8 +32,9 @@ func StatefulSetService() *statefulSetService {
 }
 
 const (
-	STATEFUL_SET_API_VERSION = "apps/v1"
-	STATEFUL_SET_KIND        = "StatefulSet"
+	StatefulSetApiVersion = "apps/v1"
+	StatefulSetKind       = "StatefulSet"
+	PodLabelKey           = "controller-revision-hash"
 )
 
 type OutputStatefulSetList struct {
@@ -55,6 +56,8 @@ type GetStatefulSetListInputParams struct {
 func (p *GetStatefulSetListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = StatefulSetApiVersion
+		p.output.Result[idx].Kind = StatefulSetKind
 	}
 	return nil
 }
@@ -184,11 +187,6 @@ type GetStatefulSetDetailsInputParams struct {
 	output          appsv1.StatefulSet
 }
 
-func (p *GetStatefulSetDetailsInputParams) PostProcess(c context.Context) error {
-	p.output.ManagedFields = nil
-	return nil
-}
-
 func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulSet details of ....", p.NamespaceName)
 	statefulSetsClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
@@ -198,8 +196,9 @@ func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = STATEFUL_SET_API_VERSION
-	p.output.Kind = STATEFUL_SET_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = StatefulSetApiVersion
+	p.output.Kind = StatefulSetKind
 	return nil
 }
 
@@ -208,7 +207,6 @@ func (svc *statefulSetService) GetStatefulSetDetails(c context.Context, p GetSta
 	if err != nil {
 		return nil, err
 	}
-	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -385,11 +383,6 @@ type GetStatefulSetPodListInputParams struct {
 	Labels          map[string]string
 	output          StatefulSetPodOutput
 }
-
-const (
-	PodLabelKey     = "controller-revision-hash"
-	StatefulSetKind = "StatefulSet"
-)
 
 func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulset pods list of ...."+p.StatefulSetName, "service", "statefulSet-pod-list")

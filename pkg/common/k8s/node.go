@@ -31,8 +31,8 @@ func NodeService() *nodeService {
 }
 
 const (
-	NODE_API_VERSION = "v1"
-	NODE_KIND        = "Node"
+	NodeApiVersion = "v1"
+	NodeKind       = "Node"
 )
 
 type ListOutput struct {
@@ -122,18 +122,16 @@ func (p *GetNodeListInputParams) Process(c context.Context) error {
 	}
 	// Count the total number of pods
 	p.output.GraphView.DeployedPodCount = len(podList.Items)
-	//for _, node := range nodeList.Items {
-	//	log.Logger.Infow("%s\n", node.Name, "val", "node")
-	//	for _, condition := range node.Status.Conditions {
-	//		log.Logger.Infow(fmt.Sprintf("\t%s: %s\n", condition.Type, condition.Status), "val", "status")
-	//	}
-	//	log.Logger.
-	//	Infow("Taint\n", "val", "taint")
-	//	for _, taint := range node.Spec.Taints {
-	//		log.Logger.Infow(fmt.Sprintf("\t%s: %s %s\n", taint.Effect, taint.Key, taint.Value), "val", "taints")
-	//	}
-	//}
 	p.output.Result = nodeList.Items
+	return nil
+}
+
+func (p *GetNodeListInputParams) PostProcess(c context.Context) error {
+	for idx, _ := range p.output.Result {
+		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = NodeApiVersion
+		p.output.Result[idx].Kind = NodeKind
+	}
 	return nil
 }
 
@@ -142,7 +140,7 @@ func (svc *nodeService) GetNodeList(c context.Context, p GetNodeListInputParams)
 	if err != nil {
 		return nil, err
 	}
-
+	err = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -171,8 +169,9 @@ func (p *GetNodeInputParams) Process(c context.Context) error {
 	}
 	p.output.DeployedPodCount = len(podList.Items)
 	p.output.Result = *output
-	p.output.Result.APIVersion = NODE_API_VERSION
-	p.output.Result.Kind = NODE_KIND
+	p.output.Result.ManagedFields = nil
+	p.output.Result.APIVersion = NodeApiVersion
+	p.output.Result.Kind = NodeKind
 	if err == nil {
 		p.output.Metrics = *nodeMetrics
 	}

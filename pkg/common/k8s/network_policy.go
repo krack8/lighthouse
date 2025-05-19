@@ -26,8 +26,8 @@ func NetworkPolicyService() *networkPolicyService {
 }
 
 const (
-	NETWORK_POLICY_API_VERSION = "networking.k8s.io/v1"
-	NETWORK_POLICY_KIND        = "NetworkPolicy"
+	NetworkPolicyApiVersion = "networking.k8s.io/v1"
+	NetworkPolicyKind       = "NetworkPolicy"
 )
 
 type OutputNetworkPolicyList struct {
@@ -151,12 +151,21 @@ func (p *GetNetworkPolicyListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetNetworkPolicyListInputParams) PostProcess(c context.Context) error {
+	for idx, _ := range p.output.Result {
+		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = NetworkPolicyApiVersion
+		p.output.Result[idx].Kind = NetworkPolicyKind
+	}
+	return nil
+}
+
 func (svc *networkPolicyService) GetNetworkPolicyList(c context.Context, p GetNetworkPolicyListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -178,8 +187,9 @@ func (p *GetNetworkPolicyDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = NETWORK_POLICY_API_VERSION
-	p.output.Kind = NETWORK_POLICY_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = NetworkPolicyApiVersion
+	p.output.Kind = NetworkPolicyKind
 	return nil
 }
 

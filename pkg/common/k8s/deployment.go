@@ -33,8 +33,8 @@ func DeploymentService() *deploymentService {
 }
 
 const (
-	DEPOLOYMENT_API_VERSION = "apps/v1"
-	DEPLOYMENT_KIND         = "Deployment"
+	DeploymentApiVersion = "apps/v1"
+	DeploymentKind       = "Deployment"
 )
 
 type OutputDeploymentList struct {
@@ -56,6 +56,8 @@ type GetDeploymentListInputParams struct {
 func (p *GetDeploymentListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = DeploymentApiVersion
+		p.output.Result[idx].Kind = DeploymentKind
 	}
 	return nil
 }
@@ -183,40 +185,19 @@ type GetDeploymentDetailsInputParams struct {
 	output         appsv1.Deployment
 }
 
-func (p *GetDeploymentDetailsInputParams) PostProcess(c context.Context) error {
-	p.output.ManagedFields = nil
-	return nil
-}
-
 func (p *GetDeploymentDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching deployment details of ....", p.NamespaceName)
 	deploymentsClient := GetKubeClientSet().AppsV1().Deployments(p.NamespaceName)
 	output, err := deploymentsClient.Get(context.Background(), p.DeploymentName, metav1.GetOptions{})
-	/////
-	//var replicasets []string
-	//for _, i := range output.Status.Conditions {
-	//	if i.Type == "Progressing" {
-	//		content := i.Message
-	//		re := regexp.MustCompile(`\"(.*)\"`)
-	//		match := re.FindStringSubmatch(content)
-	//		if len(match) > 1 {
-	//			fmt.Println("match found -", match[1])
-	//			replicasets = append(replicasets, match[1])
-	//		} else {
-	//			fmt.Println("match not found")
-	//		}
-	//	}
-	//}
-	//fmt.Println(replicasets)
-	////
 	if err != nil {
 		log.Logger.Errorw("Failed to get deployment ", p.DeploymentName, "err", err.Error())
 		return err
 	}
 
 	p.output = *output
-	p.output.APIVersion = DEPOLOYMENT_API_VERSION
-	p.output.Kind = DEPLOYMENT_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = DeploymentApiVersion
+	p.output.Kind = DeploymentKind
 	return nil
 }
 
@@ -225,7 +206,6 @@ func (svc *deploymentService) GetDeploymentDetails(c context.Context, p GetDeplo
 	if err != nil {
 		return nil, err
 	}
-	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,

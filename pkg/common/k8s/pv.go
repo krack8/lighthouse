@@ -28,8 +28,8 @@ func PvService() *pvService {
 }
 
 const (
-	PV_API_VERSION = "v1"
-	PV_KIND        = "PersistentVolume"
+	pvApiVersion = "v1"
+	pvKind       = "PersistentVolume"
 )
 
 type OutputPvList struct {
@@ -51,6 +51,8 @@ type GetPvListInputParams struct {
 func (p *GetPvListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = pvApiVersion
+		p.output.Result[idx].Kind = pvKind
 	}
 	return nil
 }
@@ -193,8 +195,9 @@ func (p *GetPvDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
-	p.output.APIVersion = PV_API_VERSION
-	p.output.Kind = PV_KIND
+	p.output.ManagedFields = nil
+	p.output.APIVersion = pvApiVersion
+	p.output.Kind = pvKind
 	return nil
 }
 
