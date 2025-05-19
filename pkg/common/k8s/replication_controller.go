@@ -27,6 +27,11 @@ func ReplicationControllerService() *replicationControllerService {
 	return &rcs
 }
 
+const (
+	ReplicationControllerApiVersion = "v1"
+	ReplicationControllerKind       = "ReplicationController"
+)
+
 type OutputReplicationControllerList struct {
 	Result    []corev1.ReplicationController
 	Resource  string
@@ -148,12 +153,21 @@ func (p *GetReplicationControllerListInputParams) Process(c context.Context) err
 	return nil
 }
 
+func (p *GetReplicationControllerListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ReplicationControllerApiVersion
+		p.output.Result[i].Kind = ReplicationControllerKind
+	}
+	return nil
+}
+
 func (svc *replicationControllerService) GetReplicationControllerList(c context.Context, p GetReplicationControllerListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -175,6 +189,9 @@ func (p *GetReplicationControllerDetailsInputParams) Process(c context.Context) 
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ReplicationControllerApiVersion
+	p.output.Kind = ReplicationControllerKind
 	return nil
 }
 

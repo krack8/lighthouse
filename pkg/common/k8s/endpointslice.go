@@ -27,6 +27,11 @@ func EndpointSliceService() *endpointSliceService {
 	return &crs
 }
 
+const (
+	EndpointslicesApiVersion = "discovery.k8s.io/v1"
+	EndpointslicesKind       = "EndpointSlice"
+)
+
 type OutputEndpointSliceList struct {
 	Result    []v1.EndpointSlice
 	Resource  string
@@ -147,12 +152,21 @@ func (p *GetEndpointSliceListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetEndpointSliceListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = EndpointsApiVersion
+		p.output.Result[i].Kind = EndpointslicesKind
+	}
+	return nil
+}
+
 func (svc *endpointSliceService) GetEndpointSliceList(c context.Context, p GetEndpointSliceListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -174,6 +188,9 @@ func (p *GetEndpointSliceDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = EndpointslicesApiVersion
+	p.output.Kind = EndpointslicesKind
 	return nil
 }
 

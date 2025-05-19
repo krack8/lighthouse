@@ -23,6 +23,11 @@ func LoadBalancerService() *loadBalancerService {
 	return &lbs
 }
 
+const (
+	LoadBalancerApiVersion = "v1"
+	LoadBalancerKind       = "Service"
+)
+
 type GetLoadBalancerListInputParams struct {
 	NamespaceName string
 	Search        string
@@ -56,6 +61,9 @@ func (p *GetLoadBalancerListInputParams) PostProcess(c context.Context) error {
 	var temp []corev1.Service
 	for _, each := range p.output {
 		if each.Spec.Type == "LoadBalancer" {
+			each.ManagedFields = nil
+			each.APIVersion = LoadBalancerApiVersion
+			each.Kind = LoadBalancerKind
 			temp = append(temp, each)
 		}
 	}
@@ -96,6 +104,9 @@ func (p *GetLoadBalancerDetailsInputParams) Process(c context.Context) error {
 		return errors.New("No load balancer type svc named " + p.LoadBalancerName)
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = LoadBalancerApiVersion
+	p.output.Kind = LoadBalancerKind
 	return nil
 }
 
