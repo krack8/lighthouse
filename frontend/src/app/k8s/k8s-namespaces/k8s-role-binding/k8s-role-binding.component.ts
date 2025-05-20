@@ -106,9 +106,7 @@ export class K8sRoleBindingComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'role-binding';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -167,6 +165,8 @@ export class K8sRoleBindingComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -183,9 +183,7 @@ export class K8sRoleBindingComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

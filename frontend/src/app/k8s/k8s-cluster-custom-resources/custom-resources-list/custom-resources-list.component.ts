@@ -127,9 +127,7 @@ export class CustomResourcesListComponent implements OnInit, OnDestroy {
     dialog.componentInstance.queryParams = this.queryParams;
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getCustomResources();
-        }
+        this.getCustomResources();
       }
     });
   }
@@ -214,9 +212,7 @@ export class CustomResourcesListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getCustomResources();
-        }
+        this.getCustomResources();
       }
     });
   }

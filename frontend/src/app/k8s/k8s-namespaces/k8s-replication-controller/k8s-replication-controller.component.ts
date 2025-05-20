@@ -105,9 +105,7 @@ export class K8sReplicationControllerComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'replication-controller';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -169,9 +167,7 @@ export class K8sReplicationControllerComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
