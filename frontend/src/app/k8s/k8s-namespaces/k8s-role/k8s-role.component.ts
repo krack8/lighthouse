@@ -106,9 +106,7 @@ export class K8sRoleComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'role';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -181,9 +179,7 @@ export class K8sRoleComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

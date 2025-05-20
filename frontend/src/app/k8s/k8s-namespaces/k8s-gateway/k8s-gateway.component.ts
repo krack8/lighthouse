@@ -96,9 +96,7 @@ export class K8sGatewayComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'gateway';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -177,9 +175,7 @@ export class K8sGatewayComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

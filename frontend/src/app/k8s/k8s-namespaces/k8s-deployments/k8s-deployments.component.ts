@@ -138,9 +138,7 @@ export class K8sDeploymentsComponent implements OnInit, OnDestroy {
     dialog.componentInstance.applyManifestFor = 'deployments';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -207,9 +205,7 @@ export class K8sDeploymentsComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

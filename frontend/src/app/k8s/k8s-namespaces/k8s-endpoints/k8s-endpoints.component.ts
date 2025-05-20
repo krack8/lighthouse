@@ -105,9 +105,7 @@ export class K8sEndpointsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'endpoints';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -169,9 +167,7 @@ export class K8sEndpointsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

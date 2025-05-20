@@ -105,9 +105,7 @@ export class K8sJobComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'job';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -180,9 +178,7 @@ export class K8sJobComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

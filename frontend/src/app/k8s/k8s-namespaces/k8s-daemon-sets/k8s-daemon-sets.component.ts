@@ -127,9 +127,7 @@ export class K8sDaemonSetsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'daemonset';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -196,9 +194,7 @@ export class K8sDaemonSetsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

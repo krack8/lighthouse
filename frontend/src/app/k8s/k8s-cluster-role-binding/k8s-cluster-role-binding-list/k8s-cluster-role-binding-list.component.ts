@@ -61,14 +61,14 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.toolbarService.changeData({ title: this.title });
     this.queryParams = this.route.snapshot.queryParams;
-    this.getClusterRoleList();
+    this.getClusterRoleBindingList();
   }
 
   ngOnDestroy(): void {
     this.isAlive = false;
   }
 
-  getClusterRoleList(queryParam?: any): void {
+  getClusterRoleBindingList(queryParam?: any): void {
     this.isLoading = true;
     this.clusterRoleBindingService
       .getClusterRoleBinding(queryParam)
@@ -112,9 +112,7 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
     dialog.componentInstance.applyManifestFor = 'cluster-role-binding';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getClusterRoleList();
-        }
+        this.getClusterRoleBindingList();
       }
     });
   }
@@ -134,10 +132,7 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                this.getClusterRoleList();
-              }, 6000);
-              this.getClusterRoleList();
+              this.getClusterRoleBindingList();
             }
           },
           err => {
@@ -198,9 +193,7 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getClusterRoleList();
-        }
+        this.getClusterRoleBindingList();
       }
     });
   }
@@ -223,20 +216,20 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
       }
       const jsonString = JSON.stringify(jsonObject);
       const qp = { labels: jsonString };
-      this.getClusterRoleList(qp);
+      this.getClusterRoleBindingList(qp);
     }
     if (this.searchBy === 'name') {
       const qp = { q: this.searchTerm };
-      this.getClusterRoleList(qp);
+      this.getClusterRoleBindingList(qp);
     }
   }
   clearSearch() {
-    this.getClusterRoleList();
+    this.getClusterRoleBindingList();
     this.searchTerm = '';
   }
   handleInputChange() {
     if (this.searchTerm.length === 0) {
-      this.getClusterRoleList();
+      this.getClusterRoleBindingList();
     }
   }
 
@@ -295,7 +288,7 @@ export class K8sClusterRoleBindingListComponent implements OnInit, OnDestroy {
   }
 
   reloadList() {
-    this.getClusterRoleList();
+    this.getClusterRoleBindingList();
   }
 
   extractCapitalLetters(str: string) {

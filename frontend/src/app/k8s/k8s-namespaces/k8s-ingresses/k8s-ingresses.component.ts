@@ -105,9 +105,7 @@ export class K8sIngressesComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'ingresses';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -178,9 +176,7 @@ export class K8sIngressesComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

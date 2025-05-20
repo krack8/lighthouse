@@ -106,9 +106,7 @@ export class K8sResourceQuotaComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'resource-quota';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -179,9 +177,7 @@ export class K8sResourceQuotaComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

@@ -105,9 +105,7 @@ export class K8sConfigMapsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'config-map';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -188,9 +186,7 @@ export class K8sConfigMapsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

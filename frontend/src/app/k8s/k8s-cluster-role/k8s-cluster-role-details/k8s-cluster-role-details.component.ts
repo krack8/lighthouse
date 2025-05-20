@@ -130,9 +130,7 @@ export class K8sClusterRoleDetailsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getDetails();
-        }
+        this.getDetails();
       }
     });
   }

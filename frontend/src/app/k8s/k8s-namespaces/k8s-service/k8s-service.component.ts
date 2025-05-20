@@ -106,9 +106,7 @@ export class K8sServiceComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'service';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -187,9 +185,7 @@ export class K8sServiceComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

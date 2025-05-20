@@ -108,9 +108,7 @@ export class K8sServiceAccountsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'service-account';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -181,9 +179,7 @@ export class K8sServiceAccountsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

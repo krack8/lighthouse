@@ -268,9 +268,7 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getNamespaces();
-        }
+        this.getNamespaces();
       }
     });
   }

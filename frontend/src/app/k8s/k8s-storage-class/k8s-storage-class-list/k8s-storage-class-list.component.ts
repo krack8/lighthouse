@@ -113,9 +113,7 @@ export class K8sStorageClassListComponent implements OnInit, OnDestroy {
     dialog.componentInstance.applyManifestFor = 'storage-class';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getStorageList();
-        }
+        this.getStorageList();
       }
     });
   }
@@ -135,9 +133,6 @@ export class K8sStorageClassListComponent implements OnInit, OnDestroy {
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                this.getStorageList();
-              }, 6000);
               this.getStorageList();
             }
           },
@@ -205,9 +200,7 @@ export class K8sStorageClassListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getStorageList();
-        }
+        this.getStorageList();
       }
     });
   }

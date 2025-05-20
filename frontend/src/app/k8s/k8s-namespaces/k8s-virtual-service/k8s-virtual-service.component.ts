@@ -105,9 +105,7 @@ export class K8sVirtualServiceComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'virtual-service';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -186,9 +184,7 @@ export class K8sVirtualServiceComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
