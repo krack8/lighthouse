@@ -27,6 +27,11 @@ func IngressService() *ingressService {
 	return &ings
 }
 
+const (
+	IngressApiVersion = "networking.k8s.io/v1"
+	IngressKind       = "Ingress"
+)
+
 type OutputIngressList struct {
 	Result    []networkingv1.Ingress
 	Resource  string
@@ -148,11 +153,21 @@ func (p *GetIngressListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetIngressListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = IngressApiVersion
+		p.output.Result[i].Kind = IngressKind
+	}
+	return nil
+}
+
 func (svc *ingressService) GetIngressList(c context.Context, p GetIngressListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -174,6 +189,9 @@ func (p *GetIngressDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = IngressApiVersion
+	p.output.Kind = IngressKind
 	return nil
 }
 
