@@ -109,7 +109,8 @@ export class K8sConfigMapsDetailsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
-
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
     if (item.spec) {
       preInputData.spec = item.spec;
@@ -130,9 +131,7 @@ export class K8sConfigMapsDetailsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

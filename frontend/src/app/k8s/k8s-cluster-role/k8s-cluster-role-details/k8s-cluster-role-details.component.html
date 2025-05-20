@@ -33,41 +33,8 @@
   </div>
 
   <div class="page-root" *ngIf="data">
-    <kc-metadata-template [data]="data.metadata"></kc-metadata-template>
-
-    <!-- <div class="kube-card mt-3">
-      <h2 class="kube-card__title">Rules</h2>
-      <div class="kube-card__content">
-        <div class="kube-table__wrapper">
-          <div class="kube-table--responsive">
-            <table class="kube-table heading-diff">
-              <thead>
-                <tr>
-                  <th>ApiGroups</th>
-                  <th>Resources</th>
-                  <th>verbs</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of data?.rules">
-                  <td>{{ item?.apiGroups[0] ==''? '-' : item?.apiGroups }}</td>
-                  <td>
-                    <span *ngFor="let obj of item?.resources">{{obj}}<br></span>
-                    <br>
-                    <span *ngIf="item?.resourceNames">
-                      <h3>Resource Names</h3>
-                      <span>{{item?.resourceNames}}</span>
-                    </span>
-                  </td>
-                  <td><span *ngFor="let obj of item?.verbs">{{obj}}<br></span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div> -->
-
+    <kc-metadata-template [data]="data.metadata" [openState]="true"></kc-metadata-template>
+    
     <mat-accordion class="acc-table-accordion ltSm:responsive mt-6">
       <mat-expansion-panel>
         <mat-expansion-panel-header class="info-table-row">

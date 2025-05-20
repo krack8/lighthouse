@@ -116,9 +116,7 @@ export class K8sClusterRoleListComponent implements OnInit, OnDestroy {
     dialog.componentInstance.applyManifestFor = 'cluster-role';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getClusterRoleList();
-        }
+        this.getClusterRoleList();
       }
     });
   }
@@ -177,6 +175,8 @@ export class K8sClusterRoleListComponent implements OnInit, OnDestroy {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -200,9 +200,7 @@ export class K8sClusterRoleListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getClusterRoleList();
-        }
+        this.getClusterRoleList();
       }
     });
   }

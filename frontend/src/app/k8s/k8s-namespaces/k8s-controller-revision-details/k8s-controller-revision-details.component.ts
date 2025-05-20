@@ -92,7 +92,7 @@ export class K8sControllerRevisionDetailsComponent implements OnInit {
       disableClose: true
     });
     dialog.componentInstance.isEditMode = true;
-    dialog.componentInstance.applyManifestFor = 'config-map';
+    dialog.componentInstance.applyManifestFor = 'controller-revision';
 
     const metaTemp: { [key: string]: any } = {};
     metaTemp.name = item.metadata.name;
@@ -109,7 +109,8 @@ export class K8sControllerRevisionDetailsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
-
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
     if (item.spec) {
       preInputData.spec = item.spec;
@@ -130,9 +131,7 @@ export class K8sControllerRevisionDetailsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

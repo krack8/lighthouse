@@ -27,6 +27,11 @@ func CronJobService() *cronJobService {
 	return &cjs
 }
 
+const (
+	CronjobApiVersion = "batch/v1"
+	CronjobKind       = "CronJob"
+)
+
 type OutputCronJobList struct {
 	Result    []batchv1.CronJob
 	Resource  string
@@ -154,12 +159,22 @@ func (p *GetCronJobListInputParams) Process() error {
 	return nil
 }
 
+func (p *GetCronJobListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].Status.Active = nil
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = CronjobApiVersion
+		p.output.Result[i].TypeMeta.Kind = CronjobKind
+	}
+	return nil
+}
+
 func (svc *cronJobService) GetCronJobList(c context.Context, p GetCronJobListInputParams) (interface{}, error) {
 	err := p.Process()
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -175,6 +190,9 @@ func (p *GetCronJobInputParams) Process() error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = CronjobApiVersion
+	p.output.Kind = CronjobKind
 	return nil
 }
 

@@ -321,9 +321,7 @@ export class K8sPodsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'pods';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -378,6 +376,8 @@ export class K8sPodsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -387,9 +387,7 @@ export class K8sPodsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

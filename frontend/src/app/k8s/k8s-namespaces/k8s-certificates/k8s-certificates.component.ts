@@ -105,9 +105,7 @@ export class K8sCertificatesComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'certificates';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -166,6 +164,8 @@ export class K8sCertificatesComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -176,9 +176,7 @@ export class K8sCertificatesComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

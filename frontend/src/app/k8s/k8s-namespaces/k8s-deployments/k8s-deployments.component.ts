@@ -138,9 +138,7 @@ export class K8sDeploymentsComponent implements OnInit, OnDestroy {
     dialog.componentInstance.applyManifestFor = 'deployments';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -195,6 +193,8 @@ export class K8sDeploymentsComponent implements OnInit, OnDestroy {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -205,9 +205,7 @@ export class K8sDeploymentsComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

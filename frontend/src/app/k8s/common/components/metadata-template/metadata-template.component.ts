@@ -13,8 +13,13 @@ import { ExpansionDataViewerTemplateComponent } from '../expansion-data-viewer-t
 })
 export class MetadataTemplateComponent implements OnInit {
   @Input() data: any;
+  @Input() openState: boolean;
   panelOpenState: boolean;
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.openState) {
+      this.panelOpenState = this.openState;
+    }
+  }
 }

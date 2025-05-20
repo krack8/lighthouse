@@ -29,6 +29,11 @@ func NamespaceService() *namespaceService {
 	return &nss
 }
 
+const (
+	NamespaceApiVersion = "v1"
+	NamespaceKind       = "Namespace"
+)
+
 func (p *GetNamespaceInputParams) setClient() {
 	p.Client = GetKubeClientSet().CoreV1().Namespaces()
 }
@@ -43,11 +48,6 @@ func (p *GetNamespaceListInputParams) removeNamespaceListFields() interface{} {
 		namespaceList[idx].ManagedFields = nil
 	}
 	return namespaceList
-}
-
-func removeNamespaceFields(namespace corev1.Namespace) corev1.Namespace {
-	namespace.ManagedFields = nil
-	return namespace
 }
 
 type OutputNamespaceList struct {
@@ -164,12 +164,21 @@ func (p *GetNamespaceListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetNamespaceListInputParams) PostProcess(ctx context.Context) error {
+	for idx, _ := range p.output.Result.([]corev1.Namespace) {
+		p.output.Result.([]corev1.Namespace)[idx].ManagedFields = nil
+		p.output.Result.([]corev1.Namespace)[idx].APIVersion = NamespaceApiVersion
+		p.output.Result.([]corev1.Namespace)[idx].Kind = NamespaceKind
+	}
+	return nil
+}
+
 func (namespace *namespaceService) GetNamespaceList(c context.Context, p GetNamespaceListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-	p.output.Result = p.removeNamespaceListFields()
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -228,6 +237,8 @@ func (p *GetNamespaceInputParams) Process(c context.Context) error {
 	}
 	output.ManagedFields = nil
 	p.output = *output
+	p.output.APIVersion = NamespaceApiVersion
+	p.output.Kind = NamespaceKind
 	return nil
 }
 
@@ -236,7 +247,6 @@ func (namespace *namespaceService) GetNamespaceDetails(c context.Context, p GetN
 	if err != nil {
 		return nil, err
 	}
-	p.output = removeNamespaceFields(p.output)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,

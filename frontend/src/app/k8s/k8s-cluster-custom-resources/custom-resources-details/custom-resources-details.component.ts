@@ -155,9 +155,7 @@ export class CustomResourcesDetailsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getDetails();
-        }
+        this.getDetails();
       }
     });
   }

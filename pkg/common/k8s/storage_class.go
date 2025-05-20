@@ -27,6 +27,11 @@ func StorageClassService() *storageClassService {
 	return &scs
 }
 
+const (
+	StorageClassApiVersion = "storage.k8s.io/v1"
+	StorageClassKind       = "StorageClass"
+)
+
 type OutputStorageClassList struct {
 	Result    []storagev1.StorageClass
 	Resource  string
@@ -148,12 +153,21 @@ func (p *GetStorageClassListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetStorageClassListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = StorageClassApiVersion
+		p.output.Result[i].TypeMeta.Kind = StorageClassKind
+	}
+	return nil
+}
+
 func (svc *storageClassService) GetStorageClassList(c context.Context, p GetStorageClassListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -174,6 +188,9 @@ func (p *GetStorageClassDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = StorageClassApiVersion
+	p.output.Kind = StorageClassKind
 	return nil
 }
 

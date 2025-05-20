@@ -105,9 +105,7 @@ export class K8sEndpointSliceComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'endpoint-slice';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -172,9 +170,7 @@ export class K8sEndpointSliceComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

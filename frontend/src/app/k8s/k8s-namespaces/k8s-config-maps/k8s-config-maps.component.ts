@@ -105,9 +105,7 @@ export class K8sConfigMapsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'config-map';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -166,7 +164,8 @@ export class K8sConfigMapsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
-
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
     if (item.spec) {
       preInputData.spec = item.spec;
@@ -187,9 +186,7 @@ export class K8sConfigMapsComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

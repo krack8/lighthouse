@@ -27,6 +27,11 @@ func ConfigMapService() *configMapService {
 	return &cms
 }
 
+const (
+	ConfigMapApiVersion = "v1"
+	ConfigMapKind       = "ConfigMap"
+)
+
 func getConfigMapClient(namespace string) v1.ConfigMapInterface {
 	return GetKubeClientSet().CoreV1().ConfigMaps(namespace)
 }
@@ -152,12 +157,21 @@ func (p *GetConfigMapListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetConfigMapListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = ConfigMapApiVersion
+		p.output.Result[i].TypeMeta.Kind = ConfigMapKind
+	}
+	return nil
+}
+
 func (svc *configMapService) GetConfigMapList(c context.Context, p GetConfigMapListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -186,6 +200,9 @@ func (p *GetConfigMapDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ConfigMapApiVersion
+	p.output.Kind = ConfigMapKind
 	return nil
 }
 
