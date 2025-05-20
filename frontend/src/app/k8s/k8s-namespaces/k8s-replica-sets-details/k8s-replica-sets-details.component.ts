@@ -111,7 +111,8 @@ export class K8sReplicaSetsDetailsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
-
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {

@@ -150,13 +150,33 @@ export class K8sPodDisruptionBudgetsComponent implements OnInit {
     });
     dialog.componentInstance.isEditMode = true;
     dialog.componentInstance.applyManifestFor = 'pdb';
-    const preInputData: { [key: string]: any } = item;
-    if (item.status) {
-      delete preInputData.status;
+
+    const metaTemp: { [key: string]: any } = {};
+    metaTemp.name = item.metadata.name;
+    metaTemp.namespace = item.metadata.namespace;
+    metaTemp.uid = item.metadata.uid;
+    if (item.metadata.selfLink) {
+      metaTemp.selfLink = item.metadata.selfLink;
     }
-    if (preInputData.metadata.managedFields) {
-      delete preInputData.metadata.managedFields;
+    if (item.metadata.labels) {
+      metaTemp.labels = item.metadata.labels;
     }
+    if (item.metadata.annotations) {
+      metaTemp.annotations = item.metadata.annotations;
+    }
+
+    const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
+    preInputData.metadata = metaTemp;
+    if (item.spec) {
+      preInputData.spec = item.spec;
+    }
+    if (item.data) {
+      preInputData.data = item.data;
+    }
+
+    dialog.componentInstance.preInputData = preInputData;
 
     dialog.componentInstance.payload = {
       name: item.metadata.name,

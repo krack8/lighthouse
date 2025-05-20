@@ -106,6 +106,8 @@ export class K8sClusterRoleBindingDetailsComponent implements OnInit {
     }
 
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {

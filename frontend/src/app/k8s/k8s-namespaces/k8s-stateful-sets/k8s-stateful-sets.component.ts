@@ -186,6 +186,8 @@ export class K8sStatefulSetsComponent implements OnInit {
       metaTemp.annotations = item.metadata.annotations;
     }
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
