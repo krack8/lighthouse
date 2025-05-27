@@ -17,7 +17,7 @@ const childrenRoutes: Route[] = [
     }
   },
   {
-    path: 'clusters/:clusterId/k8s',
+    path: ':clusterId/k8s',
     loadChildren: () => import('./k8s/k8s.module').then(m => m.K8sModule),
     data: {
       featureName: 'k8s'
