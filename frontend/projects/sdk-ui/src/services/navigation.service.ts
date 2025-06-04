@@ -62,7 +62,6 @@ export class NavigationService {
           replaceClusterId(item, ':clusterId', clusterId);
         }
       });
-      console.log('NavigationService: initializeClusterId', items);
     });
 
     return items;

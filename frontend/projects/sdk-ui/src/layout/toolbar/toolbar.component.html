@@ -23,6 +23,13 @@
 
   <span fxFlex></span>
 
+  <mat-form-field *ngIf="clusterChangeToggleVisibilty" class="mt-2" appearance="none">
+    <mat-label>cluster</mat-label>
+    <mat-select (selectionChange)="onChangeCluster()" [(ngModel)]="selectedCluster">
+      <mat-option *ngFor="let cluster of clusterList" [disabled]="!cluster.is_active" [value]="cluster.id">{{cluster.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
   <kc-toolbar-user class="_user__btn"></kc-toolbar-user>
 </div>
 

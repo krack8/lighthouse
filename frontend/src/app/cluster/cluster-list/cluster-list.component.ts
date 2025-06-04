@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import icCircle from '@iconify/icons-ic/twotone-lens';
 import { PermissionService, RequesterService } from '@core-ui/services';
 import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
+import data from '@iconify/icons-ic/twotone-add';
 
 enum View {
   GRID = 'grid',
@@ -54,7 +55,7 @@ export class ClusterListComponent implements OnInit {
 
   getCluster(): void {
     this.dataLoading = true;
-    this.clusterService.getClusters().subscribe({
+    this.clusterService.clusterList$.subscribe({
       next: data => {
         this.clusterList = data || [];
         // setting default cluster route for the side nav // one more condition may add in the future where user can select default cluster therefore condition will be to check if default cluster is selected        
@@ -76,7 +77,7 @@ export class ClusterListComponent implements OnInit {
         this.serverError = true;
         this.toastrService.error(err.message, 'ERROR');
       }
-    });
+  });
   }
 
   changeView(): void {

@@ -16,6 +16,9 @@ import { ToolbarComponent } from './toolbar.component';
 import { ToolbarUserModule } from './toolbar-user/toolbar-user.module';
 import { NavigationModule } from '../navigation/navigation.module';
 import { NavigationItemModule } from '../navigation-item/navigation-item.module';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [ToolbarComponent],
@@ -34,8 +37,12 @@ import { NavigationItemModule } from '../navigation-item/navigation-item.module'
     NavigationItemModule,
     ContainerModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule
   ],
-  exports: [ToolbarComponent]
+  exports: [ToolbarComponent],
+
 })
 export class ToolbarModule {}
