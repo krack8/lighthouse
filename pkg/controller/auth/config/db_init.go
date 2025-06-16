@@ -237,6 +237,7 @@ func InitializeClusters() {
 				Token:                    agentToken,
 				Status:                   enum.VALID,
 				ClusterStatus:            enum.PENDING,
+				DefaultCluster:           true,
 				ControllerGrpcServerHost: controllerGrpcServerHost,
 				CreatedBy:                string(enum.SYSTEM),
 				UpdatedBy:                string(enum.SYSTEM),

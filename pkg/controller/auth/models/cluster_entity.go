@@ -15,6 +15,7 @@ type Cluster struct {
 	ControllerGrpcServerHost string             `json:"controller_grpc_server_host" bson:"controller_grpc_server_host"`
 	IsActive                 bool               `json:"is_active" bson:"is_active"`
 	Details                  interface{}        `json:"details" bson:"details"`
+	DefaultCluster           bool               `json:"default_cluster" bson:"default_cluster"`
 	Status                   enum.Status        `json:"status" bson:"status"`
 	ClusterStatus            enum.ClusterStatus `json:"cluster_status" bson:"cluster_status"`
 	CreatedAt                time.Time          `json:"created_at" bson:"created_at"`

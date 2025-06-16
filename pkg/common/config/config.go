@@ -25,6 +25,7 @@ var AgentGroup string
 var ControllerGrpcServerHost string
 var AgentSecretName string
 var ResourceNamespace string
+var HelmChartVersion string
 
 func InitEnvironmentVariables(filenames ...string) {
 	RunMode = os.Getenv("RUN_MODE")
@@ -68,6 +69,7 @@ func InitEnvironmentVariables(filenames ...string) {
 	ControllerGrpcServerHost = os.Getenv("CONTROLLER_GRPC_SERVER_HOST")
 	AgentSecretName = os.Getenv("AGENT_SECRET_NAME")
 	ResourceNamespace = os.Getenv("RESOURCE_NAMESPACE")
+	HelmChartVersion = os.Getenv("HELM_CHART_VERSION")
 	if os.Getenv("SERVER_PORT") != "" {
 		ServerPort = os.Getenv("SERVER_PORT")
 	}

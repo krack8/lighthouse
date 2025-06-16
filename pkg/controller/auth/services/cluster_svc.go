@@ -253,7 +253,7 @@ func (s *ClusterService) DeleteClusterByID(clusterId string) error {
 // UpdateUser updates a cluster by ID
 func (s *ClusterService) RenameCluster(userID string, updatedUser *models.Cluster) error {
 	if updatedUser == nil {
-		return errors.New("renamed cluster cannot be nil")
+		return errors.New("input cannot be nil")
 	}
 
 	objectID, err := primitive.ObjectIDFromHex(userID)
@@ -277,6 +277,32 @@ func (s *ClusterService) RenameCluster(userID string, updatedUser *models.Cluste
 
 	if updatedUser.Name != "" {
 		updateFields["name"] = updatedUser.Name
+	}
+
+	if updatedUser.DefaultCluster == true {
+		filter := bson.M{"status": enum.VALID}
+
+		cursor, err := db.ClusterCollection.Find(context.Background(), filter)
+		if err != nil {
+			return fmt.Errorf("failed to fetch valid clusters: %w", err)
+		}
+		defer cursor.Close(context.Background())
+
+		var clusters []models.Cluster
+		if err = cursor.All(context.Background(), &clusters); err != nil {
+			return fmt.Errorf("failed to decode clusters: %w", err)
+		}
+
+		for _, cluster := range clusters {
+			update := bson.M{
+				"$set": bson.M{"default_cluster": false},
+			}
+			_, err := db.ClusterCollection.UpdateByID(context.Background(), cluster.ID, update)
+			if err != nil {
+				return fmt.Errorf("failed to update cluster %v: %w", cluster.ID, err)
+			}
+		}
+		updateFields["default_cluster"] = updatedUser.DefaultCluster
 	}
 
 	// Always update the UpdatedAt timestamp
