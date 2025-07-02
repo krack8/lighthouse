@@ -16,8 +16,10 @@ export class K8sResolver implements Resolve<any> {
   ) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
-    console.log('selected cluster id: ', this.selectedClusterService.defaultClusterId);
-    return this.clusterService.getCluster(route.params['clusterId'] === ':clusterId'? this.selectedClusterService.defaultClusterId : route.params['clusterId']).pipe(
+    if(route.params['clusterId']){
+      this.selectedClusterService.setSelectedClusterId(route.params['clusterId']);
+    }
+    return this.clusterService.getCluster(route.params['clusterId']).pipe(
       catchError(err => {
         this.toastr.error(err['message'], 'Not Exist');
         this.router.navigate(['/clusters']);

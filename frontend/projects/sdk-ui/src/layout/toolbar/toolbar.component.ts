@@ -78,9 +78,10 @@ export class ToolbarComponent implements OnInit {
   }
 
   onChangeCluster() {
-    const url = '/' + this.selectedCluster + '/k8s/node-list'
+    let urlSegments = window.location.href.split('/');
+    urlSegments[3] = this.selectedCluster;
+    const newUrl = '/' + urlSegments[3] + '/' + urlSegments[4] + '/' + urlSegments[5]  
     this.k8sService.changeClusterId(this.selectedCluster);
-    this.k8sService.changeClusterId(this.selectedCluster);
-    this.router.navigate([url]);
+    this.router.navigate([newUrl], {} );
   }
 }

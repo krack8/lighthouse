@@ -37,7 +37,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     type: 'dropdown',
     label: 'Workloads',
     icon: icApps,
-    id: 'Workloads',
+    id: 'workloads',
     children: [
       {
         type: 'link',
@@ -93,7 +93,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     type: 'dropdown',
     label: 'Storage',
     icon: icStorage,
-    id: 'Workloads',
+    id: 'storage',
     children: [
       {
         type: 'link',
@@ -123,7 +123,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     type: 'dropdown',
     label: 'Network',
     icon: icLan,
-    id: 'Workloads',
+    id: 'network',
     children: [
       {
         type: 'link',
@@ -171,7 +171,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     type: 'dropdown',
     label: 'Security',
     icon: icSecurity,
-    id: 'Workloads',
+    id: 'security',
     children: [
       {
         type: 'link',
@@ -217,7 +217,7 @@ export const SIDENAV_LIST: SidenavLink[] = [
     type: 'dropdown',
     label: 'Configurations',
     icon: icSettings,
-    id: 'Workloads',
+    id: 'configurations',
     children: [
       {
         type: 'link',

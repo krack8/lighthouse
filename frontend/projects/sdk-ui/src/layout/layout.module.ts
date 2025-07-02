@@ -11,6 +11,7 @@ import { ToolbarModule } from './toolbar/toolbar.module';
 import { ProgressBarModule } from '@sdk-ui/ui';
 import { ClusterService } from '@cluster/cluster.service';
 import { K8sService } from '@k8s/k8s.service';
+import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
 
 @NgModule({
   declarations: [LayoutComponent],
@@ -25,6 +26,6 @@ import { K8sService } from '@k8s/k8s.service';
     ToolbarModule,
     ProgressBarModule
   ],
-  providers: [ClusterService, K8sService],
+  providers: [ClusterService, K8sService, SelectedClusterService],
 })
 export class LayoutModule {}

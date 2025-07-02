@@ -109,19 +109,25 @@ export class NodeDetailsComponent implements OnInit {
       next: data => {
         if (data?.status === 'success') {
           this.details = data.data?.Result;
-          this.metrics = data.data?.Metrics;
+          if (data?.data?.Metrics && data?.data?.Metrics !== null) {
+            this.metrics = data.data?.Metrics;
 
-          this.graphStats = {
-            deployed_pod_count: data.data?.deployed_pod_count,
-            pod_capacity: Number(this.details?.status?.capacity?.pods),
-            node_cpu_allocatable: this.convertCpuValueToBase(this.details?.status?.allocatable?.cpu),
-            node_cpu_capacity: Number(this.details?.status?.capacity?.cpu),
-            node_cpu_usage: this.convertCpuValueToBase(this.metrics?.usage?.cpu),
-            node_memory_allocatable: this.convertKbToGigabyte(this.details?.status?.allocatable?.memory),
-            node_memory_capacity: this.convertKbToGigabyte(this.details?.status?.capacity?.memory),
-            node_memory_usage: this.convertKbToGigabyte(this.metrics?.usage?.memory)
+            this.graphStats = {
+              deployed_pod_count: data.data?.deployed_pod_count,
+              pod_capacity: Number(this.details?.status?.capacity?.pods),
+              node_cpu_allocatable: this.convertCpuValueToBase(this.details?.status?.allocatable?.cpu),
+              node_cpu_capacity: Number(this.details?.status?.capacity?.cpu),
+              node_cpu_usage: this.convertCpuValueToBase(this.metrics?.usage?.cpu),
+              node_memory_allocatable: this.convertKbToGigabyte(this.details?.status?.allocatable?.memory),
+              node_memory_capacity: this.convertKbToGigabyte(this.details?.status?.capacity?.memory),
+              node_memory_usage: this.convertKbToGigabyte(this.metrics?.usage?.memory)
+            }
+
+            this.initChart();
           }
-          this.initChart();
+          
+          this.isLoading = false;
+
         } else {
           this.isLoading = false;
         }

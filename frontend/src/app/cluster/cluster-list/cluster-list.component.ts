@@ -65,6 +65,7 @@ export class ClusterListComponent implements OnInit {
               this.selectedClusterService.saveDefaultCluster({
                 defaultClusterId: cluster.id
               });
+              this.selectedClusterService.setSelectedClusterId(cluster.id);
               break;
             }
         }
@@ -90,7 +91,7 @@ export class ClusterListComponent implements OnInit {
 
   routeToDetails(cluster?: ICluster): void {
     if (cluster && cluster.is_active) {
-      this.router.navigate([cluster?.id, 'k8s', this.k8sRoute]);
+      this.router.navigate([cluster.id, 'k8s', this.k8sRoute]);
       return;
     }
 

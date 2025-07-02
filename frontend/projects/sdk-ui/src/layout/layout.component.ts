@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit,
 import { DOCUMENT } from '@angular/common';
 import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { NavigationEnd, Router, Scroll } from '@angular/router';
-import { filter, map, startWith, take, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, startWith, take, takeUntil } from 'rxjs/operators';
 import { Subject, combineLatest } from 'rxjs';
 import { MediaObserver } from '@angular/flex-layout';
 import { checkRouterChildsData } from '@sdk-ui/utils';
@@ -10,6 +10,7 @@ import { PermissionService, RequesterService } from '@core-ui/services';
 import { LayoutService, NavigationService } from '@sdk-ui/services';
 import { SidenavLink } from '@sdk-ui/interfaces';
 import { SdkConfigService } from '@sdk-ui/services';
+import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
 
 const layoutBreakpoint = 'lt-lg';
 const USER_ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
@@ -58,6 +59,7 @@ export class LayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     private navigationService: NavigationService,
     private router: Router,
     private sdkConfigService: SdkConfigService,
+    private selectedClusterService: SelectedClusterService,
     @Inject(DOCUMENT) private document: Document
   ) {
     // Check user is authentication
@@ -74,10 +76,11 @@ export class LayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     // Sidenav Items
     combineLatest([
       this.requesterService.userData$.pipe(takeUntil(this._destroy$)),
-      this.permissionSvc.userPermissions$.pipe(takeUntil(this._destroy$))
+      this.permissionSvc.userPermissions$.pipe(takeUntil(this._destroy$)),
+      this.selectedClusterService.selectedClusterId$.pipe(takeUntil(this._destroy$), distinctUntilChanged())
     ])
       .pipe(takeUntil(this._destroy$))
-      .subscribe(([userData, permissions]) => {
+      .subscribe(([userData, permissions, clusterId ]) => {
         if (userData === null) {
           if (this.userPermissions?.length) {
             this.userPermissions = [];
@@ -88,11 +91,11 @@ export class LayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // When user is authenticated
         const isAdmin = USER_ADMIN_ROLES.includes(userData?.userInfo?.user_type);
         if (isAdmin) {
-          this.navigationService.loadItems(sidenavList);
+          this.navigationService.loadItems(this.updateClusterId(sidenavList));
         } else {
           this.userPermissions = permissions;
           const newSidenavList = sidenavList.map(item => this._checkSidenavLinkPermission(item)).filter(Boolean);
-          this.navigationService.loadItems(newSidenavList);
+          this.navigationService.loadItems(this.updateClusterId(newSidenavList));
         }
       });
   }
@@ -206,4 +209,22 @@ export class LayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     return item.permissionName.some((_perm: string) => this.userPermissions.includes(_perm)) ? item : null;
   }
+
+    updateClusterId(items: SidenavLink[]): SidenavLink[] {
+      const replaceClusterId = (navItem: SidenavLink, replace: string = this.selectedClusterService.selectedClusterId) => {
+        if (navItem.route ) {
+          const routeParts = navItem.route.split('/');
+          if (routeParts.length > 2 && routeParts[2] === 'k8s') {
+            navItem.route = navItem.route.replace(routeParts[1], replace);
+          }
+        }``
+        if (navItem.children) {
+          navItem.children.forEach(child => replaceClusterId(child, replace));
+        }
+      };
+      items.forEach(item => {
+        replaceClusterId(item);
+      });
+      return items;
+    }
 }
