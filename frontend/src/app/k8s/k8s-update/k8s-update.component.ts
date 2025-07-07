@@ -124,6 +124,11 @@ export class K8sUpdateComponent implements OnInit {
     switch (this.applyManifestFor) {
       case 'all':
         if (payload?.kind) {
+          if (payload.kind === 'Node' || payload.kind === 'node') {
+            this.toastrService.warn('Node creation via manifest is not allowed.');
+            this.isSubmitting = false;
+            return;
+          }
           apiObservable = this.k8sService.applyManifest(payload, this.applyManifestFor);
         } else {
           this.toastrService.error('Kind needs to be specified properly');

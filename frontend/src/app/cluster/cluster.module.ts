@@ -81,6 +81,6 @@ const matModules = [
     CdkIconModule,
     CdkHintModule
   ],
-  providers: [ClusterService, ClusterResolver]
+  providers: [ClusterResolver]
 })
 export class ClusterModule {}

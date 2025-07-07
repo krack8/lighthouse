@@ -13,6 +13,7 @@ export type SidenavLink = {
     color: CSSVariable;
   };
   route?: string;
+  queryParams?: Record<string, string | number>;
   routerLinkActive?: { exact: boolean };
   icon?: Icon;
   children?: SidenavLink[];

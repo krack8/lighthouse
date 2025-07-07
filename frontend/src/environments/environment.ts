@@ -1,4 +1,4 @@
-const LIGHTHOUSE_API_ENDPOINT = 'http://localhost:8080';
+const LIGHTHOUSE_API_ENDPOINT = 'http://localhost:8082';
 
 export const environment = {
   production: false,

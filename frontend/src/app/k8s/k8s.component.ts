@@ -16,6 +16,8 @@ import { SecureDeleteDialogComponent } from '@shared-ui/ui';
 import { ClusterService } from '@cluster/cluster.service';
 import { ToastrService } from '@sdk-ui/ui';
 import { ClusterRenameDialogComponent } from '@cluster/cluster-rename-dialog/cluster-rename-dialog.component';
+import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
+import { Subject, Subscription } from 'rxjs';
 
 interface IBreadcrumb {
   label: string;
@@ -31,6 +33,7 @@ interface IBreadcrumb {
   styleUrls: ['./k8s.component.scss']
 })
 export class K8sComponent implements OnInit, OnDestroy {
+  private clusterInfoSubscription!: Subscription;
   icAdd = icAdd;
   icDown = icDown;
   icKeyboardBackspace = icKeyboardBackspace;
@@ -55,7 +58,8 @@ export class K8sComponent implements OnInit, OnDestroy {
     public dialog: MatDialog,
     private _clusterService: ClusterService,
     private toastr: ToastrService,
-    private _router: Router
+    private _router: Router,
+    private selectedClusterService: SelectedClusterService,
   ) {
     this.router.events
       .pipe(
@@ -76,12 +80,20 @@ export class K8sComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._k8sService.changeClusterId(this.route.snapshot.params['clusterId']);
     this.getClusterId();
-    this.clusterData = this._k8sService.clusterInfoSnapshot;
+    this.clusterInfoSubscription = this._k8sService.clusterInfo$.subscribe((cluster) => {
+      if (cluster ) {
+          this.clusterData = this._k8sService.clusterInfoSnapshot;
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.isAlive = false;
     this._k8sService.changeClusterId('');
+    this.selectedClusterService.setSelectedClusterId(this.selectedClusterService.defaultClusterId); 
+    if (this.clusterInfoSubscription) {
+      this.clusterInfoSubscription.unsubscribe();
+    }
   }
 
   // GET CLUSTER ID FROM Query Params or API
