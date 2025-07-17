@@ -1200,6 +1200,36 @@ func TaskSelector(task *pb.Task) (interface{}, error) {
 			return nil, err
 		}
 		return res, nil
+	case k8s2.DeployNetworkPolicyInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s2.DeployNetworkPolicyInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	case k8s2.DeleteNetworkPolicyInputParams:
+		logTaskStarted(task)
+		err = json.Unmarshal([]byte(task.Input), &input)
+		if err != nil {
+			return nil, err
+		}
+		execute, exists := newTask.TaskFunc.(func(context.Context, k8s2.DeleteNetworkPolicyInputParams) (interface{}, error))
+		if !exists {
+			return nil, ErrTaskNotFound
+		}
+		res, err = execute(context.Background(), input)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
 		//node
 	case k8s2.GetNodeListInputParams:
 		logTaskStarted(task)

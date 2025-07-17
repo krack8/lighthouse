@@ -39,6 +39,10 @@ func (ctrl *manifestController) DeployManifest(ctx *gin.Context) {
 		log.Logger.Errorw("kind required in query param", "value", "manifest")
 		SendErrorResponse(ctx, "kind required in query")
 		return
+	} else if kind == "Node" {
+		log.Logger.Errorw("kind node is not allowed", "value", "manifest")
+		SendErrorResponse(ctx, "kind node is not allowed")
+		return
 	}
 	clusterGroup := ctx.Query("cluster_id")
 	if clusterGroup == "" {

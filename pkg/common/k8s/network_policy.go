@@ -15,6 +15,8 @@ import (
 type NetworkPolicyServiceInterface interface {
 	GetNetworkPolicyList(c context.Context, p GetNetworkPolicyListInputParams) (interface{}, error)
 	GetNetworkPolicyDetails(c context.Context, p GetNetworkPolicyDetailsInputParams) (interface{}, error)
+	DeployNetworkPolicy(c context.Context, p DeployNetworkPolicyInputParams) (interface{}, error)
+	DeleteNetworkPolicy(c context.Context, p DeleteNetworkPolicyInputParams) (interface{}, error)
 }
 
 type networkPolicyService struct{}
@@ -202,5 +204,88 @@ func (svc *networkPolicyService) GetNetworkPolicyDetails(c context.Context, p Ge
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
+	}, nil
+}
+
+type DeployNetworkPolicyInputParams struct {
+	NetworkPolicy *networkingv1.NetworkPolicy
+	output        *networkingv1.NetworkPolicy
+}
+
+func (p *DeployNetworkPolicyInputParams) PostProcess(c context.Context) error {
+	p.output.ManagedFields = nil
+	return nil
+}
+
+func (p *DeployNetworkPolicyInputParams) Process(c context.Context) error {
+	networkPolicyClient := GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NetworkPolicy.Namespace)
+	returnedNetworkPolicy, err := networkPolicyClient.Get(context.Background(), p.NetworkPolicy.Name, metav1.GetOptions{})
+	if err != nil {
+		log.Logger.Infow("Creating networkPolicy in namespace "+p.NetworkPolicy.Namespace, "value", p.NetworkPolicy.Name)
+		p.output, err = networkPolicyClient.Create(context.Background(), p.NetworkPolicy, metav1.CreateOptions{})
+		if err != nil {
+			log.Logger.Errorw("failed to create networkPolicy in namespace "+p.NetworkPolicy.Namespace, "err", err.Error())
+			return err
+		}
+		log.Logger.Infow("networkPolicy created")
+	} else {
+		log.Logger.Infow("NetworkPolicy exist in namespace "+p.NetworkPolicy.Namespace, "value", p.NetworkPolicy.Name)
+		log.Logger.Infow("Updating networkPolicy in namespace "+p.NetworkPolicy.Namespace, "value", p.NetworkPolicy.Name)
+		p.NetworkPolicy.SetResourceVersion(returnedNetworkPolicy.ResourceVersion)
+		p.output, err = networkPolicyClient.Update(context.Background(), p.NetworkPolicy, metav1.UpdateOptions{})
+		if err != nil {
+			log.Logger.Errorw("failed to update networkPolicy ", p.NetworkPolicy.Name, "err", err.Error())
+			return err
+		}
+		log.Logger.Infow("networkPolicy updated")
+	}
+	return nil
+}
+
+func (svc *networkPolicyService) DeployNetworkPolicy(c context.Context, p DeployNetworkPolicyInputParams) (interface{}, error) {
+	err := p.Process(c)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = p.PostProcess(c)
+
+	return ResponseDTO{
+		Status: "success",
+		Data:   p.output,
+	}, nil
+}
+
+type DeleteNetworkPolicyInputParams struct {
+	NamespaceName     string
+	NetworkPolicyName string
+}
+
+func (p *DeleteNetworkPolicyInputParams) Process(c context.Context) error {
+	log.Logger.Debugw("deleting networkPolicy of ....", p.NamespaceName)
+	networkPolicyClient := GetKubeClientSet().NetworkingV1().NetworkPolicies(p.NamespaceName)
+	_, err := networkPolicyClient.Get(context.Background(), p.NetworkPolicyName, metav1.GetOptions{})
+	if err != nil {
+		log.Logger.Errorw("get networkPolicy ", p.NetworkPolicyName, "err", err.Error())
+		return err
+	}
+	var grace int64 = 1
+	err = networkPolicyClient.Delete(context.Background(), p.NetworkPolicyName, metav1.DeleteOptions{GracePeriodSeconds: &grace})
+	if err != nil {
+		log.Logger.Errorw("Failed to delete networkPolicy ", p.NetworkPolicyName, "err", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (svc *networkPolicyService) DeleteNetworkPolicy(c context.Context, p DeleteNetworkPolicyInputParams) (interface{}, error) {
+	err := p.Process(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return ResponseDTO{
+		Status: "success",
+		Data:   nil,
 	}, nil
 }

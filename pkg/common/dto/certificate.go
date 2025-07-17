@@ -114,6 +114,7 @@ func (config *Certificate) GenerateUnstructured() *unstructured.Unstructured {
 			"metadata": map[string]interface{}{
 				"name":      config.Name,
 				"namespace": config.Namespace,
+				"labels":    config.Labels,
 			},
 			"spec": map[string]interface{}{
 				"dnsNames":   config.Spec.DNSNames,
