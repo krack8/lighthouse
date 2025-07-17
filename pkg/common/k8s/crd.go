@@ -89,9 +89,7 @@ func (p *GetCrdListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: config.PageLimit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var crdList *v1.CustomResourceDefinitionList

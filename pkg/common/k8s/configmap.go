@@ -109,9 +109,7 @@ func (p *GetConfigMapListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var configMapList *corev1.ConfigMapList

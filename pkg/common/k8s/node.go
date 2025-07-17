@@ -84,9 +84,7 @@ func (p *GetNodeListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	nodeList, err := nodesClient.List(context.Background(), listOptions)
 	if err != nil {
