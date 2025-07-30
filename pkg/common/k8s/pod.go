@@ -39,6 +39,8 @@ const (
 	PodLogBoolTrue     = "y"
 	PodLogBoolFalse    = "n"
 	TailLinesThreshold = int64(2500)
+	podApiVersion      = "v1"
+	podKind            = "Pod"
 )
 
 type OutputPodList struct {
@@ -115,7 +117,6 @@ func (p *GetPodListInputParams) Find(c context.Context, podClient _v1.PodInterfa
 func (p *GetPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pod list")
 	podClient := GetKubeClientSet().CoreV1().Pods(p.NamespaceName)
-
 	limit := config.PageLimit
 	if p.Limit != "" {
 		limit, _ = strconv.ParseInt(p.Limit, 10, 64)
@@ -123,9 +124,7 @@ func (p *GetPodListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var podList *corev1.PodList
@@ -170,12 +169,21 @@ func (p *GetPodListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetPodListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = podApiVersion
+		p.output.Result[i].Kind = podKind
+	}
+	return nil
+}
+
 func (svc *podService) GetPodList(c context.Context, p GetPodListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -214,6 +222,9 @@ func (p *GetPodDetailsInputParams) Process(c context.Context) error {
 		}
 	}
 	p.output.Result = *pod
+	p.output.Result.ManagedFields = nil
+	p.output.Result.APIVersion = podApiVersion
+	p.output.Result.Kind = podKind
 	return nil
 }
 
@@ -340,9 +351,7 @@ func (p *GetPodStatsInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	podList, err := podClient.List(context.Background(), listOptions)
 	if err != nil {

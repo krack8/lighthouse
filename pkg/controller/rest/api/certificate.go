@@ -67,10 +67,10 @@ func (ctrl *certificateController) GetCertificateList(ctx *gin.Context) {
 	}
 	taskName := tasks.GetTaskName(k8s2.CertificateService().GetCertificateList)
 	logRequestedTaskController("certificate", taskName)
-	core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroupName)
 	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
-		k8s2.SendErrorResponse(ctx, err.Error())
+		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
@@ -108,7 +108,8 @@ func (ctrl *certificateController) GetCertificateDetails(ctx *gin.Context) {
 	logRequestedTaskController("certificate", taskName)
 	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
-		k8s2.SendErrorResponse(ctx, err.Error())
+		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
@@ -144,11 +145,12 @@ func (ctrl *certificateController) DeployCertificate(ctx *gin.Context) {
 	if err != nil {
 		log.Logger.Errorw("unable to marshal DeployCertificate Task input ", "err", err.Error())
 	}
-	taskName := tasks.GetTaskName(k8s2.CertificateService().GetCertificateDetails)
+	taskName := tasks.GetTaskName(k8s2.CertificateService().DeployCertificate)
 	logRequestedTaskController("certificate", taskName)
 	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
-		k8s2.SendErrorResponse(ctx, err.Error())
+		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {
@@ -184,7 +186,8 @@ func (ctrl *certificateController) DeleteCertificate(ctx *gin.Context) {
 	logRequestedTaskController("certificate", taskName)
 	res, err := core.GetAgentManager().SendTaskToAgent(ctx, taskName, inputTask, clusterGroupName)
 	if err != nil {
-		k8s2.SendErrorResponse(ctx, err.Error())
+		SendErrorResponse(ctx, err.Error())
+		return
 	}
 	err = json.Unmarshal([]byte(res.Output), &result)
 	if err != nil {

@@ -105,9 +105,7 @@ export class K8sControllerRevisionComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'controller-revision';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -170,9 +168,7 @@ export class K8sControllerRevisionComponent implements OnInit {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

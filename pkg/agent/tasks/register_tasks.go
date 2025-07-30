@@ -123,6 +123,8 @@ func InitTaskRegistry() {
 	//networkPolicy
 	RegisterTask(k8s2.NetworkPolicyService().GetNetworkPolicyList, k8s2.GetNetworkPolicyListInputParams{})
 	RegisterTask(k8s2.NetworkPolicyService().GetNetworkPolicyDetails, k8s2.GetNetworkPolicyDetailsInputParams{})
+	RegisterTask(k8s2.NetworkPolicyService().DeployNetworkPolicy, k8s2.DeployNetworkPolicyInputParams{})
+	RegisterTask(k8s2.NetworkPolicyService().DeleteNetworkPolicy, k8s2.DeleteNetworkPolicyInputParams{})
 
 	//node
 	RegisterTask(k8s2.NodeService().GetNodeList, k8s2.GetNodeListInputParams{})

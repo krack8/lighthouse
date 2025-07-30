@@ -27,6 +27,11 @@ func VirtualServiceService() *virtualServiceService {
 	return &is
 }
 
+const (
+	VirtualServiceV1Beta1ApiVersion = "v1beta1"
+	VirtualServiceKind              = "VirtualService"
+)
+
 type OutputVirtualServiceList struct {
 	Result    []*v1beta1.VirtualService
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetVirtualServiceListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var virtualServiceList *v1beta1.VirtualServiceList
@@ -148,6 +151,15 @@ func (p *GetVirtualServiceListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetVirtualServiceListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = VirtualServiceV1Beta1ApiVersion
+		p.output.Result[i].TypeMeta.Kind = VirtualServiceKind
+	}
+	return nil
+}
+
 func (svc *virtualServiceService) GetVirtualServiceList(c context.Context, p GetVirtualServiceListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
@@ -174,6 +186,9 @@ func (p *GetVirtualServiceDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = VirtualServiceV1Beta1ApiVersion
+	p.output.Kind = VirtualServiceKind
 	return nil
 }
 

@@ -6,6 +6,7 @@ export type NavigationItem = any | any | any;
 export interface NavigationLink {
   type: 'link';
   route: string | any;
+  queryParams?: Record<string, string | number>;
   fragment?: string;
   label: string;
   icon?: Icon;

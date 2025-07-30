@@ -6,6 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { USER_ADMIN_ROLES } from '@core-ui/models';
 import { HttpService } from './http.service';
+import { SelectedClusterService } from './selected-cluster.service';
 
 const MC_USER_INFO = '/v1/users/profile';
 const MC_REFRESH_TOKEN = '/auth/refresh-token';
@@ -25,7 +26,8 @@ export class RequesterService {
   constructor(
     private httpService: HttpService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private selectedClusterService: SelectedClusterService
   ) {
     const loc = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (loc) {
@@ -72,6 +74,7 @@ export class RequesterService {
   clear() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     this.loadUserData(null);
+    this.selectedClusterService.clear(); // Clears selected cluster id
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }

@@ -9,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PageLayoutModule } from '@sdk-ui/ui/page-layout/page-layout.module';
-import { K8sService } from './k8s.service';
 import { ClusterService } from '../cluster/cluster.service';
 import { K8sResolver } from './k8s.resolver';
 import { K8sNamespacesService } from './k8s-namespaces/k8s-namespaces.service';
@@ -41,7 +40,6 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
     Ng2SearchPipeModule
   ],
   providers: [
-    K8sService,
     K8sResolver,
     ClusterService,
     K8sNamespacesService,

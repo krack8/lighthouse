@@ -22,6 +22,11 @@ func HpaService() *hpaService {
 	return &hpas
 }
 
+const (
+	HpaApiVersion = "autoscaling/v2"
+	HpaKind       = "HorizontalPodAutoscaler"
+)
+
 type GetHpaListInputParams struct {
 	NamespaceName string
 	Search        string
@@ -35,9 +40,7 @@ func (p *GetHpaListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	if p.Search != "" {
 		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
@@ -51,12 +54,21 @@ func (p *GetHpaListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetHpaListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output); i++ {
+		p.output[i].ManagedFields = nil
+		p.output[i].APIVersion = HpaApiVersion
+		p.output[i].Kind = HpaKind
+	}
+	return nil
+}
+
 func (svc *hpaService) GetHpaList(c context.Context, p GetHpaListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -78,6 +90,9 @@ func (p *GetHpaDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = HpaApiVersion
+	p.output.Kind = HpaKind
 	return nil
 }
 

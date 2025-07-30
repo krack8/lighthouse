@@ -145,3 +145,21 @@ a {
     @apply pl-8 ml-8;
   }
 }
+
+::ng-deep {
+  .cluster-selector-form {
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+    }
+
+    .mat-form-field-infix {
+      padding-top: 5px;
+      font-size: 13px;
+      width: 160px;
+    }
+
+    .mat-form-field-label {
+      font-size: 13px;
+    }
+  }
+}

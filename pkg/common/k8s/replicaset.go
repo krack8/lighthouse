@@ -27,6 +27,11 @@ func ReplicaSetService() *replicaSetService {
 	return &rss
 }
 
+const (
+	ReplicaSetApiVersion = "apps/v1"
+	ReplicaSetKind       = "ReplicaSet"
+)
+
 type OutputReplicaSetList struct {
 	Result    []appv1.ReplicaSet
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetReplicaSetListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var replicaSetList *appv1.ReplicaSetList
@@ -148,11 +151,22 @@ func (p *GetReplicaSetListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetReplicaSetListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ReplicaSetApiVersion
+		p.output.Result[i].Kind = ReplicaSetKind
+	}
+	return nil
+}
+
 func (svc *replicaSetService) GetReplicaSetList(c context.Context, p GetReplicaSetListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
+
+	_ = p.PostProcess(c)
 
 	return ResponseDTO{
 		Status: "success",
@@ -175,6 +189,9 @@ func (p *GetReplicaSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ReplicaSetApiVersion
+	p.output.Kind = ReplicaSetKind
 	return nil
 }
 

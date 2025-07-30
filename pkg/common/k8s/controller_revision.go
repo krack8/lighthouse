@@ -27,6 +27,11 @@ func ControllerRevisionService() *controllerRevisionService {
 	return &ctrlrs
 }
 
+const (
+	ControllerRevisionApiVersion = "apps/v1"
+	ControllerRevisionKind       = "ControllerRevision"
+)
+
 type OutputControllerRevisionList struct {
 	Result    []appsv1.ControllerRevision
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetControllerRevisionListInputParams) Process(c context.Context) error 
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var controllerRevisionList *appsv1.ControllerRevisionList
@@ -148,12 +151,21 @@ func (p *GetControllerRevisionListInputParams) Process(c context.Context) error 
 	return nil
 }
 
+func (p *GetControllerRevisionListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = ControllerRevisionApiVersion
+		p.output.Result[i].TypeMeta.Kind = ControllerRevisionKind
+	}
+	return nil
+}
+
 func (svc *controllerRevisionService) GetControllerRevisionList(c context.Context, p GetControllerRevisionListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -175,6 +187,9 @@ func (p *GetControllerRevisionDetailsInputParams) Process(c context.Context) err
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ControllerRevisionApiVersion
+	p.output.Kind = ControllerRevisionKind
 	return nil
 }
 

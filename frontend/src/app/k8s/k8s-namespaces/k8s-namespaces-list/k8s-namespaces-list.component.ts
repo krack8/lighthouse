@@ -213,10 +213,6 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
           res => {
             if (res.status === 'success') {
               this.toastr.success('Delete initiated');
-              setTimeout(() => {
-                console.log('called after 3 sec');
-                this.getNamespaces();
-              }, 6000);
               this.getNamespaces();
             }
           },
@@ -252,7 +248,8 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
     }
 
     const preInputData: { [key: string]: any } = {};
-
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -271,9 +268,7 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
 
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
-          this.getNamespaces();
-        }
+        this.getNamespaces();
       }
     });
   }

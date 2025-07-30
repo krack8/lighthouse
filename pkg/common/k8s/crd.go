@@ -29,6 +29,11 @@ func CrdService() *crdService {
 	return &cs
 }
 
+const (
+	CrdApiVersion = "v1"
+	CrdKind       = "CustomResourceDefinition"
+)
+
 type OutputCrdList struct {
 	CrdForList []types.CrdForList
 	Resource   string
@@ -84,9 +89,7 @@ func (p *GetCrdListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: config.PageLimit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var crdList *v1.CustomResourceDefinitionList
@@ -182,6 +185,8 @@ func (p *GetCrdDetailsInputParams) Process(c context.Context) error {
 	}
 	crd.ManagedFields = nil
 	p.output = crd
+	p.output.APIVersion = CrdApiVersion
+	p.output.Kind = CrdKind
 	return nil
 }
 

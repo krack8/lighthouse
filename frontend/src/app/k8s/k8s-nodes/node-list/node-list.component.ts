@@ -321,30 +321,43 @@ export class NodeListComponent implements OnInit, OnDestroy {
    }
  }
 
-
  initGraphStats(){
    this.podChart.series = [];
    this.memoryChart.series = [];
    this.cpuChart.series = [];
-  
+   // Pod Usage
    this.podUsagePercentage = this.percentageCalculator(this.graphStats.deployed_pod_count, this.graphStats.pod_capacity);
    this.podChart.series = [this.podUsagePercentage];
-
-
+    // CPU Usage and Allocatable
    this.cpuUsagePercentage = this.percentageCalculator(this.graphStats.node_cpu_usage, this.graphStats.node_cpu_capacity);
    this.cpuChart.series.push(this.cpuUsagePercentage);
    this.CpuAllocatablePercentage = this.percentageCalculator(this.graphStats.node_cpu_allocatable, this.graphStats.node_cpu_capacity);
    this.cpuChart.series.push(this.CpuAllocatablePercentage);
-
-
+    // Memory Usage and Allocatable
    this.MemoryUsagePercentage = this.percentageCalculator(this.graphStats.node_memory_usage, this.graphStats.node_memory_capacity);
    this.memoryChart.series.push(this.MemoryUsagePercentage);
    this.MemoryAllocatablePercentage = this.percentageCalculator(this.graphStats.node_memory_allocatable, this.graphStats.node_memory_capacity);
    this.memoryChart.series.push(this.MemoryAllocatablePercentage);
 
-
    this.statsLoaded = true;
  }
+
+ isNodeReady(item: any): boolean {
+  if (!item?.status?.conditions) {
+    return false; // Return false if conditions are not available
+  }
+
+  // Find the "Ready" condition
+  const readyCondition = item.status.conditions.find((condition: any) => condition.type === 'Ready');
+
+  // Check if the "Ready" condition exists and its status is "True"
+  if (readyCondition?.status === 'True') {
+    // Check if the node is schedulable
+    return !item?.spec?.unschedulable; // Return true if schedulable, false otherwise
+  }
+
+  return false; // Return false if the "Ready" condition is not "True"
+}
 }
 
 

@@ -28,6 +28,11 @@ func ResourceQuotaService() *resourceQuotaService {
 	return &rqs
 }
 
+const (
+	ResourceQuotaApiVersion = "v1"
+	ResourceQuotaKind       = "ResourceQuota"
+)
+
 type OutputResourceQuotaList struct {
 	Result    []corev1.ResourceQuota
 	Resource  string
@@ -101,9 +106,7 @@ func (p *GetResourceQuotaListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var resourceQuotaList *corev1.ResourceQuotaList
@@ -149,12 +152,21 @@ func (p *GetResourceQuotaListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetResourceQuotaListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ResourceQuotaApiVersion
+		p.output.Result[i].Kind = ResourceQuotaKind
+	}
+	return nil
+}
+
 func (resourceQuota *resourceQuotaService) GetResourceQuotaList(c context.Context, p GetResourceQuotaListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -176,6 +188,9 @@ func (p *GetResourceQuotaDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ResourceQuotaApiVersion
+	p.output.Kind = ResourceQuotaKind
 	return nil
 }
 

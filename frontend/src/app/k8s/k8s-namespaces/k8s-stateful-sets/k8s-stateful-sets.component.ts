@@ -130,9 +130,7 @@ export class K8sStatefulSetsComponent implements OnInit {
     dialog.componentInstance.applyManifestFor = 'stateful-set';
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }
@@ -186,6 +184,8 @@ export class K8sStatefulSetsComponent implements OnInit {
       metaTemp.annotations = item.metadata.annotations;
     }
     const preInputData: { [key: string]: any } = {};
+    preInputData.kind = item.kind;
+    preInputData.apiVersion = item.apiVersion;
     preInputData.metadata = metaTemp;
 
     if (item.spec) {
@@ -195,9 +195,7 @@ export class K8sStatefulSetsComponent implements OnInit {
     dialog.componentInstance.preInputData = preInputData;
     dialog.afterClosed().subscribe(res => {
       if (res) {
-        if (res != null) {
           this.getInstanceData();
-        }
       }
     });
   }

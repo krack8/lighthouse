@@ -106,23 +106,30 @@
           >
         </li>
         <li>
-          <button id="more-btn" class="flex items-center" mat-menu-item [matMenuTriggerFor]="more">
+          <button class="flex items-center more-btn" mat-menu-item [matMenuTriggerFor]="more">
             <span class="px-2">More</span>
             <mat-icon style="font-weight: 100; font-size: large; margin-right: 0px" [icIcon]="icDown"></mat-icon>
           </button>
           <mat-menu class="more-menu" #more="matMenu">
-            <input
-              (click)="$event.stopPropagation()"
-              [ngModelOptions]="{ standalone: true }"
-              [(ngModel)]="resourcesSearchTerm"
-              aria-name="search"
-              type="text"
-              class="px-2 py-2 bg-transparent appearance-none border-0 rounded w-full leading-tight focus:outline-none focus:shadow-outline"
-              autocomplete="off"
-              placeholder="Search ..."
-            />
+            <div class="select_search_wrapper">
+              <input
+                (click)="$event.stopPropagation()"
+                [ngModelOptions]="{ standalone: true }"
+                [(ngModel)]="resourcesSearchTerm"
+                aria-name="search"
+                type="text"
+                class="bg-transparent appearance-none border-0 rounded w-full leading-tight focus:outline-none focus:shadow-outline"
+                autocomplete="off"
+                placeholder="Search ..."
+              />
+            </div>
+
             <div *ngFor="let item of resourceRouteMap | keyvalue | filter: resourcesSearchTerm">
-              <button *hasAnyAuthority="resourcePermissionMap.get(item.value)" (click)="navigateToResources(item.value)" mat-menu-item>
+              <button
+                *hasAnyAuthority="resourcePermissionMap.get(item.value)"
+                (click)="navigateToResources(item.value)"
+                mat-menu-item
+              >
                 <span class="invisible">_</span>{{ item.key }}
               </button>
             </div>

@@ -19,7 +19,6 @@ export class SidenavComponent implements OnInit, OnDestroy {
   collapsedOpen$ = this.layoutService.sidenavCollapsedOpen$;
 
   items$: Observable<NavigationItem[]> = this.navigationService.Items$;
-  trackByRoute = trackByRoute;
 
   config!: ICoreConfig;
 
@@ -54,5 +53,18 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   navigateToHome(): void {
     this.router.navigate(['/']); // Change '/home' to your desired route
+  }
+
+  /**
+   * trackByRoute function for *ngFor directive in this component to track link routes aswell as child routes.
+   */
+  trackByRoute<T extends { route?: string | string[]; children?: { route: string | string[] }[] }>(index: number, item: T ): string | string[] | undefined {
+    if (item.route) {
+      return item.route;
+    }
+    if (item.children && item.children.length > 0) {
+      return item.children.map(child => child.route).join(',');
+    }
+    return undefined;
   }
 }

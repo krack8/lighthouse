@@ -163,6 +163,8 @@ func AddApiRoutes(httpRg *gin.RouterGroup) {
 	// Network Policy
 	httpRg.GET("/network-policy", api2.NetworkPolicyController().GetNetworkPolicyList)
 	httpRg.GET("/network-policy/:name", api2.NetworkPolicyController().GetNetworkPolicyDetails)
+	httpRg.POST("api/v1/network-policy", api2.NetworkPolicyController().DeployNetworkPolicy)
+	httpRg.DELETE("api/v1/network-policy/:name", api2.NetworkPolicyController().DeleteNetworkPolicy)
 
 	//Node
 	httpRg.GET("/node", api2.NodeController().GetNodeList)

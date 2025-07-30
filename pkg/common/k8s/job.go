@@ -27,6 +27,11 @@ func JobService() *jobService {
 	return &js
 }
 
+const (
+	JobApiVersion = "batch/v1"
+	JobKind       = "Job"
+)
+
 type Output struct {
 	Result    []batchv1.Job
 	Resource  string
@@ -106,9 +111,7 @@ func (p *GetJobListInputParams) Process() error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var jobList *batchv1.JobList
@@ -154,12 +157,21 @@ func (p *GetJobListInputParams) Process() error {
 	return nil
 }
 
+func (p *GetJobListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = JobApiVersion
+		p.output.Result[i].Kind = JobKind
+	}
+	return nil
+}
+
 func (svc *jobService) GetJobList(c context.Context, p GetJobListInputParams) (interface{}, error) {
 	err := p.Process()
 	if err != nil {
 		return ErrorResponse(err)
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -175,6 +187,9 @@ func (p *GetJobInputParams) Process() error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = JobApiVersion
+	p.output.Kind = JobKind
 	return nil
 }
 

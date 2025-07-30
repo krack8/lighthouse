@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import icCircle from '@iconify/icons-ic/twotone-lens';
 import { PermissionService, RequesterService } from '@core-ui/services';
+import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
+import data from '@iconify/icons-ic/twotone-add';
 
 enum View {
   GRID = 'grid',
@@ -39,7 +41,8 @@ export class ClusterListComponent implements OnInit {
     private router: Router,
     private _dialog: MatDialog,
     private permissionSvc: PermissionService,
-    private requesterService: RequesterService
+    private requesterService: RequesterService,
+    private selectedClusterService: SelectedClusterService
   ) {}
 
   ngOnInit(): void {
@@ -52,9 +55,21 @@ export class ClusterListComponent implements OnInit {
 
   getCluster(): void {
     this.dataLoading = true;
-    this.clusterService.getClusters().subscribe({
+    this.clusterService.clusterList$.subscribe({
       next: data => {
         this.clusterList = data || [];
+        // setting default cluster route for the side nav // one more condition may add in the future where user can select default cluster therefore condition will be to check if default cluster is selected        
+        if (!this.selectedClusterService.defaultClusterId) {
+          for (const cluster of this.clusterList) {
+            if (cluster.is_active) {
+              this.selectedClusterService.saveDefaultCluster({
+                defaultClusterId: cluster.id
+              });
+              this.selectedClusterService.setSelectedClusterId(cluster.id);
+              break;
+            }
+        }
+        }
         this.dataLoading = false;
         this.serverError = false;
       },
@@ -63,7 +78,7 @@ export class ClusterListComponent implements OnInit {
         this.serverError = true;
         this.toastrService.error(err.message, 'ERROR');
       }
-    });
+  });
   }
 
   changeView(): void {
@@ -76,7 +91,7 @@ export class ClusterListComponent implements OnInit {
 
   routeToDetails(cluster?: ICluster): void {
     if (cluster && cluster.is_active) {
-      this.router.navigate(['/clusters', cluster?.id, 'k8s', this.k8sRoute]);
+      this.router.navigate([cluster.id, 'k8s', this.k8sRoute]);
       return;
     }
 

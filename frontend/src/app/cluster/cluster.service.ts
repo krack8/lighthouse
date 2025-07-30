@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '@core-ui/services/http.service';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import * as endpoint from './cluster.endpoint';
 import { Utils } from '@shared-ui/utils';
 import { ICluster } from './cluster.model';
+import { switchMap } from 'rxjs/operators';
+import { ToastrService } from '@sdk-ui/ui';
 
 interface StatusObject {
   [key: string]: any;
@@ -12,7 +13,31 @@ interface StatusObject {
 
 @Injectable()
 export class ClusterService {
-  constructor(private httpService: HttpService) {}
+
+  private clusterListSubject: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+  public clusterList$: Observable<any[]> = this.clusterListSubject.asObservable();
+  
+  constructor(private httpService: HttpService, private toastrService: ToastrService) {}
+
+  getAllClusterList(): void {
+    this.getClusters().subscribe({
+      next: (clusters: ICluster[]) => {
+        this.setClusterList(clusters);
+      },
+      error: (error: any) => {
+        this.toastrService.error('Failed to load clusters', 'Error');
+        this.setClusterList([]);
+      }
+    });
+  }
+
+  get clusterListSnapshot(): ICluster[] {
+    return this.clusterListSubject.getValue();
+  }
+
+  setClusterList(clusterList: ICluster[]): void {
+    this.clusterListSubject.next(clusterList);
+  }
 
   /*   APIs   */
   // Definition: Used To Get Cluster List
@@ -20,7 +45,7 @@ export class ClusterService {
   // @dataFilter: Filter By Cluster State
   //
   getClusters(queryParams?: any): Observable<ICluster[]> {
-    return this.httpService.get(endpoint.GET_CLUSTERS, queryParams && queryParams);
+    return this.httpService.get(endpoint.GET_CLUSTERS, queryParams && queryParams)
   }
 
   /**

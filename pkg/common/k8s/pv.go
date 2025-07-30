@@ -27,6 +27,11 @@ func PvService() *pvService {
 	return &pvs
 }
 
+const (
+	pvApiVersion = "v1"
+	pvKind       = "PersistentVolume"
+)
+
 type OutputPvList struct {
 	Result    []corev1.PersistentVolume
 	Resource  string
@@ -46,6 +51,8 @@ type GetPvListInputParams struct {
 func (p *GetPvListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = pvApiVersion
+		p.output.Result[idx].Kind = pvKind
 	}
 	return nil
 }
@@ -107,9 +114,7 @@ func (p *GetPvListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var pvList *corev1.PersistentVolumeList
@@ -188,6 +193,9 @@ func (p *GetPvDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = pvApiVersion
+	p.output.Kind = pvKind
 	return nil
 }
 

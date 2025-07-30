@@ -27,6 +27,11 @@ func RoleService() *roleService {
 	return &rs
 }
 
+const (
+	RoleApiVersion = "rbac.authorization.k8s.io/v1"
+	RoleKind       = "Role"
+)
+
 type OutputRoleList struct {
 	Result    []rbacv1.Role
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetRoleListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var roleList *rbacv1.RoleList
@@ -148,12 +151,21 @@ func (p *GetRoleListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetRoleListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = RoleApiVersion
+		p.output.Result[i].TypeMeta.Kind = RoleKind
+	}
+	return nil
+}
+
 func (svc *roleService) GetRoleList(c context.Context, p GetRoleListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -175,6 +187,9 @@ func (p *GetRoleDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = RoleApiVersion
+	p.output.Kind = RoleKind
 	return nil
 }
 

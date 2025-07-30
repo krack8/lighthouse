@@ -27,6 +27,11 @@ func IstioGatewayService() *istioGatewayService {
 	return &ists
 }
 
+const (
+	IstioGatewayApiVersion = "networking.istio.io/v1"
+	IstioGatewayKind       = "Gateway"
+)
+
 type OutputIstioGatewayList struct {
 	Result    []*v1beta1.Gateway
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetIstioGatewayListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var istioGatewayList *v1beta1.GatewayList
@@ -142,11 +145,21 @@ func (p *GetIstioGatewayListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetIstioGatewayListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = IstioGatewayApiVersion
+		p.output.Result[i].TypeMeta.Kind = IstioGatewayKind
+	}
+	return nil
+}
+
 func (svc *istioGatewayService) GetIstioGatewayList(c context.Context, p GetIstioGatewayListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -168,6 +181,9 @@ func (p *GetIstioGatewayDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.TypeMeta.APIVersion = IstioGatewayApiVersion
+	p.output.TypeMeta.Kind = IstioGatewayKind
 	return nil
 }
 

@@ -8,10 +8,10 @@ import (
 	"github.com/krack8/lighthouse/pkg/common/log"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
+	"strings"
 )
 
 type NodeServiceInterface interface {
@@ -29,6 +29,11 @@ var ns nodeService
 func NodeService() *nodeService {
 	return &ns
 }
+
+const (
+	nodeApiVersion = "v1"
+	nodeKind       = "Node"
+)
 
 type ListOutput struct {
 	Result    []corev1.Node
@@ -64,18 +69,22 @@ type GetNodeInputParams struct {
 	output   DetailsOutput
 }
 
+func (p *GetNodeListInputParams) PostProcess(c context.Context) error {
+	for idx, _ := range p.output.Result {
+		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = nodeApiVersion
+		p.output.Result[idx].Kind = nodeKind
+	}
+	return nil
+}
+
 func (p *GetNodeListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching node list")
 	nodesClient := GetKubeClientSet().CoreV1().Nodes()
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
-	}
-	if p.Search != "" {
-		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", p.Search).String()
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	nodeList, err := nodesClient.List(context.Background(), listOptions)
 	if err != nil {
@@ -87,56 +96,89 @@ func (p *GetNodeListInputParams) Process(c context.Context) error {
 	p.output.GraphView.NodeMemoryAllocatable = 0
 	p.output.GraphView.NodeCpuCapacity = 0
 	p.output.GraphView.NodeMemoryAllocatable = 0
-	for _, node := range nodeList.Items {
-		p.output.GraphView.PodCapacity = p.output.GraphView.PodCapacity + int(node.Status.Capacity.Pods().Value())
-		p.output.GraphView.NodeCpuCapacity = float64(node.Status.Capacity.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuCapacity
-		p.output.GraphView.NodeMemoryCapacity = (node.Status.Capacity.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryCapacity
-		p.output.GraphView.NodeCpuAllocatable = float64(node.Status.Allocatable.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuAllocatable
-		p.output.GraphView.NodeMemoryAllocatable = (node.Status.Allocatable.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryAllocatable
-	}
-	metricsClient := GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
-	nodeMetricsList, err := metricsClient.List(context.Background(), listOptions)
-	if err != nil {
-		log.Logger.Errorw("Failed to process get node list metrics", "err", err.Error())
-		p.output.Metrics = []v1beta1.NodeMetrics{}
-		//return err
-	}
+
 	p.output.GraphView.NodeCpuUsage = 0
 	p.output.GraphView.NodeMemoryUsage = 0
-	if err == nil {
-		p.output.Metrics = nodeMetricsList.Items
-		for _, metric := range nodeMetricsList.Items {
-			p.output.GraphView.NodeCpuUsage = float64(metric.Usage.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuUsage
-			p.output.GraphView.NodeMemoryUsage = metric.Usage.Memory().AsApproximateFloat64()/(1024*1024*1024) + p.output.GraphView.NodeMemoryUsage
+	p.output.GraphView.DeployedPodCount = 0
+	if p.Search != "" {
+		nodeMap := map[string]bool{}
+		filteredNodeList := []corev1.Node{}
+		for _, node := range nodeList.Items {
+			if strings.Contains(node.Name, p.Search) {
+				nodeMap[node.Name] = true
+				filteredNodeList = append(filteredNodeList, node)
+				p.output.GraphView.PodCapacity = p.output.GraphView.PodCapacity + int(node.Status.Capacity.Pods().Value())
+				p.output.GraphView.NodeCpuCapacity = float64(node.Status.Capacity.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuCapacity
+				p.output.GraphView.NodeMemoryCapacity = (node.Status.Capacity.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryCapacity
+				p.output.GraphView.NodeCpuAllocatable = float64(node.Status.Allocatable.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuAllocatable
+				p.output.GraphView.NodeMemoryAllocatable = (node.Status.Allocatable.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryAllocatable
+				fieldSelector := fmt.Sprintf("spec.nodeName=%s", node.Name)
+				podList, err := GetKubeClientSet().CoreV1().Pods("").List(context.Background(), metav1.ListOptions{FieldSelector: fieldSelector})
+				if err != nil {
+					log.Logger.Errorw("Failed to process get pod count", "err", err.Error())
+				}
+				if podList != nil {
+					p.output.GraphView.DeployedPodCount += len(podList.Items)
+				}
+			}
 		}
+		metricsClient := GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
+		nodeMetricsList, err := metricsClient.List(context.Background(), listOptions)
+		if err != nil {
+			log.Logger.Errorw("Failed to process get node list metrics", "err", err.Error())
+			p.output.Metrics = []v1beta1.NodeMetrics{}
+		}
+		if err == nil {
+			for _, metric := range nodeMetricsList.Items {
+				_, exists := nodeMap[metric.Name]
+				if exists {
+					p.output.Metrics = append(p.output.Metrics, metric)
+					p.output.GraphView.NodeCpuUsage += float64(metric.Usage.Cpu().MilliValue()) / 1000.0
+					p.output.GraphView.NodeMemoryUsage += metric.Usage.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)
+				}
+			}
+		}
+		p.output.Result = filteredNodeList
+	} else {
+		for _, node := range nodeList.Items {
+			p.output.GraphView.PodCapacity = p.output.GraphView.PodCapacity + int(node.Status.Capacity.Pods().Value())
+			p.output.GraphView.NodeCpuCapacity = float64(node.Status.Capacity.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuCapacity
+			p.output.GraphView.NodeMemoryCapacity = (node.Status.Capacity.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryCapacity
+			p.output.GraphView.NodeCpuAllocatable = float64(node.Status.Allocatable.Cpu().MilliValue()/1000.0) + p.output.GraphView.NodeCpuAllocatable
+			p.output.GraphView.NodeMemoryAllocatable = (node.Status.Allocatable.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)) + p.output.GraphView.NodeMemoryAllocatable
+		}
+		metricsClient := GetMetricsClientSet().MetricsV1beta1().NodeMetricses()
+		nodeMetricsList, err := metricsClient.List(context.Background(), listOptions)
+		if err != nil {
+			log.Logger.Errorw("Failed to process get node list metrics", "err", err.Error())
+			p.output.Metrics = []v1beta1.NodeMetrics{}
+		}
+		if err == nil {
+			p.output.Metrics = nodeMetricsList.Items
+			for _, metric := range nodeMetricsList.Items {
+				p.output.GraphView.NodeCpuUsage += float64(metric.Usage.Cpu().MilliValue()) / 1000.0
+				p.output.GraphView.NodeMemoryUsage += metric.Usage.Memory().AsApproximateFloat64() / (1024 * 1024 * 1024)
+			}
+		}
+		podList, err := GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			log.Logger.Errorw("Failed to process get pod count", "err", err.Error())
+		}
+		// Count the total number of pods
+		if podList != nil {
+			p.output.GraphView.DeployedPodCount = len(podList.Items)
+		}
+		p.output.Result = nodeList.Items
 	}
-
-	podList, err := GetKubeClientSet().CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		log.Logger.Errorw("Failed to process get pod count", "err", err.Error())
-	}
-	// Count the total number of pods
-	p.output.GraphView.DeployedPodCount = len(podList.Items)
-	//for _, node := range nodeList.Items {
-	//	log.Logger.Infow("%s\n", node.Name, "val", "node")
-	//	for _, condition := range node.Status.Conditions {
-	//		log.Logger.Infow(fmt.Sprintf("\t%s: %s\n", condition.Type, condition.Status), "val", "status")
-	//	}
-	//	log.Logger.
-	//	Infow("Taint\n", "val", "taint")
-	//	for _, taint := range node.Spec.Taints {
-	//		log.Logger.Infow(fmt.Sprintf("\t%s: %s %s\n", taint.Effect, taint.Key, taint.Value), "val", "taints")
-	//	}
-	//}
-	p.output.Result = nodeList.Items
 	return nil
 }
 
 func (svc *nodeService) GetNodeList(c context.Context, p GetNodeListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
-		return nil, err
+		return ErrorResponse(err)
 	}
+	_ = p.PostProcess(c)
 
 	return ResponseDTO{
 		Status: "success",
@@ -166,6 +208,9 @@ func (p *GetNodeInputParams) Process(c context.Context) error {
 	}
 	p.output.DeployedPodCount = len(podList.Items)
 	p.output.Result = *output
+	p.output.Result.ManagedFields = nil
+	p.output.Result.APIVersion = nodeApiVersion
+	p.output.Result.Kind = nodeKind
 	if err == nil {
 		p.output.Metrics = *nodeMetrics
 	}

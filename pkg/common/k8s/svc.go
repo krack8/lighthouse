@@ -27,6 +27,11 @@ func SvcService() *svcService {
 	return &svcs
 }
 
+const (
+	SvcApiVersion = "v1"
+	SvcKind       = "Service"
+)
+
 type OutputSvcList struct {
 	Result    []corev1.Service
 	Resource  string
@@ -100,9 +105,7 @@ func (p *GetSvcListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var svcList *corev1.ServiceList
@@ -142,12 +145,21 @@ func (p *GetSvcListInputParams) Process(c context.Context) error {
 	return nil
 }
 
+func (p *GetSvcListInputParams) PostProcess(ctx context.Context) error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].TypeMeta.APIVersion = SvcApiVersion
+		p.output.Result[i].TypeMeta.Kind = SvcKind
+	}
+	return nil
+}
+
 func (svc *svcService) GetSvcList(c context.Context, p GetSvcListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -169,6 +181,9 @@ func (p *GetSvcDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = SvcApiVersion
+	p.output.Kind = SvcKind
 	return nil
 }
 

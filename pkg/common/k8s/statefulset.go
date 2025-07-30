@@ -31,6 +31,12 @@ func StatefulSetService() *statefulSetService {
 	return &sfss
 }
 
+const (
+	StatefulSetApiVersion = "apps/v1"
+	StatefulSetKind       = "StatefulSet"
+	PodLabelKey           = "controller-revision-hash"
+)
+
 type OutputStatefulSetList struct {
 	Result    []appsv1.StatefulSet
 	Resource  string
@@ -50,6 +56,8 @@ type GetStatefulSetListInputParams struct {
 func (p *GetStatefulSetListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = StatefulSetApiVersion
+		p.output.Result[idx].Kind = StatefulSetKind
 	}
 	return nil
 }
@@ -111,9 +119,7 @@ func (p *GetStatefulSetListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var statefulSetList *appsv1.StatefulSetList
@@ -179,11 +185,6 @@ type GetStatefulSetDetailsInputParams struct {
 	output          appsv1.StatefulSet
 }
 
-func (p *GetStatefulSetDetailsInputParams) PostProcess(c context.Context) error {
-	p.output.ManagedFields = nil
-	return nil
-}
-
 func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulSet details of ....", p.NamespaceName)
 	statefulSetsClient := GetKubeClientSet().AppsV1().StatefulSets(p.NamespaceName)
@@ -193,6 +194,9 @@ func (p *GetStatefulSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = StatefulSetApiVersion
+	p.output.Kind = StatefulSetKind
 	return nil
 }
 
@@ -201,7 +205,6 @@ func (svc *statefulSetService) GetStatefulSetDetails(c context.Context, p GetSta
 	if err != nil {
 		return nil, err
 	}
-	_ = p.PostProcess(c)
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -312,9 +315,7 @@ func (p *GetStatefulSetStatsInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 
 	statefulSetList, err := statefulSetClient.List(context.Background(), listOptions)
@@ -378,11 +379,6 @@ type GetStatefulSetPodListInputParams struct {
 	Labels          map[string]string
 	output          StatefulSetPodOutput
 }
-
-const (
-	PodLabelKey     = "controller-revision-hash"
-	StatefulSetKind = "StatefulSet"
-)
 
 func (p *GetStatefulSetPodListInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching statefulset pods list of ...."+p.StatefulSetName, "service", "statefulSet-pod-list")

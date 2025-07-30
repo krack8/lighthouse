@@ -27,6 +27,11 @@ func PvcService() *pvcService {
 	return &pvcs
 }
 
+const (
+	PvcApiVersion = "v1"
+	PvcKind       = "PersistentVolumeClaim"
+)
+
 type OutputPvcList struct {
 	Result    []corev1.PersistentVolumeClaim
 	Resource  string
@@ -46,6 +51,8 @@ type GetPvcListInputParams struct {
 func (p *GetPvcListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = PvcApiVersion
+		p.output.Result[idx].Kind = PvcKind
 	}
 	return nil
 }
@@ -107,9 +114,7 @@ func (p *GetPvcListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var pvcList *corev1.PersistentVolumeClaimList
@@ -169,11 +174,6 @@ type GetPvcDetailsInputParams struct {
 	output        corev1.PersistentVolumeClaim
 }
 
-func (p *GetPvcDetailsInputParams) PostProcess(c context.Context) error {
-	p.output.ManagedFields = nil
-	return nil
-}
-
 func (p *GetPvcDetailsInputParams) Process(c context.Context) error {
 	log.Logger.Debugw("fetching pvc details of ....", p.NamespaceName)
 	pvcsClient := GetKubeClientSet().CoreV1().PersistentVolumeClaims(p.NamespaceName)
@@ -183,6 +183,9 @@ func (p *GetPvcDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = PvcApiVersion
+	p.output.Kind = PvcKind
 	return nil
 }
 
@@ -191,8 +194,6 @@ func (pvc *pvcService) GetPvcDetails(c context.Context, p GetPvcDetailsInputPara
 	if err != nil {
 		return nil, err
 	}
-
-	_ = p.PostProcess(c)
 
 	return ResponseDTO{
 		Status: "success",

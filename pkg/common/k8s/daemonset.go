@@ -29,6 +29,11 @@ func DaemonSetService() *daemonSetService {
 	return &dss
 }
 
+const (
+	DaemonSetApiVersion = "apps/v1"
+	DaemonSetKind       = "DaemonSet"
+)
+
 type OutputDaemonSetList struct {
 	Result    []appv1.DaemonSet
 	Resource  string
@@ -95,6 +100,8 @@ func (p *GetDaemonSetListInputParams) Find(c context.Context, daemonsetClient v1
 func (p *GetDaemonSetListInputParams) PostProcess(c context.Context) error {
 	for idx, _ := range p.output.Result {
 		p.output.Result[idx].ManagedFields = nil
+		p.output.Result[idx].APIVersion = DaemonSetApiVersion
+		p.output.Result[idx].Kind = DaemonSetKind
 	}
 	return nil
 }
@@ -109,9 +116,7 @@ func (p *GetDaemonSetListInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 
 	var err error
@@ -192,6 +197,9 @@ func (p *GetDaemonSetDetailsInputParams) Process(c context.Context) error {
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = DaemonSetApiVersion
+	p.output.Kind = DaemonSetKind
 	return nil
 }
 
@@ -311,9 +319,7 @@ func (p *GetDaemonSetStatsInputParams) Process(c context.Context) error {
 	listOptions := metav1.ListOptions{}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 
 	if p.Search != "" {

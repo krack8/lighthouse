@@ -27,6 +27,11 @@ func ClusterRoleBindingService() *clusterRoleBindingService {
 	return &crbs
 }
 
+const (
+	ClusterRoleBindingApiVersion = "rbac.authorization.k8s.io/v1"
+	ClusterRoleBindingKind       = "ClusterRoleBinding"
+)
+
 type OutputClusterRoleBindingList struct {
 	Result    []rbacv1.ClusterRoleBinding
 	Resource  string
@@ -99,9 +104,7 @@ func (p *GetClusterRoleBindingListInputParams) Process(c context.Context) error 
 	listOptions := metav1.ListOptions{Limit: limit, Continue: p.Continue}
 	if p.Labels != nil {
 		labelSelector := metav1.LabelSelector{MatchLabels: p.Labels}
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
+		listOptions.LabelSelector = labels.Set(labelSelector.MatchLabels).String()
 	}
 	var err error
 	var clusterRoleBindingList *rbacv1.ClusterRoleBindingList
@@ -147,12 +150,21 @@ func (p *GetClusterRoleBindingListInputParams) Process(c context.Context) error 
 	return nil
 }
 
+func (p *GetClusterRoleBindingListInputParams) PostProcess() error {
+	for i := 0; i < len(p.output.Result); i++ {
+		p.output.Result[i].ManagedFields = nil
+		p.output.Result[i].APIVersion = ClusterRoleBindingApiVersion
+		p.output.Result[i].Kind = ClusterRoleKind
+	}
+	return nil
+}
+
 func (svc *clusterRoleBindingService) GetClusterRoleBindingList(c context.Context, p GetClusterRoleBindingListInputParams) (interface{}, error) {
 	err := p.Process(c)
 	if err != nil {
 		return nil, err
 	}
-
+	_ = p.PostProcess()
 	return ResponseDTO{
 		Status: "success",
 		Data:   p.output,
@@ -173,6 +185,9 @@ func (p *GetClusterRoleBindingDetailsInputParams) Process(c context.Context) err
 		return err
 	}
 	p.output = *output
+	p.output.ManagedFields = nil
+	p.output.APIVersion = ClusterRoleBindingApiVersion
+	p.output.Kind = ClusterRoleBindingKind
 	return nil
 }
 
