@@ -69,15 +69,7 @@ export class K8sNamespacesComponent implements OnInit, OnDestroy {
 
   onChangeNamespace(e: MatSelectChange): void {
     const urlSegments = window.location.href.split('/');
-    if (urlSegments.length > 8) {
-      const path = urlSegments[7].split('?')[0]; // gets the name of the namespace entity ex: {.../namespace/pods?namespace=klovercloud} returns 'pods'
-      this.router.navigate([path], {
-        queryParams: { namespace: e.value },
-        relativeTo: this.route
-      });
-      return;
-    }
-    const path = urlSegments[urlSegments.length - 1].split('?')[0];
+    const path = urlSegments[6].split('?')[0]; // gets the name of the namespace entity ex: {.../namespace/pods?namespace=klovercloud} returns 'pods'
     this.router.navigate([path], {
       queryParams: { namespace: e.value },
       relativeTo: this.route
