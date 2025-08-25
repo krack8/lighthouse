@@ -42,6 +42,13 @@ func main() {
 		}
 	}
 
+	/*	// Initialize ArgoCD handler
+		agentManager := argocd.NewAgentManager()
+		argoCDHandler := argocd.NewHandler(agentManager)
+
+		// Register ArgoCD routes
+		argocd.RegisterRoutes(router, argoCDHandler)*/
+
 	_log.Logger.Infow("Starting agent", "groupName", groupName)
 
 	tasks.InitTaskRegistry()
@@ -186,4 +193,17 @@ func main() {
 			continue // Retry connecting
 		}
 	}
+
+	/*// Method 1: From environment variables
+	client, err := argocd.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Use the client
+	apps, err := client.ListApplications("")
+	if err != nil {
+		log.Fatal(err)
+	}*/
+
 }

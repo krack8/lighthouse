@@ -1,0 +1,291 @@
+syntax = "proto3";
+package lighthouse;
+option go_package = "github.com/krack8/lighthouse/proto";
+
+// ============= AGENT SERVICE DEFINITIONS =============
+
+// Agent Registration Service - Agents connect to Controller
+service AgentService {
+  // Agent lifecycle
+  rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
+  rpc UnregisterAgent(UnregisterAgentRequest) returns (UnregisterAgentResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+
+  // Agent information
+  rpc GetAgentInfo(GetAgentInfoRequest) returns (GetAgentInfoResponse);
+  rpc UpdateAgentStatus(UpdateAgentStatusRequest) returns (UpdateAgentStatusResponse);
+}
+
+// Registration messages
+message RegisterAgentRequest {
+  string agent_id = 1;
+  string cluster_name = 2;
+  string agent_address = 3;
+  string version = 4;
+  AgentCapabilities capabilities = 5;
+  map<string, string> labels = 6;
+}
+
+message RegisterAgentResponse {
+  bool success = 1;
+  string message = 2;
+  string controller_version = 3;
+  int64 heartbeat_interval = 4;
+}
+
+message UnregisterAgentRequest {
+  string agent_id = 1;
+  string reason = 2;
+}
+
+message UnregisterAgentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HeartbeatRequest {
+  string agent_id = 1;
+  AgentStatus status = 2;
+  AgentMetrics metrics = 3;
+}
+
+message HeartbeatResponse {
+  bool success = 1;
+  repeated AgentCommand commands = 2;
+}
+
+message GetAgentInfoRequest {
+  string agent_id = 1;
+}
+
+message GetAgentInfoResponse {
+  AgentInfo agent = 1;
+}
+
+message UpdateAgentStatusRequest {
+  string agent_id = 1;
+  AgentStatus status = 2;
+}
+
+message UpdateAgentStatusResponse {
+  bool success = 1;
+}
+
+// Agent data types
+message AgentCapabilities {
+  bool supports_argocd = 1;
+  bool supports_kubernetes = 2;
+  bool supports_helm = 3;
+  string argocd_version = 4;
+  string kubernetes_version = 5;
+}
+
+message AgentStatus {
+  string state = 1;
+  string health = 2;
+  string message = 3;
+  int64 last_seen = 4;
+}
+
+message AgentMetrics {
+  int32 applications_count = 1;
+  int32 projects_count = 2;
+  int32 repositories_count = 3;
+  float cpu_usage = 4;
+  float memory_usage = 5;
+}
+
+message AgentInfo {
+  string agent_id = 1;
+  string cluster_name = 2;
+  string agent_address = 3;
+  string version = 4;
+  AgentCapabilities capabilities = 5;
+  AgentStatus status = 6;
+  AgentMetrics metrics = 7;
+  map<string, string> labels = 8;
+  int64 registered_at = 9;
+}
+
+message AgentCommand {
+  string command = 1;
+  map<string, string> parameters = 2;
+}
+
+// ============= ARGOCD SERVICE DEFINITIONS =============
+
+service ArgoCDService {
+  // Application operations
+  rpc ListApplications(ListAppsRequest) returns (ListAppsResponse);
+  rpc GetApplication(GetAppRequest) returns (Application);
+  rpc CreateApplication(CreateAppRequest) returns (Application);
+  rpc UpdateApplication(UpdateAppRequest) returns (Application);
+  rpc DeleteApplication(DeleteAppRequest) returns (Empty);
+  rpc SyncApplication(SyncAppRequest) returns (SyncResponse);
+  rpc RollbackApplication(RollbackAppRequest) returns (Application);
+
+  // Project operations
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);
+  rpc GetProject(GetProjectRequest) returns (Project);
+  rpc CreateProject(CreateProjectRequest) returns (Project);
+
+  // Repository operations
+  rpc ListRepositories(ListReposRequest) returns (ListReposResponse);
+  rpc CreateRepository(CreateRepoRequest) returns (Repository);
+  rpc DeleteRepository(DeleteRepoRequest) returns (Empty);
+
+  // Cluster operations
+  rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+  rpc AddCluster(AddClusterRequest) returns (Cluster);
+}
+
+// Application messages
+message Application {
+  string name = 1;
+  string namespace = 2;
+  string project = 3;
+  ApplicationSource source = 4;
+  ApplicationDestination destination = 5;
+  SyncStatus sync_status = 6;
+  HealthStatus health_status = 7;
+}
+
+message ApplicationSource {
+  string repo_url = 1;
+  string path = 2;
+  string target_revision = 3;
+}
+
+message ApplicationDestination {
+  string server = 1;
+  string namespace = 2;
+}
+
+message SyncStatus {
+  string status = 1;
+  string revision = 2;
+}
+
+message HealthStatus {
+  string status = 1;
+  string message = 2;
+}
+
+message ListAppsRequest {
+  string project = 1;
+}
+
+message ListAppsResponse {
+  repeated Application applications = 1;
+}
+
+message GetAppRequest {
+  string name = 1;
+}
+
+message CreateAppRequest {
+  string name = 1;
+  string namespace = 2;
+  string project = 3;
+  ApplicationSource source = 4;
+  ApplicationDestination destination = 5;
+  bool auto_sync = 6;
+}
+
+message UpdateAppRequest {
+  string name = 1;
+  string namespace = 2;
+  string project = 3;
+  ApplicationSource source = 4;
+  ApplicationDestination destination = 5;
+}
+
+message DeleteAppRequest {
+  string name = 1;
+  bool cascade = 2;
+}
+
+message SyncAppRequest {
+  string name = 1;
+  bool prune = 2;
+  bool dry_run = 3;
+}
+
+message RollbackAppRequest {
+  string name = 1;
+  string revision = 2;
+}
+
+message SyncResponse {
+  string status = 1;
+  string message = 2;
+}
+
+// Project messages
+message Project {
+  string name = 1;
+  string description = 2;
+  repeated string source_repos = 3;
+}
+
+message ListProjectsRequest {}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message GetProjectRequest {
+  string name = 1;
+}
+
+message CreateProjectRequest {
+  string name = 1;
+  string description = 2;
+  repeated string source_repos = 3;
+}
+
+// Repository messages
+message Repository {
+  string url = 1;
+  string username = 2;
+  string type = 3;
+  string status = 4;
+}
+
+message ListReposRequest {}
+
+message ListReposResponse {
+  repeated Repository repositories = 1;
+}
+
+message CreateRepoRequest {
+  string url = 1;
+  string username = 2;
+  string password = 3;
+  string type = 4;
+}
+
+message DeleteRepoRequest {
+  string url = 1;
+}
+
+// Cluster messages
+message Cluster {
+  string name = 1;
+  string server = 2;
+  string status = 3;
+}
+
+message ListClustersRequest {}
+
+message ListClustersResponse {
+  repeated Cluster clusters = 1;
+}
+
+message AddClusterRequest {
+  string name = 1;
+  string server = 2;
+  string config = 3;
+}
+
+message Empty {}
