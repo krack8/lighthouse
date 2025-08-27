@@ -4,6 +4,14 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/krack8/lighthouse/pkg/agent/argocd"
 	agentClient "github.com/krack8/lighthouse/pkg/agent/client"
 	"github.com/krack8/lighthouse/pkg/agent/tasks"
 	"github.com/krack8/lighthouse/pkg/common/config"
@@ -11,13 +19,10 @@ import (
 	_log "github.com/krack8/lighthouse/pkg/common/log"
 	"github.com/krack8/lighthouse/pkg/common/pb"
 	"github.com/krack8/lighthouse/pkg/controller/auth/utils"
-	"log"
-	"strings"
-	"sync"
-	"time"
 )
 
 var taskMutex sync.Mutex
+var argocdClient *argocd.RESTClient
 
 func main() {
 	_log.InitializeLogger()
@@ -42,12 +47,12 @@ func main() {
 		}
 	}
 
-	/*	// Initialize ArgoCD handler
-		agentManager := argocd.NewAgentManager()
-		argoCDHandler := argocd.NewHandler(agentManager)
-
-		// Register ArgoCD routes
-		argocd.RegisterRoutes(router, argoCDHandler)*/
+	// ==== ARGOCD INTEGRATION START ====
+	// Initialize ArgoCD client if credentials are provided
+	if os.Getenv("ARGOCD_SERVER") != "" && os.Getenv("ARGOCD_AUTH_TOKEN") != "" {
+		initializeArgoCDClient()
+	}
+	// ==== ARGOCD INTEGRATION END ====
 
 	_log.Logger.Infow("Starting agent", "groupName", groupName)
 
@@ -68,7 +73,6 @@ func main() {
 	streamRecoveryInterval := 5 * time.Second
 	for streamRecoveryAttempt := 0; streamRecoveryAttempt < streamRecoveryMaxAttempt; streamRecoveryAttempt++ {
 		ctx, cancel := context.WithCancel(context.Background())
-		//defer cancel() // Cancel the context when the program exits
 
 		conn, stream, err := agentClient.ConnectAndIdentifyWorker(ctx, controllerGrpcServerHost, secretName, resourceNamespace, groupName, caCertPool)
 		if err != nil {
@@ -90,25 +94,48 @@ func main() {
 
 				case *pb.TaskStreamResponse_NewTask:
 					task := payload.NewTask
-					_log.Logger.Infow("Agent received a new task: ID=%s, payload=%s",
-						task.Id, task.Payload)
-					go func(taskID, taskPayload string, task *pb.Task) {
+					_log.Logger.Infow("Agent received a new task: ID=%s, Name=%s, payload=%s",
+						task.Id, task.Name, task.Payload)
+
+					go func(taskID, taskName, taskPayload string, task *pb.Task) {
 						taskMutex.Lock()
 						defer taskMutex.Unlock()
 						TaskResult := &pb.TaskResult{}
-						res, err := tasks.TaskSelector(task)
-						if err != nil {
-							TaskResult.Success = false
-							TaskResult.Output = err.Error()
-						} else {
-							output, err := json.Marshal(res)
+
+						// Check if this is an ArgoCD task by name prefix
+						if strings.HasPrefix(task.Name, "argocd:") {
+							res, err := handleArgoCDTask(task)
 							if err != nil {
 								TaskResult.Success = false
 								TaskResult.Output = err.Error()
+							} else {
+								output, err := json.Marshal(res)
+								if err != nil {
+									TaskResult.Success = false
+									TaskResult.Output = err.Error()
+								} else {
+									TaskResult.Success = true
+									TaskResult.Output = string(output)
+								}
 							}
-							TaskResult.Success = true
-							TaskResult.Output = string(output)
+						} else {
+							// Handle regular K8s tasks
+							res, err := tasks.TaskSelector(task)
+							if err != nil {
+								TaskResult.Success = false
+								TaskResult.Output = err.Error()
+							} else {
+								output, err := json.Marshal(res)
+								if err != nil {
+									TaskResult.Success = false
+									TaskResult.Output = err.Error()
+								} else {
+									TaskResult.Success = true
+									TaskResult.Output = string(output)
+								}
+							}
 						}
+
 						TaskResult.TaskId = taskID
 						resultMsg := &pb.TaskStreamRequest{
 							Payload: &pb.TaskStreamRequest_TaskResult{
@@ -120,13 +147,14 @@ func main() {
 						if err = stream.Send(resultMsg); err != nil {
 							_log.Logger.Errorw("Failed to send task result", "err", err)
 						}
-					}(task.Id, task.Payload, task)
+					}(task.Id, task.Name, task.Payload, task)
 
 				case *pb.TaskStreamResponse_NewPodLogsStream:
 					podLogsTask := payload.NewPodLogsStream
 					_log.Logger.Infow("Agent received a new pod logs task: ID=%s, payload=%s",
 						podLogsTask.Id, podLogsTask.Payload)
 					_ = tasks.LogStreamTask(podLogsTask, stream)
+
 				case *pb.TaskStreamResponse_ExecReq:
 					task := payload.ExecReq
 					err := tasks.PodExecTask(task.TaskId, task.Payload, task.Input, task.Command, stream)
@@ -134,6 +162,7 @@ func main() {
 						_log.Logger.Errorw("Failed to send pod exec result", "err", err)
 						return
 					}
+
 				case *pb.TaskStreamResponse_Ack:
 					_log.Logger.Infow("Agent received an ACK from server: "+payload.Ack.Message, "info", "ACK")
 
@@ -193,17 +222,178 @@ func main() {
 			continue // Retry connecting
 		}
 	}
+}
 
-	/*// Method 1: From environment variables
-	client, err := argocd.NewClientFromEnv()
-	if err != nil {
-		log.Fatal(err)
+// ==== ARGOCD FUNCTIONS START ====
+
+func initializeArgoCDClient() {
+	argocdServer := os.Getenv("ARGOCD_SERVER")
+	argocdToken := os.Getenv("ARGOCD_AUTH_TOKEN")
+	argocdInsecure := os.Getenv("ARGOCD_INSECURE") == "true"
+
+	argocdClient = argocd.NewRESTClient(argocdServer, argocdToken, argocdInsecure)
+	_log.Logger.Infow("ArgoCD client initialized", "server", argocdServer)
+}
+
+func handleArgoCDTask(task *pb.Task) (interface{}, error) {
+	if argocdClient == nil {
+		return nil, fmt.Errorf("ArgoCD client not initialized")
 	}
 
-	// Use the client
-	apps, err := client.ListApplications("")
-	if err != nil {
-		log.Fatal(err)
-	}*/
+	// Parse input data from task.Input field
+	var inputData map[string]interface{}
+	if task.Input != "" {
+		if err := json.Unmarshal([]byte(task.Input), &inputData); err != nil {
+			return nil, fmt.Errorf("failed to parse input: %w", err)
+		}
+	}
 
+	// Handle based on task name
+	switch task.Name {
+	case "argocd:list_applications":
+		project := ""
+		if inputData != nil {
+			if p, ok := inputData["project"].(string); ok {
+				project = p
+			}
+		}
+		return argocdClient.ListApplications(project)
+
+	case "argocd:get_application":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+		return argocdClient.GetApplication(name)
+
+	case "argocd:create_application":
+		// CreateApplication expects ApplicationSpec, not Application
+		var spec argocd.ApplicationSpec
+		specData, _ := json.Marshal(inputData)
+		if err := json.Unmarshal(specData, &spec); err != nil {
+			return nil, err
+		}
+		return argocdClient.CreateApplication(&spec)
+
+	case "argocd:update_application":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+
+		// UpdateApplication expects name and ApplicationSpec
+		var spec argocd.ApplicationSpec
+		if appInput, ok := inputData["application"]; ok {
+			appData, _ := json.Marshal(appInput)
+			if err := json.Unmarshal(appData, &spec); err != nil {
+				return nil, err
+			}
+		}
+		return argocdClient.UpdateApplication(name, &spec)
+
+	case "argocd:delete_application":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+		cascade := false
+		if c, ok := inputData["cascade"].(bool); ok {
+			cascade = c
+		}
+		// DeleteApplication returns error, not (nil, error)
+		err := argocdClient.DeleteApplication(name, cascade)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]bool{"success": true}, nil
+
+	case "argocd:sync_application":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+
+		// SyncApplication needs revision, prune, dryRun parameters
+		revision := "HEAD"
+		if r, ok := inputData["revision"].(string); ok && r != "" {
+			revision = r
+		}
+		prune := false
+		if p, ok := inputData["prune"].(bool); ok {
+			prune = p
+		}
+		dryRun := false
+		if d, ok := inputData["dryRun"].(bool); ok {
+			dryRun = d
+		}
+		return argocdClient.SyncApplication(name, revision, prune, dryRun)
+
+	case "argocd:rollback_application":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+		revision := ""
+		if r, ok := inputData["revision"].(string); ok {
+			revision = r
+		}
+		return argocdClient.RollbackApplication(name, revision)
+
+	case "argocd:get_application_resources":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+		return argocdClient.GetApplicationResources(name)
+
+	case "argocd:get_application_logs":
+		if inputData == nil {
+			return nil, fmt.Errorf("parameters required")
+		}
+		appName, ok1 := inputData["appName"].(string)
+		namespace, ok2 := inputData["namespace"].(string)
+		podName, ok3 := inputData["podName"].(string)
+		container, ok4 := inputData["container"].(string)
+		if !ok1 || !ok2 || !ok3 || !ok4 {
+			return nil, fmt.Errorf("appName, namespace, podName, and container are required")
+		}
+		return argocdClient.GetApplicationLogs(appName, namespace, podName, container)
+
+	case "argocd:terminate_operation":
+		if inputData == nil || inputData["name"] == nil {
+			return nil, fmt.Errorf("application name required")
+		}
+		name := inputData["name"].(string)
+		err := argocdClient.TerminateOperation(name)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]bool{"success": true}, nil
+
+	case "argocd:list_projects":
+		return argocdClient.ListProjects()
+
+	case "argocd:create_project":
+		// Assuming CreateProject expects ProjectSpec
+		var spec argocd.ProjectSpec
+		specData, _ := json.Marshal(inputData)
+		if err := json.Unmarshal(specData, &spec); err != nil {
+			return nil, err
+		}
+		return argocdClient.CreateProject(&spec)
+
+	case "argocd:list_repositories":
+		return argocdClient.ListRepositories()
+
+	case "argocd:create_repository":
+		var repo argocd.Repository
+		repoData, _ := json.Marshal(inputData)
+		if err := json.Unmarshal(repoData, &repo); err != nil {
+			return nil, err
+		}
+		return argocdClient.CreateRepository(&repo)
+
+	default:
+		return nil, fmt.Errorf("unknown ArgoCD task: %s", task.Name)
+	}
 }

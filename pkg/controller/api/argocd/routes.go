@@ -26,6 +26,7 @@ func RegisterRoutes(router *gin.RouterGroup, handler *Handler) {
 			apps.PUT("/:name", handler.UpdateApplication)
 			apps.DELETE("/:name", handler.DeleteApplication)
 			apps.POST("/:name/sync", handler.SyncApplication)
+			apps.POST("/:name/rollback", handler.RollbackApplication)
 		}
 
 		// Project routes

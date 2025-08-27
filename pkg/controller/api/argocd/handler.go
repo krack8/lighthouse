@@ -1,162 +1,136 @@
 package argocd
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/krack8/lighthouse/shared"
+	"github.com/krack8/lighthouse/pkg/controller/core"
 )
 
-// Handler handles ArgoCD API requests
 type Handler struct {
-	agentManager *AgentManager
+	// Uses core agent manager through SendTaskToAgent
 }
 
-// NewHandler creates a new handler
-func NewHandler(am *AgentManager) *Handler {
-	return &Handler{
-		agentManager: am,
-	}
+func NewHandler() *Handler {
+	return &Handler{}
 }
 
-// RegisterAgent handles agent registration
-func (h *Handler) RegisterAgent(c *gin.Context) {
-	var req shared.AgentRegistrationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := h.agentManager.RegisterAgent(req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, shared.AgentRegistrationResponse{
-		Success:           true,
-		Message:           "Agent registered successfully",
-		HeartbeatInterval: 30,
-	})
-}
-
-// Heartbeat handles agent heartbeat
-func (h *Handler) Heartbeat(c *gin.Context) {
-	var req shared.HeartbeatRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := h.agentManager.UpdateHeartbeat(req.AgentID); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, shared.HeartbeatResponse{
-		Success: true,
-	})
-}
-
-// ListAgents returns all registered agents
-func (h *Handler) ListAgents(c *gin.Context) {
-	agents := h.agentManager.ListAgents()
-	c.JSON(http.StatusOK, gin.H{"agents": agents})
-}
-
-// ListApplications lists ArgoCD applications
 func (h *Handler) ListApplications(c *gin.Context) {
-	clusterID := c.Query("cluster_id")
+	agentGroup := c.Query("agent_group")
 	project := c.Query("project")
 
-	if clusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
 		return
 	}
 
-	agent, err := h.agentManager.GetAgent(clusterID)
+	// Prepare input data
+	input := map[string]interface{}{
+		"project": project,
+	}
+	inputJSON, _ := json.Marshal(input)
+
+	// Send task using the existing SendTaskToAgent function
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:list_applications", // task name
+		inputJSON,                  // input data
+		agentGroup,                 // agent group
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	var resp shared.ListApplicationsResponse
-	req := shared.ListApplicationsRequest{Project: project}
-
-	if err := agent.CallAgent("POST", "/api/argocd/applications/list", req, &resp); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	// Parse result
+	var apps interface{}
+	if err := json.Unmarshal([]byte(result.Output), &apps); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, apps)
 }
 
-// GetApplication gets a specific application
 func (h *Handler) GetApplication(c *gin.Context) {
 	name := c.Param("name")
-	clusterID := c.Query("cluster_id")
+	agentGroup := c.Query("agent_group")
 
-	if clusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
 		return
 	}
 
-	agent, err := h.agentManager.GetAgent(clusterID)
+	input := map[string]interface{}{
+		"name": name,
+	}
+	inputJSON, _ := json.Marshal(input)
+
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:get_application",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	var app shared.Application
-	endpoint := "/api/argocd/applications/" + name
-
-	if err := agent.CallAgent("GET", endpoint, nil, &app); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var app interface{}
+	if err := json.Unmarshal([]byte(result.Output), &app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
 		return
 	}
 
 	c.JSON(http.StatusOK, app)
 }
 
-// CreateApplication creates a new application
 func (h *Handler) CreateApplication(c *gin.Context) {
+	agentGroup := c.Query("agent_group")
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
+
 	var req CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if req.ClusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
-		return
-	}
+	// Convert request to input data
+	inputJSON, _ := json.Marshal(req)
 
-	agent, err := h.agentManager.GetAgent(req.ClusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:create_application",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Create shared request - Source and Destination are already shared types
-	sharedReq := shared.CreateApplicationRequest{
-		Name:        req.Name,
-		Namespace:   req.Namespace,
-		Project:     req.Project,
-		Source:      req.Source,      // Already shared.ApplicationSource
-		Destination: req.Destination, // Already shared.ApplicationDestination
-	}
-
-	var app shared.Application
-	if err := agent.CallAgent("POST", "/api/argocd/applications", sharedReq, &app); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var app interface{}
+	if err := json.Unmarshal([]byte(result.Output), &app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, app)
 }
 
-// UpdateApplication updates an existing application
 func (h *Handler) UpdateApplication(c *gin.Context) {
 	name := c.Param("name")
+	agentGroup := c.Query("agent_group")
+
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
 
 	var req UpdateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -164,223 +138,281 @@ func (h *Handler) UpdateApplication(c *gin.Context) {
 		return
 	}
 
-	if req.ClusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
-		return
+	input := map[string]interface{}{
+		"name":        name,
+		"application": req,
 	}
+	inputJSON, _ := json.Marshal(input)
 
-	agent, err := h.agentManager.GetAgent(req.ClusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:update_application",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Create shared request
-	sharedReq := shared.UpdateApplicationRequest{
-		Namespace:   req.Namespace,
-		Project:     req.Project,
-		Source:      req.Source,      // Already shared.ApplicationSource
-		Destination: req.Destination, // Already shared.ApplicationDestination
-	}
-
-	endpoint := "/api/argocd/applications/" + name
-
-	var app shared.Application
-	if err := agent.CallAgent("PUT", endpoint, sharedReq, &app); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var app interface{}
+	if err := json.Unmarshal([]byte(result.Output), &app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
 		return
 	}
 
 	c.JSON(http.StatusOK, app)
 }
 
-// DeleteApplication deletes an application
-func (h *Handler) DeleteApplication(c *gin.Context) {
+func (h *Handler) RollbackApplication(c *gin.Context) {
 	name := c.Param("name")
-	clusterID := c.Query("cluster_id")
-	cascade := c.Query("cascade") == "true"
+	agentGroup := c.Query("agent_group")
 
-	if clusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
 		return
 	}
 
-	agent, err := h.agentManager.GetAgent(clusterID)
+	var req struct {
+		Revision string `json:"revision" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	input := map[string]interface{}{
+		"name":     name,
+		"revision": req.Revision,
+	}
+	inputJSON, _ := json.Marshal(input)
+
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:rollback_application",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	req := shared.DeleteApplicationRequest{
-		Name:    name,
-		Cascade: cascade,
-	}
-
-	endpoint := "/api/argocd/applications/" + name
-
-	var resp shared.DeleteApplicationResponse
-	if err := agent.CallAgent("DELETE", endpoint, req, &resp); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	var app interface{}
+	if err := json.Unmarshal([]byte(result.Output), &app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, app)
 }
 
-// SyncApplication syncs an application
-func (h *Handler) SyncApplication(c *gin.Context) {
-	name := c.Param("name")
-
-	var req SyncApplicationRequest
-	c.ShouldBindJSON(&req)
-
-	if req.ClusterID == "" {
-		req.ClusterID = c.Query("cluster_id")
-	}
-
-	if req.ClusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
-		return
-	}
-
-	agent, err := h.agentManager.GetAgent(req.ClusterID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	sharedReq := shared.SyncApplicationRequest{
-		Name:   name,
-		Prune:  req.Prune,
-		DryRun: req.DryRun,
-	}
-
-	var resp shared.SyncApplicationResponse
-	endpoint := "/api/argocd/applications/" + name + "/sync"
-
-	if err := agent.CallAgent("POST", endpoint, sharedReq, &resp); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, resp)
-}
-
-// ListProjects lists ArgoCD projects
 func (h *Handler) ListProjects(c *gin.Context) {
-	clusterID := c.Query("cluster_id")
+	agentGroup := c.Query("agent_group")
 
-	if clusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
 		return
 	}
 
-	agent, err := h.agentManager.GetAgent(clusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:list_projects",
+		nil, // no input needed
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	var projects []shared.Project
-	if err := agent.CallAgent("GET", "/api/argocd/projects", nil, &projects); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var projects interface{}
+	if err := json.Unmarshal([]byte(result.Output), &projects); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"projects": projects})
 }
 
-// CreateProject creates a new project
 func (h *Handler) CreateProject(c *gin.Context) {
+	agentGroup := c.Query("agent_group")
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
+
 	var req CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if req.ClusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
-		return
-	}
+	inputJSON, _ := json.Marshal(req)
 
-	agent, err := h.agentManager.GetAgent(req.ClusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:create_project",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Create project directly - already using shared types
-	project := shared.Project{
-		Name:        req.Name,
-		Description: req.Description,
-		SourceRepos: req.SourceRepos,
-	}
-
-	var created shared.Project
-	if err := agent.CallAgent("POST", "/api/argocd/projects", project, &created); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, created)
+	var project interface{}
+	if err := json.Unmarshal([]byte(result.Output), &project); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, project)
 }
 
-// ListRepositories lists ArgoCD repositories
 func (h *Handler) ListRepositories(c *gin.Context) {
-	clusterID := c.Query("cluster_id")
+	agentGroup := c.Query("agent_group")
 
-	if clusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
 		return
 	}
 
-	agent, err := h.agentManager.GetAgent(clusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:list_repositories",
+		nil,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	var repos []shared.Repository
-	if err := agent.CallAgent("GET", "/api/argocd/repositories", nil, &repos); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var repos interface{}
+	if err := json.Unmarshal([]byte(result.Output), &repos); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"repositories": repos})
 }
 
-// CreateRepository creates a new repository
 func (h *Handler) CreateRepository(c *gin.Context) {
+	agentGroup := c.Query("agent_group")
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
+
 	var req CreateRepositoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if req.ClusterID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
-		return
-	}
+	inputJSON, _ := json.Marshal(req)
 
-	agent, err := h.agentManager.GetAgent(req.ClusterID)
+	result, err := core.GetAgentManager().SendTaskToAgent(
+		c.Request.Context(),
+		"argocd:create_repository",
+		inputJSON,
+		agentGroup,
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Create repository - note Password field handling
-	repo := shared.Repository{
-		URL:      req.URL,
-		Type:     req.Type,
-		Username: req.Username,
-		Password: req.Password, // Password is in shared.Repository
-	}
-
-	var created shared.Repository
-	if err := agent.CallAgent("POST", "/api/argocd/repositories", repo, &created); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, created)
+	var repo interface{}
+	if err := json.Unmarshal([]byte(result.Output), &repo); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, repo)
+}
+
+// Stub handlers for remaining routes
+func (h *Handler) RegisterAgent(c *gin.Context) {
+	// Not needed for gRPC-based agents
+	c.JSON(http.StatusOK, gin.H{"message": "Agent registration through gRPC"})
+}
+
+func (h *Handler) Heartbeat(c *gin.Context) {
+	// Not needed for gRPC-based agents
+	c.JSON(http.StatusOK, gin.H{"message": "Heartbeat through gRPC"})
+}
+
+func (h *Handler) ListAgents(c *gin.Context) {
+	// Return empty array properly
+	agents := make([]interface{}, 0)
+	c.JSON(http.StatusOK, gin.H{"agents": agents})
+}
+
+// Example of updated handler using task sender functions (modify the above functions)
+func (h *Handler) DeleteApplication(c *gin.Context) {
+	name := c.Param("name")
+	agentGroup := c.Query("agent_group")
+	cascade := c.Query("cascade") == "true"
+
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
+
+	// Use the task sender function
+	result, err := SendDeleteApplicationTask(c.Request.Context(), agentGroup, name, cascade)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": result.Success,
+		"message": "Application deleted",
+	})
+}
+
+func (h *Handler) SyncApplication(c *gin.Context) {
+	name := c.Param("name")
+	agentGroup := c.Query("agent_group")
+
+	if agentGroup == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "agent_group is required"})
+		return
+	}
+
+	var req struct {
+		Revision string `json:"revision,omitempty"`
+		Prune    bool   `json:"prune"`
+		DryRun   bool   `json:"dry_run"`
+	}
+	c.ShouldBindJSON(&req)
+
+	if req.Revision == "" {
+		req.Revision = "HEAD"
+	}
+
+	// Use the task sender function
+	result, err := SendSyncApplicationTask(
+		c.Request.Context(),
+		agentGroup,
+		name,
+		req.Revision,
+		req.Prune,
+		req.DryRun,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var app interface{}
+	if err := json.Unmarshal([]byte(result.Output), &app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, app)
 }

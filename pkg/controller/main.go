@@ -23,7 +23,7 @@ func main() {
 
 	go srvr.StartGrpcServer()
 
-	// Connect to the database ..
+	// Connect to the database
 	client, ctx, err := config.ConnectDB()
 	if err != nil {
 		log.Fatalf("Error connecting to DB: %v", err)
@@ -92,7 +92,7 @@ func startArgoCDServer(agentManager *argocd.AgentManager) {
 	// ArgoCD API routes
 	v1 := router.Group("/api/v1")
 	{
-		argoCDHandler := argocd.NewHandler(agentManager)
+		argoCDHandler := argocd.NewHandler()
 		argocd.RegisterRoutes(v1, argoCDHandler)
 	}
 
