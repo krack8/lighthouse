@@ -335,7 +335,7 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
     const currentTime = new Date();
     const diff = (currentTime.getTime() - this.tokenReceiveTime.getTime()) / 60000;
     if (diff > 2) {
-      queryParam = { limit: this.data.length + 10 };
+      queryParam = { limit: this.data?.length + 10 };
     } else {
       queryParam = { continue: this.resourceToken };
     }
@@ -361,6 +361,7 @@ export class K8sNamespacesListComponent implements OnInit, OnDestroy {
         },
         error: err => {
           this.toastr.error('Failed: ', err.error.message);
+          this.loadMoreData = false;
         }
       });
   }

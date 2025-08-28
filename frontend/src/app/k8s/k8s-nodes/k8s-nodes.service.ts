@@ -24,14 +24,7 @@ export class K8sNodesService {
   }
 
   getNodeDetails(name: string): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.NODE_LIST + '/' + name, { cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.NODE_LIST + '/' + name, { cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   nodeCordonUncordon(name: string): Observable<any> {

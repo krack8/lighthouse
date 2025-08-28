@@ -13,25 +13,11 @@ export class K8sClusterRoleService {
   ) {}
 
   getClusterRole(queryParam?: any): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_ROLE, { ...queryParam, cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_ROLE, { ...queryParam, cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   getClusterRoleDetails(name: string): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_ROLE + '/' + name, { cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_ROLE + '/' + name, { cluster_id: this.k8sService.clusterIdSnapshot });
   }
   /* 
     Create & update
