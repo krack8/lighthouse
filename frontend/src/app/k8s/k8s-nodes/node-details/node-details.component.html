@@ -112,8 +112,7 @@
                 <div class="kc-dataset__name">Usage</div>
                 <div *ngIf="metrics?.metadata?.creationTimestamp; else noData">
                   <div *ngFor="let item of metrics?.usage | keyvalue">
-                    <h3 class="kc-dataset__value">
-                      <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                    <h3 class="kc-dataset__value"> <span class="kc-dataset-key">{{ item.key }}: </span> {{ convertUnitToBase(item.value, item.key) }} 
                     </h3>
                   </div>
                 </div>
@@ -197,7 +196,7 @@
               <div class="kc-dataset">
                 <div class="kc-dataset__name">Allocatable</div>
                 <h3 class="kc-dataset__value" *ngFor="let item of details?.status?.allocatable | keyvalue">
-                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ convertUnitToBase(item.value, item.key) }}
                 </h3>
               </div>
             </div>
@@ -206,7 +205,7 @@
               <div class="kc-dataset">
                 <div class="kc-dataset__name">Capacity</div>
                 <h3 class="kc-dataset__value" *ngFor="let item of details?.status?.capacity | keyvalue">
-                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ item.value }}
+                  <span class="kc-dataset-key">{{ item.key }}: </span> {{ convertUnitToBase(item.value, item.key) }}
                 </h3>
               </div>
             </div>
@@ -304,7 +303,7 @@
                     <thead>
                       <tr>
                         <th width="30%">Name</th>
-                        <th width="40%">Size (Bytes)</th>
+                        <th width="40%">Size (GB)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -313,7 +312,7 @@
                           <span *ngFor="let item of image.names"> {{ item }} <br /> </span>
                         </td>
                         <td width="10%">
-                          {{ image.sizeBytes }}
+                          {{ convertBytesToGigabytes(image.sizeBytes) }}
                         </td>
                       </tr>
                     </tbody>

@@ -57,6 +57,13 @@ export class NodeDetailsComponent implements OnInit {
   icArrowBack = icArrowBack;
   icCircle = icCircle;
 
+  unitMap = {
+    'cpu': 'core',
+    'memory': 'Gi',
+    'pods': '',
+    'ephemeral-storage': 'Gi'
+  };
+
   constructor(
     private route: ActivatedRoute,
     private nodeService: K8sNodesService,
@@ -190,5 +197,30 @@ export class NodeDetailsComponent implements OnInit {
       return false;
     }
     return true;
+  }
+
+  convertUnitToBase(value: any, key?: any): any {
+    const unit = value.replace(/\d/g, '');
+    const size = value.replace(/\D/g, '');
+    if (unit === 'Ki') {
+      return Number((parseInt(size) / 1_000_000).toFixed(2)) + ' Gi'; // Convert KiB to GiB
+    } else if (unit === 'Mi') {
+      return Number((parseInt(size) / 1_000).toFixed(2)) + ' Gi'; // Convert MiB to GiB
+    }  else if (unit === 'n') {
+      return Number((parseInt(size) / 1_000_000_000).toFixed(2)) + ' core'; // Convert nano core to core
+    } else if (unit === 'm') {
+      return Number((parseInt(size) / 1_000).toFixed(2)) + ' core'; // Convert milli core to core
+    } else if (key && key === 'ephemeral-storage' && unit == '') {
+      return Number((parseInt(size) / 1_073_741_824).toFixed(2)) + ' Gi'; // Convert bytes to GiB
+    }
+    if(unit == '' && key && this.unitMap[key]) {
+      return parseFloat(size) + ' ' + this.unitMap[key]; // if no unit is available from data, Return the value with the unit from unitMap 
+    }
+    return parseFloat(size); // Fallback for other units or plain numbers
+  }
+
+  //byte to gigabyte
+  convertBytesToGigabytes(bytes: number): number {
+    return Number((bytes / (1024 * 1024 * 1024)).toFixed(2));
   }
 }
