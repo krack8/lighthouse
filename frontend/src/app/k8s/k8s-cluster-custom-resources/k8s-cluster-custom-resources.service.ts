@@ -13,47 +13,19 @@ export class K8sClusterCustomResourcesService {
   ) {}
 
   getCustomResourcesDefination(queryParams?: any): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES_DEFINATION, { cluster_id: clusterId, ...queryParams });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES_DEFINATION, { cluster_id: this.k8sService.clusterIdSnapshot, ...queryParams });
   }
 
   getCustomResourceDefinationDetails(name: string): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES_DEFINATION + '/' + name, { cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES_DEFINATION + '/' + name, { cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   getCustomResources(params: any): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES, { ...params, cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES, { ...params, cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   getCustomResourceDetails(name: string, qp: any): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES + '/' + name, { ...qp, cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.CLUSTER_CUSTOM_RESOURCES + '/' + name, { ...qp, cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   /* 

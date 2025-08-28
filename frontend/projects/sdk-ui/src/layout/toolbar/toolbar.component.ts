@@ -1,13 +1,12 @@
-import { Component, HostBinding, Inject, Input, OnInit } from '@angular/core';
 import { Platform } from '@angular/cdk/platform';
-import { Observable } from 'rxjs';
-import { stagger80ms, fadeInUp400ms, scaleIn400ms, fadeInRight400ms } from '@sdk-ui/animations';
-import { CoreConfigService } from '@core-ui/services';
-import { LayoutService, ToolbarService } from '@sdk-ui/services';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ClusterService } from '@cluster/cluster.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { CoreConfigService } from '@core-ui/services';
 import { K8sService } from '@k8s/k8s.service';
-import { SelectedClusterService } from '@core-ui/services/selected-cluster.service';
+import { fadeInRight400ms, fadeInUp400ms, scaleIn400ms, stagger80ms } from '@sdk-ui/animations';
+import { LayoutService, ToolbarService } from '@sdk-ui/services';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'kc-toolbar',

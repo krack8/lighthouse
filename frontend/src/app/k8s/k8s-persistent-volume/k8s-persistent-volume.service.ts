@@ -13,25 +13,11 @@ export class K8sPersistentVolumeService {
   ) {}
 
   getPersitentVolume(queryParam?: any): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.PV_LIST, { ...queryParam, cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.PV_LIST, { ...queryParam, cluster_id: this.k8sService.clusterIdSnapshot });
   }
 
   getPvDetails(name: string): Observable<any> {
-    return this.k8sService.clusterId$.pipe(
-      switchMap((clusterId: string) => {
-        if (!clusterId) {
-          return of({ data: null });
-        }
-        return this.http.get(endpoints.PV_LIST + '/' + name, { cluster_id: clusterId });
-      })
-    );
+    return this.http.get(endpoints.PV_LIST + '/' + name, { cluster_id: this.k8sService.clusterIdSnapshot });
   }
   /* 
         Create & update
